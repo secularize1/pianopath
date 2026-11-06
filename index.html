@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f7f8f3">
   <title>琴阶 PianoPath · 每周 4 小时钢琴进阶</title>
-  <meta name="description" content="从零基础到精通的 12 周钢琴训练路径：逐分钟练习、权威教学资源、打卡与个性化计划。">
+  <meta name="description" content="从零基础到精通的 12 周钢琴训练路径：逐分钟练习、国内教学资源、打卡、每日任务与跨设备进度。">
+  <meta property="og:title" content="琴阶 PianoPath · 每天一课，练到能演奏">
+  <meta property="og:description" content="每周 4 小时，跟着 12 周路径从第一颗音开始。">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/hero-piano.jpg">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -49,11 +54,12 @@
         <div class="streak-days" id="sideWeekDots" aria-label="本周打卡"></div>
       </div>
 
-      <button class="profile-mini" id="openSettings" type="button">
-        <span class="avatar">C</span>
-        <span><strong>练琴人</strong><small id="profileSub">每周 4 小时 · 自学者</small></span>
+      <button class="profile-mini" id="openAccount" type="button">
+        <span class="avatar" id="sideAvatar">C</span>
+        <span><strong id="sideUserName">练琴人</strong><small id="profileSub">每周 4 小时 · 自学者</small></span>
         <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
       </button>
+      <button class="settings-link" id="openSettings" type="button">练习计划设置</button>
 
       <button class="install-button hidden" id="installApp" type="button"><span>▣</span> 安装到桌面</button>
     </aside>
@@ -82,6 +88,7 @@
             <strong id="xpValue">0 XP</strong>
           </button>
           <button class="avatar-button" id="profileButton" aria-label="打开个性化计划">C</button>
+          <div class="sync-status-bar" id="syncStatusBar" role="status" aria-live="polite"><span class="sync-dot"></span><span id="syncStatusText">本地保存</span></div>
         </div>
       </header>
 
@@ -224,6 +231,34 @@
     </nav>
   </div>
 
+  <div class="modal-backdrop hidden" id="accountModal" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+    <div class="account-card">
+      <button class="icon-button modal-close" id="closeAccount" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="account-brand"><span class="account-logo">♪</span><div><span class="eyebrow">PIANOPATH ACCOUNT</span><h2 id="accountTitle">保存你的学习进度</h2></div></div>
+      <p class="account-intro" id="accountIntro">登录后，课程、XP 和每日任务会在设备间同步。游客模式也可以继续使用。</p>
+      <div class="account-tabs" id="accountTabs">
+        <button type="button" class="account-tab active" data-account-mode="login">登录</button>
+        <button type="button" class="account-tab" data-account-mode="register">创建账户</button>
+      </div>
+      <form id="accountForm" class="account-form">
+        <label class="account-name hidden" id="accountNameField"><span>昵称</span><input name="name" maxlength="60" autocomplete="nickname" placeholder="怎么称呼你"></label>
+        <label><span>邮箱</span><input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label><span>密码</span><input name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="至少 8 位"></label>
+        <div class="account-error" id="accountError" role="alert"></div>
+        <button type="submit" class="btn btn-primary full-width" id="accountSubmit">登录并同步</button>
+      </form>
+      <div class="account-logged-in hidden" id="accountLoggedIn">
+        <div class="account-avatar" id="accountAvatar">C</div>
+        <div class="account-user"><strong id="accountUserName">练琴人</strong><small id="accountUserEmail"></small></div>
+        <div class="account-sync-state"><span class="sync-dot"></span><span id="accountSyncState">已同步</span></div>
+        <div class="account-actions"><button type="button" class="btn btn-soft" id="accountSyncNow">立即同步</button><button type="button" class="text-button" id="accountLogout">退出登录</button></div>
+      </div>
+      <div class="account-divider"><span>或</span></div>
+      <button type="button" class="guest-button" id="continueGuest">继续以游客身份使用</button>
+      <p class="account-note">账户为可选功能。你的练习数据默认保存在本机，不会自动公开。</p>
+    </div>
+  </div>
+
   <div class="modal-backdrop hidden" id="onboardingModal" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
     <div class="onboarding-card">
       <button class="icon-button modal-close onboarding-skip" id="closeOnboarding" aria-label="稍后设置"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
@@ -335,7 +370,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.3 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.4 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

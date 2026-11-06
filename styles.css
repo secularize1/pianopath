@@ -948,3 +948,34 @@ body {
 body.modal-open { overflow:hidden; }
 [aria-current="page"] { font-weight: 850; }
 @media(max-width:820px){ .topbar-actions .theme-toggle, .topbar-actions #themeToggle { display:none; } }
+/* 1.4 optional account + sync UI */
+.settings-link { width:100%; margin-top:4px; border:0; background:transparent; color:#93a099; font-size:8px; text-align:left; padding:6px 10px; border-radius:8px; }
+.settings-link:hover { color:#557260; background:#fff; }
+.account-card { position:relative; width:min(460px,100%); max-height:calc(100vh - 32px); overflow:auto; padding:28px; border-radius:24px; background:#fffefb; box-shadow:0 30px 100px rgba(24,39,29,.24); border:1px solid #e7ebe1; }
+.account-brand { display:flex; align-items:center; gap:12px; padding-right:26px; }
+.account-logo { width:48px; height:48px; display:grid; place-items:center; flex:0 0 auto; border-radius:15px; background:#e5f4df; color:#418d54; font-size:25px; transform:rotate(-4deg); }
+.account-brand h2 { margin:5px 0 0; font-size:22px; letter-spacing:-.8px; color:#2c4432; }
+.account-intro { margin:17px 0 16px; color:#839187; font-size:10px; line-height:1.7; }
+.account-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; border-radius:10px; background:#f3f5ef; margin-bottom:17px; }
+.account-tab { border:0; border-radius:7px; padding:8px; background:transparent; color:#829087; font-size:10px; font-weight:750; }
+.account-tab.active { background:#fff; color:#3e7e50; box-shadow:0 2px 7px rgba(49,74,55,.08); }
+.account-form label { display:block; margin-bottom:11px; }
+.account-form label > span { display:block; margin-bottom:6px; color:#667a6b; font-size:9px; font-weight:750; }
+.account-form input { width:100%; padding:10px 11px; border:1px solid #e0e7dc; border-radius:9px; background:#fbfcf9; color:#455c4b; font-size:10px; outline-color:#89bd95; }
+.account-error { min-height:15px; color:#b85e51; font-size:8px; line-height:1.5; }
+.account-form .btn { min-height:39px; }
+.account-divider { position:relative; margin:16px 0 11px; text-align:center; }
+.account-divider::before { content:""; position:absolute; top:50%; left:0; right:0; height:1px; background:#edf0ea; }
+.account-divider span { position:relative; padding:0 8px; background:#fffefb; color:#acb5ae; font-size:8px; }
+.guest-button { width:100%; padding:8px; border:0; background:transparent; color:#788b7c; font-size:9px; }
+.guest-button:hover { color:#428355; }
+.account-note { margin:13px 0 0; color:#adb6af; font-size:8px; line-height:1.6; text-align:center; }
+.account-logged-in { display:flex; flex-wrap:wrap; align-items:center; gap:11px; padding:14px; border:1px solid #dde9d9; border-radius:13px; background:#f8fbf6; }
+.account-avatar { display:grid; place-items:center; width:39px; height:39px; border-radius:12px; background:#deefdc; color:#438353; font-size:17px; font-weight:800; }
+.account-user { flex:1; min-width:0; }.account-user strong { display:block; font-size:12px; }.account-user small { display:block; margin-top:3px; overflow:hidden; text-overflow:ellipsis; color:#94a097; font-size:8px; }
+.account-sync-state { display:flex; align-items:center; gap:4px; color:#68906f; font-size:8px; }.sync-dot { width:6px; height:6px; border-radius:50%; background:#58b36e; }
+.account-actions { display:flex; align-items:center; justify-content:space-between; width:100%; gap:10px; margin-top:6px; }.account-actions .btn { padding:7px 10px; font-size:8px; }.account-actions .text-button { font-size:8px; color:#889a8c; }
+.account-name.hidden { display:none; }
+.sync-status-bar { display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; margin-top:8px; border-radius:7px; background:#f4f7f1; color:#98a49b; font-size:8px; }
+.sync-status-bar .sync-dot { width:5px; height:5px; background:#b6c1b7; }.sync-status-bar.synced .sync-dot { background:#5eb473; }.sync-status-bar.error .sync-dot { background:#d28771; }
+@media(max-width:540px){ .account-card{padding:21px 16px 17px}.account-brand h2{font-size:19px}.account-logo{width:40px;height:40px;font-size:22px}.account-actions{flex-wrap:wrap}.account-actions .btn{flex:1}.account-actions .text-button{width:100%;text-align:center} }

@@ -46,8 +46,11 @@
   let currentRating = 3;
   let backendAvailable = false;
 
-  function persist() {
+  function persist(options = {}) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (window.PIANO_ACCOUNT && window.PIANO_ACCOUNT.loggedIn && options.sync !== false) {
+      window.PIANO_ACCOUNT.queueSync();
+    }
   }
 
   function escapeHtml(value) {
@@ -475,7 +478,16 @@
     setTimeout(() => toast.remove(), 2800);
   }
 
-  window.PIANO_APP = { state, DATA, persist, renderAll, updateNav, showToast, findSession, sessionsForWeek, currentWeekData, currentSessionData, streakCount, renderLibrary, isSessionComplete: isComplete, totalXp, levelForXp };
+  window.PIANO_APP = {
+    state, DATA, persist, renderAll, updateNav, showToast, findSession,
+    sessionsForWeek, currentWeekData, currentSessionData, streakCount,
+    renderLibrary, isSessionComplete: isComplete, totalXp, levelForXp,
+    replaceState(nextState) {
+      Object.keys(state).forEach((key) => delete state[key]);
+      Object.assign(state, structuredClone(defaultState), nextState || {});
+      state.profile = { ...defaultState.profile, ...((nextState && nextState.profile) || {}) };
+    }
+  };
 })();
 
 (() => {
@@ -951,6 +963,7 @@
   }
 
   window.addEventListener('beforeunload', () => rememberActiveSession(true));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && accountState.loggedIn) syncNow(); });
 
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
@@ -1195,6 +1208,15 @@
     });
 
     $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
+    $('#openAccount')?.addEventListener('click', openAccount);
+    $('#profileButton')?.addEventListener('click', openAccount);
+    document.querySelectorAll('.account-tab').forEach((button) => button.addEventListener('click', () => setAccountMode(button.dataset.accountMode)));
+    document.querySelector('#accountForm')?.addEventListener('submit', submitAccount);
+    document.querySelector('#closeAccount')?.addEventListener('click', closeAccount);
+    document.querySelector('#continueGuest')?.addEventListener('click', closeAccount);
+    document.querySelector('#accountSyncNow')?.addEventListener('click', () => syncNow({ force: true }));
+    document.querySelector('#accountLogout')?.addEventListener('click', logoutAccount);
+    window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
     $('#routeWarmup')?.addEventListener('click', openWarmup);
     $('#routeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     $('#startRhythmGame')?.addEventListener('click', openNoteGame);
@@ -1237,7 +1259,6 @@
       $$('#ratingRow button').forEach((item) => item.classList.toggle('selected', item === button));
     });
     $('#openSettings')?.addEventListener('click', openSettings);
-    $('#profileButton')?.addEventListener('click', openSettings);
     $('#streakButton')?.addEventListener('click', () => APP.updateNav('stats'));
     $('#customizeTop')?.addEventListener('click', openSettings);
     $('#closeSettings')?.addEventListener('click', closeSettings);
@@ -1304,7 +1325,8 @@
     $$('.modal-backdrop').forEach((backdrop) => {
       backdrop.addEventListener('click', (event) => {
         if (event.target !== backdrop) return;
-        if (backdrop.id === 'onboardingModal') closeOnboarding();
+        if (backdrop.id === 'accountModal') closeAccount();
+        else if (backdrop.id === 'onboardingModal') closeOnboarding();
         else if (backdrop.id === 'settingsModal') closeSettings();
         else if (backdrop.id === 'warmupModal') closeWarmup();
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
@@ -1313,7 +1335,8 @@
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
-        if (!$('#onboardingModal').classList.contains('hidden')) closeOnboarding();
+        if (!$('#accountModal').classList.contains('hidden')) closeAccount();
+        else if (!$('#onboardingModal').classList.contains('hidden')) closeOnboarding();
         else if (!$('#settingsModal').classList.contains('hidden')) closeSettings();
         else if (!$('#videoModal').classList.contains('hidden')) closeVideo();
         else if (!$('#warmupModal').classList.contains('hidden')) closeWarmup();
@@ -1325,8 +1348,271 @@
   APP.openSession = openSession;
   APP.openSettings = openSettings;
   APP.openOnboarding = () => openOnboarding(true);
+  APP.getAccountState = () => ({ ...accountState });
   APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;
+
+  const accountState = {
+    loggedIn: false,
+    user: null,
+    mode: 'login',
+    syncRevision: 0,
+    syncInFlight: null,
+    syncRetryTimer: null,
+    dirty: false
+  };
+  window.PIANO_ACCOUNT = {
+    get loggedIn() { return accountState.loggedIn; },
+    queueSync,
+    syncNow,
+    refresh
+  };
+
+  function setSyncStatus(text, type = '') {
+    const bar = document.querySelector('#syncStatusBar');
+    const label = document.querySelector('#syncStatusText');
+    const accountLabel = document.querySelector('#accountSyncState');
+    if (label) label.textContent = text;
+    if (accountLabel) accountLabel.textContent = text;
+    if (bar) bar.className = `sync-status-bar ${type}`;
+  }
+
+  function setAccountMode(mode) {
+    accountState.mode = mode === 'register' ? 'register' : 'login';
+    document.querySelectorAll('.account-tab').forEach((button) => button.classList.toggle('active', button.dataset.accountMode === accountState.mode));
+    const nameField = document.querySelector('#accountNameField');
+    if (nameField) nameField.classList.toggle('hidden', accountState.mode !== 'register');
+    const submit = document.querySelector('#accountSubmit');
+    if (submit) submit.textContent = accountState.mode === 'register' ? '创建账户并同步' : '登录并同步';
+    const password = document.querySelector('#accountForm input[name="password"]');
+    if (password) password.setAttribute('autocomplete', accountState.mode === 'register' ? 'new-password' : 'current-password');
+    const error = document.querySelector('#accountError');
+    if (error) error.textContent = '';
+  }
+
+  function showAccountView() {
+    const form = document.querySelector('#accountForm');
+    const tabs = document.querySelector('#accountTabs');
+    const divider = document.querySelector('.account-divider');
+    const guest = document.querySelector('#continueGuest');
+    const logged = document.querySelector('#accountLoggedIn');
+    const intro = document.querySelector('#accountIntro');
+    const note = document.querySelector('.account-note');
+    if (!form) return;
+    form.classList.toggle('hidden', accountState.loggedIn);
+    tabs?.classList.toggle('hidden', accountState.loggedIn);
+    divider?.classList.toggle('hidden', accountState.loggedIn);
+    guest?.classList.toggle('hidden', accountState.loggedIn);
+    note?.classList.toggle('hidden', accountState.loggedIn);
+    logged?.classList.toggle('hidden', !accountState.loggedIn);
+    if (intro) intro.textContent = accountState.loggedIn ? '账户已连接。离线时仍会先保存到本机，联网后再同步。' : '登录后，课程、XP 和每日任务会在设备间同步。游客模式也可以继续使用。';
+    if (accountState.loggedIn && accountState.user) {
+      const name = accountState.user.name || '练琴人';
+      document.querySelector('#accountUserName').textContent = name;
+      document.querySelector('#accountUserEmail').textContent = accountState.user.email || '';
+      document.querySelector('#accountAvatar').textContent = name.slice(0, 1).toUpperCase();
+      document.querySelector('#sideUserName').textContent = name;
+      document.querySelector('#sideAvatar').textContent = name.slice(0, 1).toUpperCase();
+    } else {
+      document.querySelector('#sideUserName').textContent = '练琴人';
+      document.querySelector('#sideAvatar').textContent = 'C';
+    }
+  }
+
+  async function refresh() {
+    if (location.protocol === 'file:') {
+      accountState.loggedIn = false;
+      accountState.user = null;
+      showAccountView();
+      setSyncStatus('本地保存', '');
+      return accountState;
+    }
+    try {
+      const response = await fetch('/api/auth/me', { cache: 'no-store', credentials: 'same-origin' });
+      if (!response.ok) throw new Error('auth unavailable');
+      const data = await response.json();
+      accountState.loggedIn = Boolean(data.authenticated);
+      accountState.user = data.user || null;
+      showAccountView();
+      setSyncStatus(accountState.loggedIn ? '账户已连接' : '本地保存', accountState.loggedIn ? 'synced' : '');
+      if (accountState.loggedIn) setSyncStatus('账户已连接', 'synced');
+    } catch (error) {
+      accountState.loggedIn = false;
+      accountState.user = null;
+      showAccountView();
+      setSyncStatus('本地保存', '');
+    }
+    return accountState;
+  }
+
+  async function accountRequest(path, body) {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(body)
+    });
+    let data = {};
+    try { data = await response.json(); } catch (error) {}
+    if (!response.ok) throw new Error(data.error || '请求失败，请稍后再试。');
+    return data;
+  }
+
+  async function submitAccount(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const errorBox = document.querySelector('#accountError');
+    if (errorBox) errorBox.textContent = '';
+    const email = form.email.value.trim();
+    const password = form.password.value;
+    const name = form.name?.value.trim() || '练琴人';
+    try {
+      const path = accountState.mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+      const data = await accountRequest(path, accountState.mode === 'register' ? { email, password, name } : { email, password });
+      accountState.loggedIn = true;
+      accountState.user = data.user;
+      form.reset();
+      showAccountView();
+      setSyncStatus('正在同步', 'syncing');
+      await pushLocalThenPull();
+      APP.showToast(accountState.mode === 'register' ? '账户已创建，进度开始同步。' : '已登录，进度已同步。');
+    } catch (error) {
+      if (errorBox) errorBox.textContent = error.message;
+    }
+  }
+
+  async function pullRemote() {
+    const response = await fetch('/api/sync', { cache: 'no-store', credentials: 'same-origin' });
+    if (response.status === 401) {
+      accountState.loggedIn = false;
+      accountState.user = null;
+      showAccountView();
+      setSyncStatus('本地保存', '');
+      return null;
+    }
+    if (!response.ok) throw new Error('同步读取失败');
+    return response.json();
+  }
+
+  async function pushLocalThenPull() {
+    const remote = await pullRemote();
+    if (!remote) return;
+    const localHistoryCount = APP.state.history.length;
+    const remoteHistoryCount = remote.state?.history?.length || 0;
+    if (remote.state && remoteHistoryCount > localHistoryCount) {
+      APP.replaceState(remote.state);
+      APP.persist({ sync: false });
+      APP.renderAll();
+      updateProgressDisplay();
+    } else if (localHistoryCount > 0 || Object.keys(APP.state.completed || {}).length > 0) {
+      const result = await syncNow({ force: true });
+      if (!result) return;
+    }
+    accountState.syncRevision = remote.revision || accountState.syncRevision;
+    setSyncStatus('已同步', 'synced');
+    await refreshAccountSummary();
+  }
+
+  async function syncNow({ pull = false, force = false } = {}) {
+    if (!accountState.loggedIn) { setSyncStatus('本地保存', ''); return null; }
+    if (pull && !force) {
+      const remote = await pullRemote().catch(() => null);
+      if (remote && remote.state && (remote.state.history?.length || 0) > (APP.state.history?.length || 0)) {
+        APP.replaceState(remote.state);
+        APP.persist({ sync: false });
+        APP.renderAll();
+        updateProgressDisplay();
+      }
+      accountState.syncRevision = remote?.revision || 0;
+      setSyncStatus('已同步', 'synced');
+      return remote;
+    }
+    if (accountState.syncInFlight) return accountState.syncInFlight;
+    accountState.syncInFlight = (async () => {
+      setSyncStatus('正在同步', 'syncing');
+      try {
+        let response = await fetch('/api/sync', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: APP.state, baseRevision: accountState.syncRevision })
+        });
+        let result = await response.json().catch(() => ({}));
+        if (response.status === 409) {
+          const remote = result.state;
+          const localHistory = APP.state.history?.length || 0;
+          const remoteHistory = remote?.history?.length || 0;
+          if (remote && remoteHistory > localHistory) {
+            APP.replaceState(remote);
+            APP.persist({ sync: false });
+            APP.renderAll();
+            updateProgressDisplay();
+            accountState.syncRevision = result.revision;
+            setSyncStatus('已恢复云端进度', 'synced');
+            return result;
+          }
+          accountState.syncRevision = result.revision;
+          return syncNow();
+        }
+        if (response.status === 401) {
+          accountState.loggedIn = false;
+          accountState.user = null;
+          showAccountView();
+          setSyncStatus('本地保存', '');
+          return null;
+        }
+        if (!response.ok) throw new Error(result.error || '同步失败');
+        accountState.syncRevision = result.revision;
+        setSyncStatus('已同步', 'synced');
+        return result;
+      } catch (error) {
+        setSyncStatus('等待联网', 'error');
+        accountState.dirty = true;
+        clearTimeout(accountState.syncRetryTimer);
+        accountState.syncRetryTimer = setTimeout(() => { if (accountState.loggedIn) syncNow(); }, 12000);
+        return null;
+      } finally {
+        accountState.syncInFlight = null;
+      }
+    })();
+    return accountState.syncInFlight;
+  }
+
+  async function queueSync() {
+    if (!accountState.loggedIn) return;
+    accountState.dirty = true;
+    if (accountState.syncRetryTimer) return;
+    accountState.syncRetryTimer = setTimeout(() => {
+      accountState.syncRetryTimer = null;
+      syncNow();
+    }, 700);
+  }
+
+  async function logoutAccount() {
+    try { await accountRequest('/api/auth/logout', {}); } catch (error) {}
+    accountState.loggedIn = false;
+    accountState.user = null;
+    accountState.syncRevision = 0;
+    showAccountView();
+    setSyncStatus('本地保存', '');
+    APP.showToast('已退出账户，本地进度仍保留。');
+  }
+
+  async function refreshAccountSummary() {
+    setSyncStatus(accountState.loggedIn ? '已同步' : '本地保存', accountState.loggedIn ? 'synced' : '');
+  }
+
+  function openAccount() {
+    showAccountView();
+    document.querySelector('#accountModal')?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    if (!accountState.loggedIn) setAccountMode(accountState.mode);
+    refresh();
+  }
+
+  function closeAccount() {
+    document.querySelector('#accountModal')?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
 
   async function init() {
     if (location.protocol === 'file:') {
@@ -1361,6 +1647,7 @@
     if (localStorage.getItem('pianopath-onboarded') !== '1') setTimeout(() => openOnboarding(), 350);
     const page = (location.hash || '#today').replace('#', '');
     if (['today', 'path', 'library', 'stats'].includes(page)) APP.updateNav(page);
+    refresh();
   }
 
   init();

@@ -1,4 +1,4 @@
-# PianoPath
+# 琴阶 PianoPath
 
 > 每周 4 小时的钢琴学习工作台：每日一课、逐分钟练习、国内教学资源、学习路径、打卡记录和轻量音乐游戏。
 
@@ -18,6 +18,14 @@
 - **PWA**：可安装到桌面、离线打开，带 Service Worker 缓存。
 - **主题**：亮色与深色模式。
 
+### 1.4 账户与跨设备同步
+
+- 可选账户：注册/登录/退出，游客模式无需账户。
+- PBKDF2 密码哈希、HttpOnly SameSite Cookie、会话过期与登录限流。
+- SQLite 服务端进度存储，支持版本冲突检测与手动/自动同步。
+- 离线优先：本地先保存，恢复网络后补传；账户进度按版本合并。
+- 安全边界：数据库不作为静态文件暴露，API 拒绝跨源写请求。
+
 ### 1.3 学习闭环
 
 - 首次进入提供三步目标设置，创建后直接进入第一课。
@@ -36,6 +44,16 @@
 - 字体改用本机常用中文字体优先，不加载远程字体。
 - 移除来源筛选门槛说明、核验日期和无关资料标签。
 
+
+## 测试
+
+```bash
+npm run check
+npm run test:api
+npm run test:e2e
+```
+
+前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。
 
 ## 快速开始
 
@@ -70,6 +88,11 @@ python server.py
 | POST | `/api/plan` | 根据每周时长/天数/阶段/风格生成计划 |
 | GET / POST | `/api/state` | 读取/保存学习状态 |
 | GET | `/api/curriculum` | 完整课程与资源数据 |
+| POST | `/api/auth/register` | 注册并建立会话 |
+| POST | `/api/auth/login` | 登录并建立会话 |
+| GET | `/api/auth/me` | 当前账户状态 |
+| POST | `/api/auth/logout` | 退出并清除会话 |
+| GET / POST | `/api/sync` | 跨设备读取/写入进度，带 revision 冲突检测 |
 
 示例：
 

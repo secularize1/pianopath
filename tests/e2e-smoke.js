@@ -49,6 +49,34 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     assert.equal(await page.locator('#homePathTrack .path-stop').count(), 4, `${name}: path stages incomplete`);
     assert.equal(await page.locator('#homePathTrack .path-stop.current').count(), 1, `${name}: current stage missing`);
     assert.equal(await page.locator('.home-game').isVisible(), true, `${name}: game card missing`);
+    assert.equal(await page.locator('#quickPractice').isVisible(), true, `${name}: quick practice shortcut missing`);
+    await page.locator('#quickPractice').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: quick practice did not open`);
+    assert.equal(await page.locator('#lessonSteps .lesson-step').count(), 4, `${name}: quick practice should have 4 steps`);
+    await page.locator('#finishSession').click();
+    await page.waitForTimeout(300);
+    await page.locator('#saveCompletion').click();
+    await page.waitForTimeout(500);
+    assert.equal(await page.locator('#homeWeekTrail .week-trail-item.done').count(), 1, `${name}: quick practice should preserve completed lesson only`);
+
+    // Placement runs during first-run onboarding, before onboarding is completed.
+    // This smoke test has already passed onboarding, so exercise the exposed entry point directly.
+    if (await page.locator('#lessonModal').isVisible().catch(() => false)) {
+      await page.locator('#closeLesson').click();
+      await page.waitForTimeout(200);
+    }
+    await page.evaluate(() => window.PIANO_APP.openPlacement());
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('#placementModal').isVisible(), true, `${name}: placement modal missing`);
+    for (let i = 0; i < 5; i += 1) {
+      const choices = await page.locator('.placement-option').all();
+      await choices[0].click();
+      await page.waitForTimeout(850);
+    }
+    assert.equal(await page.locator('#placementResultPanel').isVisible(), true, `${name}: placement result missing`);
+    await page.locator('#usePlacement').click();
+    await page.waitForTimeout(300);
 
     await page.locator('#startRhythmGame').click();
     await page.waitForTimeout(350);

@@ -12,7 +12,7 @@ window.PIANO_DATA = {
       "播放量不作为唯一权威依据；粉丝量也不等于教学质量，仍以课程结构、专业资历和适用性二次筛选。"
     ],
     "localePolicy": "默认隐藏需翻墙的资源；教学库可切换“国内可用/全部来源”。",
-    "appVersion": "1.4.0",
+    "appVersion": "1.5.0",
     "resourceMode": "国内优先"
   },
   "weeks": [

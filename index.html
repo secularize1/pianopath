@@ -105,7 +105,7 @@
             </button>
             <div class="home-secondary">
               <button class="home-warm-link" id="routeWarmup" type="button">♩ 先做 3 分钟节拍热身</button>
-              <span>完成一小段就会自动保存</span>
+              <button class="home-warm-link quick-link" id="quickPractice" type="button">只有 5 分钟？快练一下 →</button>
             </div>
           </div>
           <div class="home-start-art" aria-hidden="true">
@@ -266,6 +266,25 @@
     </div>
   </div>
 
+  <div class="modal-backdrop hidden" id="placementModal" role="dialog" aria-modal="true" aria-labelledby="placementTitle">
+    <div class="placement-card">
+      <button class="icon-button modal-close" id="closePlacement" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="placement-top"><span class="eyebrow">QUICK PLACEMENT</span><span class="placement-progress" id="placementProgress">1 / 5</span></div>
+      <h2 id="placementTitle">找到你的起点</h2>
+      <p>五道基础题，不需要弹琴。答不出也没关系，我们会从最适合你的地方开始。</p>
+      <div class="placement-question" id="placementQuestion"></div>
+      <div class="placement-options" id="placementOptions"></div>
+      <div class="placement-feedback" id="placementFeedback"></div>
+      <div class="placement-result-panel hidden" id="placementResultPanel">
+        <div class="placement-result-icon">✓</div>
+        <span>建议起点</span>
+        <strong id="placementResultTitle">第 1 周</strong>
+        <p id="placementResultText"></p>
+        <button class="btn btn-primary full-width" id="usePlacement" type="button">使用这个起点</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop hidden" id="onboardingModal" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
     <div class="onboarding-card">
       <button class="icon-button modal-close onboarding-skip" id="closeOnboarding" aria-label="稍后设置"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
@@ -301,6 +320,8 @@
             <button type="button" class="choice-chip active" data-value="mixed"><strong>两种都要</strong><small>先打底再扩展</small></button>
           </div>
         </div>
+        <button type="button" class="placement-link" id="openPlacement">不确定从哪开始？做 5 题定位 →</button>
+        <div class="placement-result hidden" id="placementResult"></div>
         <button class="onboarding-submit" id="onboardingSubmit" type="submit"><span>创建我的计划</span><strong>开始第一课 →</strong></button>
       </form>
       <div class="onboarding-foot">不需要买教材，先用你手边的琴开始。</div>
@@ -334,7 +355,7 @@
           <div class="lesson-source" id="lessonSource"></div>
         </section>
         <aside class="lesson-plan">
-          <div class="lesson-plan-head"><strong>今天的 60 分钟</strong><span id="lessonClock">剩余 60:00</span></div>
+          <div class="lesson-plan-head"><strong id="lessonPlanLength">今天的 60 分钟</strong><span id="lessonClock">剩余 60:00</span></div>
           <div class="lesson-steps" id="lessonSteps"></div>
           <button class="btn btn-ghost full-width" id="finishSession" type="button">提前完成本次练习</button>
         </aside>
@@ -348,7 +369,7 @@
       <span class="eyebrow">SESSION COMPLETE</span>
       <h2>今天的声音，已经留下。</h2>
       <p id="completeSummary">60 分钟 · 7 个练习段落</p>
-      <div class="complete-stats"><span><strong id="completeXp">+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong>1</strong><small>完成课次</small></span></div>
+      <div class="complete-stats"><span><strong id="completeXp">+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong id="completeSessionCount">1</strong><small>完成课次</small></span></div>
       <div class="rating-label">今天练得怎么样？</div>
       <div class="rating-row" id="ratingRow"><button data-rating="1">需要帮助</button><button data-rating="2">有点卡</button><button data-rating="3">刚刚好</button><button data-rating="4">很顺</button></div>
       <label class="notes-field"><span>留一句给下次的自己</span><textarea id="sessionNotes" placeholder="例如：F→G 换和弦提前半拍看左手。"></textarea></label>
@@ -377,7 +398,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.4 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.5 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

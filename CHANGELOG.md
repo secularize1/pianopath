@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0 — 2026-11-06
+
+- Added a five-question placement assessment with week 1/3/5/7/9 starting points.
+- Added 5-minute quick practice sessions with separate history and +5 XP.
+- Added static-host local-only account state with no unusable login form.
+- Added automated coverage for placement and quick practice.
+- Hardened sync conflict retries and preserved pre-login guest progress.
+
+
 ## 1.4.0 — 2026-11-06
 
 - Added optional accounts with PBKDF2 password hashing and HttpOnly sessions.

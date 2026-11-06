@@ -7,11 +7,13 @@
   const PHASE_COLORS = { '起步': '#5bbd78', '基础 I': '#f3cf66', '基础 II': '#ef8d78', '进阶 I': '#7ab6d9', '进阶 II': '#9d8ad6', '巩固': '#6eb98b', '展示': '#1f2a24' };
 
   const defaultState = {
-    profile: { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '' },
+    profile: { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '', startWeek: 1 },
     completed: {},
     history: [],
     activeSession: null,
     gameSessions: [],
+    placement: null,
+    quickPractice: null,
     serverPlan: null,
     settingsSource: 'local'
   };
@@ -172,8 +174,11 @@
   }
 
   function currentWeekData() {
+    const startWeek = Math.max(1, Math.min(DATA.weeks.length, Number(state.profile.startWeek) || 1));
     for (const rawWeek of DATA.weeks) {
-      const week = { ...rawWeek, id: rawWeek.id ?? rawWeek.n };
+      const weekId = rawWeek.id ?? rawWeek.n;
+      if (weekId < startWeek) continue;
+      const week = { ...rawWeek, id: weekId };
       const sessions = sessionsForWeek(week);
       if (sessions.some((session) => !isComplete(session.id))) return { week, sessions };
     }
@@ -497,6 +502,7 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const RATING_LABELS = { 1: '需要帮助', 2: '有点卡', 3: '刚刚好', 4: '很顺' };
+  const escapeUi = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const STATIC_HOST = location.protocol === 'file:' || /github\.io$/i.test(location.hostname) || location.hostname.endsWith('.pages.dev') || location.hostname.endsWith('.netlify.app') || location.hostname.endsWith('.vercel.app');
   const SOURCE_URL = 'https://i.ytimg.com/vi/tEtukfFv3Wk/maxresdefault.jpg';
 
@@ -632,6 +638,150 @@
     }
   }
 
+  const PLACEMENT_QUESTIONS = [
+    {
+      prompt: '一个 4/4 小节里，如果每个音符是四分音符，最多有几个？',
+      options: ['2 个', '3 个', '4 个'], answer: 2,
+      explain: '4/4 拍每小节四拍，每拍一个四分音符。'
+    },
+    {
+      prompt: '五线谱高音谱号中，中央 C 通常写在哪里？',
+      options: ['第一线', '下加一线', '第三间'], answer: 1,
+      explain: '中央 C 在高音谱的下加一线，也在低音谱的上加一线。'
+    },
+    {
+      prompt: 'C 大调的 I–IV–V 三和弦分别是？',
+      options: ['C–F–G', 'C–D–E', 'C–Am–F'], answer: 0,
+      explain: 'C 大调主、下属、属和弦的根音是 C、F、G。'
+    },
+    {
+      prompt: '切分踏板通常应该在什么时候换？',
+      options: ['音落下之前踩住', '音落下后迅速抬起再踩', '整段一直踩住'], answer: 1,
+      explain: '切分踏板在音落下后更换，避免前一个和声残留。'
+    },
+    {
+      prompt: '如果要练一个困难的两小节，最有效的做法是？',
+      options: ['从曲首反复整首弹', '分手、拆段、慢速、连续三次正确', '只加快速度直到弹对'], answer: 1,
+      explain: '拆段、分手和慢练能让大脑建立稳定的动作与听觉反馈。'
+    }
+  ];
+  let placementIndex = 0;
+  let placementScore = 0;
+  let placementAnswered = false;
+  let pendingPlacementWeek = 1;
+
+  function scoreToWeek(score) {
+    if (score <= 1) return 1;
+    if (score === 2) return 3;
+    if (score === 3) return 5;
+    if (score === 4) return 7;
+    return 9;
+  }
+
+  function renderPlacementQuestion() {
+    placementAnswered = false;
+    const question = PLACEMENT_QUESTIONS[placementIndex];
+    document.querySelector('#placementProgress').textContent = `${placementIndex + 1} / ${PLACEMENT_QUESTIONS.length}`;
+    document.querySelector('#placementFeedback').textContent = '';
+    document.querySelector('#placementQuestion').textContent = question.prompt;
+    document.querySelector('#placementOptions').innerHTML = question.options.map((option, index) => `<button type="button" class="placement-option" data-placement-option="${index}">${escapeUi(option)}</button>`).join('');
+    document.querySelectorAll('[data-placement-option]').forEach((button) => button.addEventListener('click', () => answerPlacement(Number(button.dataset.placementOption), button)));
+  }
+
+  function answerPlacement(choice, button) {
+    if (placementAnswered) return;
+    placementAnswered = true;
+    const question = PLACEMENT_QUESTIONS[placementIndex];
+    document.querySelectorAll('[data-placement-option]').forEach((option, index) => {
+      option.disabled = true;
+      if (index === question.answer) option.classList.add('correct');
+    });
+    if (choice === question.answer) {
+      placementScore += 1;
+      button.classList.add('correct');
+      document.querySelector('#placementFeedback').textContent = question.explain;
+    } else {
+      button.classList.add('wrong');
+      document.querySelector('#placementFeedback').textContent = `正确答案：${question.options[question.answer]}。${question.explain}`;
+    }
+    setTimeout(() => {
+      placementIndex += 1;
+      if (placementIndex < PLACEMENT_QUESTIONS.length) {
+        renderPlacementQuestion();
+      } else {
+        const week = scoreToWeek(placementScore);
+        pendingPlacementWeek = week;
+        document.querySelector('#placementResultTitle').textContent = `第 ${week} 周`;
+        document.querySelector('#placementResultText').textContent = week === 1 ? '从最基础的动作、键盘与拍感开始，最稳妥。' : week <= 3 ? '你具备一些读谱基础，可以从五指位置和简单和弦开始。' : week <= 5 ? '建议从双手独立、八分音符和踏板开始补齐。' : '你的基础不错，可以直接从复调、声部和表达开始。';
+        document.querySelector('#placementResultPanel').classList.remove('hidden');
+        document.querySelector('#placementQuestion').classList.add('hidden');
+        document.querySelector('#placementOptions').classList.add('hidden');
+        document.querySelector('#placementProgress').textContent = '完成';
+      }
+    }, 700);
+  }
+
+  function openPlacement() {
+    placementIndex = 0;
+    placementScore = 0;
+    pendingPlacementWeek = 1;
+    document.querySelector('#placementResultPanel').classList.add('hidden');
+    document.querySelector('#placementQuestion').classList.remove('hidden');
+    document.querySelector('#placementOptions').classList.remove('hidden');
+    const onboarding = document.querySelector('#onboardingModal');
+    if (onboarding && !onboarding.classList.contains('hidden')) {
+      onboarding.classList.add('placement-parent-hidden');
+      onboarding.classList.add('hidden');
+    }
+    document.querySelector('#placementModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    renderPlacementQuestion();
+  }
+
+  function closePlacement() {
+    document.querySelector('#placementModal').classList.add('hidden');
+    const onboarding = document.querySelector('#onboardingModal');
+    if (onboarding?.classList.contains('placement-parent-hidden')) {
+      onboarding.classList.remove('placement-parent-hidden');
+      onboarding.classList.remove('hidden');
+    }
+    document.body.style.overflow = '';
+  }
+
+  function usePlacement() {
+    APP.state.placement = { week: pendingPlacementWeek, score: placementScore, completedAt: new Date().toISOString() };
+    APP.state.profile = { ...APP.state.profile, startWeek: pendingPlacementWeek };
+    APP.persist();
+    APP.renderAll();
+    updateProgressDisplay();
+    const result = document.querySelector('#placementResult');
+    if (result) {
+      result.classList.remove('hidden');
+      result.textContent = `定位完成：建议从第 ${pendingPlacementWeek} 周开始。`;
+    }
+    closePlacement();
+  }
+
+  function openQuickPractice() {
+    const current = APP.currentSessionData();
+    if (!current) return;
+    const brief = {
+      ...current,
+      id: `${current.id}-quick`,
+      title: `5 分钟快练：${current.title}`,
+      duration: 5,
+      quick: true,
+      steps: [
+        { start: 0, end: 1, minutes: 1, title: '身体与拍感', category: '热身', detail: '坐稳、松肩，跟 60 BPM 数四拍。', cue: '先听再动' },
+        { start: 1, end: 3, minutes: 2, title: current.title, category: '技术', detail: current.steps[2]?.detail || current.goal, cue: '只练一个小段' },
+        { start: 3, end: 4, minutes: 1, title: '陌生谱视奏', category: '读谱', detail: current.steps[4]?.detail || '视奏两小节陌生谱，不停顿。', cue: '连续比完美重要' },
+        { start: 4, end: 5, minutes: 1, title: '一句话复盘', category: '反馈', detail: '录音或写下今天最清楚的一个动作。', cue: '只记一个问题' }
+      ],
+      sources: current.sources
+    };
+    openSession(brief);
+  }
+
   function openOnboarding(force = false) {
     if (!force && localStorage.getItem('pianopath-onboarded') === '1') return false;
     const profile = APP.state.profile;
@@ -684,7 +834,7 @@
   }
 
   function openSession(sessionId) {
-    const found = APP.findSession(sessionId);
+    const found = sessionId && typeof sessionId === 'object' ? sessionId : APP.findSession(sessionId);
     if (!found) {
       APP.showToast('找不到这节课，请刷新页面。');
       return;
@@ -698,6 +848,8 @@
     $('#lessonKicker').textContent = `第 ${session.week} 周 · 第 ${session.day} 次`;
     $('#lessonTitle').textContent = session.title;
     $('#lessonGoal').textContent = session.goal;
+    const planLength = document.querySelector('#lessonPlanLength');
+    if (planLength) planLength.textContent = session.quick ? '5 分钟快练' : `今天的 ${session.duration} 分钟`;
     $('#lessonSteps').innerHTML = session.steps.map((step, index) => `<div class="lesson-step" data-step="${index}"><span class="lesson-step-num">${String(index + 1).padStart(2, '0')}</span><span><strong>${step.title}</strong><small>${step.start}–${step.end} 分 · ${step.minutes} 分钟</small></span></div>`).join('');
     $('#lessonModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -729,13 +881,20 @@
     completionPreview = { session: { ...session }, elapsed };
     $('#lessonModal').classList.add('hidden');
     const weekData = APP.currentWeekData();
+    if (session.quick) {
+      $('#completeSummary').textContent = `5 分钟快练完成 · ${session.title.replace('5 分钟快练：','')}`;
+    }
     const doneCount = weekData.sessions.filter((item) => APP.isSessionComplete(item.id)).length;
     const remaining = Math.max(0, weekData.sessions.length - doneCount - 1);
-    $('#completeSummary').textContent = remaining
-      ? `${session.title} 已完成 · 完成后本周还剩 ${remaining} 次练习`
-      : `${session.title} 已完成 · 这是本周最后一次练习`;
+    if (!session.quick) {
+      $('#completeSummary').textContent = remaining
+        ? `${session.title} 已完成 · 完成后本周还剩 ${remaining} 次练习`
+        : `${session.title} 已完成 · 这是本周最后一次练习`;
+    }
     $('#completeStreak').textContent = APP.streakCount();
-    $('#completeXp').textContent = '+20';
+    $('#completeXp').textContent = session.quick ? '+5' : '+20';
+    const completeSessions = document.querySelector('#completeSessionCount');
+    if (completeSessions) completeSessions.textContent = Object.keys(APP.state.completed).length + (session.quick ? 0 : 1);
     $('#sessionNotes').value = '';
     rating = 3;
     $$('#ratingRow button').forEach((button) => button.classList.toggle('selected', button.dataset.rating === '3'));
@@ -758,7 +917,8 @@
       sightDone: finished.steps.some((step) => step.category === '读谱' || /视奏/.test(step.title)) ? 1 : 0,
       completedAt: now.toISOString()
     };
-    state.completed[finished.id] = { ...entry, completedAt: entry.completedAt };
+    if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt };
+    if (finished.quick) entry.type = 'quick';
     state.activeSession = null;
     state.history = [entry, ...state.history.filter((item) => item.id !== finished.id || item.date !== entry.date)];
     state.history = state.history.slice(0, 400);
@@ -1224,6 +1384,10 @@
     $('#startRhythmGame')?.addEventListener('click', openNoteGame);
     document.querySelectorAll('#onboardingForm .choice-chip').forEach((button) => button.addEventListener('click', () => chooseOnboarding(button)));
     document.querySelector('#onboardingForm')?.addEventListener('submit', saveOnboarding);
+    document.querySelector('#openPlacement')?.addEventListener('click', openPlacement);
+    document.querySelector('#closePlacement')?.addEventListener('click', closePlacement);
+    document.querySelector('#usePlacement')?.addEventListener('click', usePlacement);
+    document.querySelector('#quickPractice')?.addEventListener('click', openQuickPractice);
     document.querySelectorAll('.note-mode').forEach((button) => button.addEventListener('click', () => setNoteGameMode(button.dataset.gameMode)));
     document.querySelector('#noteReplay')?.addEventListener('click', () => playTone(NOTE_FREQ[noteGameCurrent], .38));
     document.querySelector('#closeOnboarding')?.addEventListener('click', closeOnboarding);
@@ -1350,6 +1514,9 @@
   APP.openSession = openSession;
   APP.openSettings = openSettings;
   APP.openOnboarding = () => openOnboarding(true);
+  APP.openPlacement = openPlacement;
+  APP.usePlacement = usePlacement;
+  APP.openQuickPractice = openQuickPractice;
   APP.getAccountState = () => ({ ...accountState });
   APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;

@@ -497,6 +497,7 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const RATING_LABELS = { 1: '需要帮助', 2: '有点卡', 3: '刚刚好', 4: '很顺' };
+  const STATIC_HOST = location.protocol === 'file:' || /github\.io$/i.test(location.hostname) || location.hostname.endsWith('.pages.dev') || location.hostname.endsWith('.netlify.app') || location.hostname.endsWith('.vercel.app');
   const SOURCE_URL = 'https://i.ytimg.com/vi/tEtukfFv3Wk/maxresdefault.jpg';
 
   let session = null;
@@ -1420,7 +1421,7 @@
   }
 
   async function refresh() {
-    if (location.protocol === 'file:') {
+    if (STATIC_HOST) {
       accountState.loggedIn = false;
       accountState.user = null;
       showAccountView();
@@ -1500,6 +1501,9 @@
     const localHistoryCount = APP.state.history.length;
     const remoteHistoryCount = remote.state?.history?.length || 0;
     if (remote.state && remoteHistoryCount > localHistoryCount) {
+      if (localHistoryCount > 0 || Object.keys(APP.state.completed || {}).length > 0) {
+        try { localStorage.setItem(`pianopath-guest-backup-${new Date().toISOString().slice(0, 10)}`, JSON.stringify(APP.state)); } catch (error) {}
+      }
       APP.replaceState(remote.state);
       APP.persist({ sync: false });
       APP.renderAll();
@@ -1542,6 +1546,7 @@
           const localHistory = APP.state.history?.length || 0;
           const remoteHistory = remote?.history?.length || 0;
           if (remote && remoteHistory > localHistory) {
+            try { localStorage.setItem(`pianopath-conflict-backup-${new Date().toISOString().slice(0, 10)}`, JSON.stringify(APP.state)); } catch (error) {}
             APP.replaceState(remote);
             APP.persist({ sync: false });
             APP.renderAll();
@@ -1615,7 +1620,8 @@
   }
 
   async function init() {
-    if (location.protocol === 'file:') {
+    if (STATIC_HOST) {
+      window.PIANO_BACKEND_AVAILABLE = false;
       bindEvents();
       APP.renderAll();
       updateProgressDisplay();
@@ -1624,30 +1630,26 @@
       if (['today', 'path', 'library', 'stats'].includes(page)) APP.updateNav(page);
       return;
     }
+
     try {
-      const response = await fetch('/api/health', { cache: 'no-store' });
-      if (response.ok) {
-        window.PIANO_BACKEND_AVAILABLE = true;
-        $('#backendNote').textContent = '已连接本地服务：计划与练习记录会同步到 data/state.json。';
-        const saved = await fetch('/api/state', { cache: 'no-store' });
-        if (saved.ok) {
-          const serverState = await saved.json();
-          if (serverState && serverState.history && !state.history.length) {
-            Object.assign(state, serverState);
-            APP.persist();
-          }
-        }
-      }
+      const health = await fetch('/api/health', { cache: 'no-store' });
+      window.PIANO_BACKEND_AVAILABLE = health.ok;
     } catch (error) {
       window.PIANO_BACKEND_AVAILABLE = false;
     }
+
     bindEvents();
     APP.renderAll();
     updateProgressDisplay();
     if (localStorage.getItem('pianopath-onboarded') !== '1') setTimeout(() => openOnboarding(), 350);
     const page = (location.hash || '#today').replace('#', '');
     if (['today', 'path', 'library', 'stats'].includes(page)) APP.updateNav(page);
-    refresh();
+
+    if (window.PIANO_BACKEND_AVAILABLE) {
+      await refresh();
+    } else {
+      setSyncStatus('本地保存', '');
+    }
   }
 
   init();

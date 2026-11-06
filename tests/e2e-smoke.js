@@ -11,6 +11,7 @@ const assert = require('assert');
 const ROOT = path.resolve(__dirname, '..');
 const INDEX = 'file:///' + path.join(ROOT, 'index.html').replace(/\\/g, '/');
 const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const PLAY_ALONG_KEYS = { '0': 'a', '1': 'w', '2': 's', '3': 'e', '4': 'd', '5': 'f', '6': 't', '7': 'g', '8': 'y', '9': 'h', '10': 'u', '11': 'j' };
 
 (async () => {
   const browser = await chromium.launch({ executablePath, headless: true });
@@ -32,6 +33,42 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     await page.waitForTimeout(800);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: first lesson did not open`);
     assert.equal(await page.locator('#lessonSteps .lesson-step').count(), 7, `${name}: lesson should have 7 steps`);
+    await page.locator('#openPlayAlong').click();
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('#playAlongModal').isVisible(), true, `${name}: play-along modal missing`);
+    assert.equal(await page.locator('#playAlongReady').isVisible(), true, `${name}: play-along ready state missing`);
+    await page.locator('#playAlongStart').click();
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator('#playAlongPractice').isVisible(), true, `${name}: play-along practice state missing`);
+    assert.equal(await page.locator('.playalong-key').count(), 12, `${name}: play-along keyboard incomplete`);
+    for (let i = 0; i < 3; i += 1) {
+      const targetPc = await page.locator('#playAlongTarget').getAttribute('data-pc');
+      await page.locator(`.playalong-key[data-playalong-pc="${targetPc}"]`).click();
+      await page.waitForTimeout(80);
+    }
+    const wrongPc = String((Number(await page.locator('#playAlongTarget').getAttribute('data-pc')) + 1) % 12);
+    await page.locator(`.playalong-key[data-playalong-pc="${wrongPc}"]`).click();
+    await page.waitForTimeout(90);
+    assert.match(await page.locator('#playAlongFeedback').innerText(), /目标音是/, `${name}: wrong note got no recovery cue`);
+    const keyboardTarget = PLAY_ALONG_KEYS[await page.locator('#playAlongTarget').getAttribute('data-pc')];
+    await page.keyboard.press(keyboardTarget);
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('#playAlongResult').isVisible(), false, `${name}: play-along result appeared too early`);
+    assert.equal(await page.locator('#playAlongProgress').innerText(), '5 / 10', `${name}: play-along keyboard progress did not advance`);
+    for (let i = 0; i < 6; i += 1) {
+      const targetPc = await page.locator('#playAlongTarget').getAttribute('data-pc');
+      await page.locator(`.playalong-key[data-playalong-pc="${targetPc}"]`).click();
+      await page.waitForTimeout(70);
+    }
+    assert.equal(await page.locator('#playAlongResult').isVisible(), true, `${name}: play-along result missing`);
+    assert.equal(await page.locator('#playAlongResultAccuracy').innerText(), '91%', `${name}: play-along accuracy scoring wrong`);
+    assert.equal(await page.locator('#playAlongXp').innerText(), '+10 XP', `${name}: play-along reward wrong`);
+    const playAlongState = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).playAlong);
+    assert.ok(playAlongState && Object.keys(playAlongState).length > 0, `${name}: play-along progress not saved`);
+    await page.locator('#closePlayAlong').click();
+    await page.waitForTimeout(180);
+    assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: play-along did not return to lesson`);
+
     await page.locator('#openCheckpoint').click();
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#checkpointPanel').isVisible(), true, `${name}: mastery checkpoint missing`);
@@ -80,7 +117,8 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     await page.waitForTimeout(1000);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: next lesson did not open`);
     assert.equal(await page.locator('#lessonTitle').innerText(), '左手也说话', `${name}: wrong next lesson`);
-    assert.match(await page.locator('#xpValue').innerText(), /20 XP/, `${name}: XP not awarded`);
+    const lessonXp = Number((await page.locator('#xpValue').innerText()).replace(/\D/g, ''));
+    assert.ok(lessonXp >= 30, `${name}: lesson or play-along XP not awarded`);
     await page.locator('#closeLesson').click();
     await page.waitForTimeout(250);
 
@@ -91,7 +129,7 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     assert.equal(await page.locator('.home-route #routeCheck').innerText(), '2\n掌握检查', `${name}: mastery route step changed`);
     assert.equal(await page.locator('.game-lab-grid .game-tile').count(), 2, `${name}: game lab incomplete`);
     assert.equal(await page.locator('#startRhythmGame').isVisible(), true, `${name}: note game missing`);
-    assert.equal(await page.locator('#routeWarmup').isVisible(), true, `${name}: rhythm warmup missing`);
+    assert.equal(await page.locator('#startPlayAlongHome').isVisible(), true, `${name}: play-along home entry missing`);
     assert.equal(await page.locator('#quickPractice').isVisible(), true, `${name}: quick practice shortcut missing`);
     await page.locator('#quickPractice').click();
     await page.waitForTimeout(300);

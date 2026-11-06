@@ -1,30 +1,26 @@
-# PianoPath 1.4 — 产品健康检查
-
-生成日期：2026-11-06
+# PianoPath 1.10 — 产品健康检查
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
 | 课程完整度 | 12 周 / 48 次 / 每次 60 分钟 | `data.js` 数据校验 |
 | 国内资源 | 13 个国内可用 / 官方来源 | `resources.videos.region` |
 | 海外依赖 | 48 节课来源引用 0 个 YouTube | `sessions.sources` 校验 |
-| 首次引导 | 三步选择，保存后进入第一课 | `tests/e2e-smoke.js` |
-| 顺序解锁 | 首页与完整路径均限制未解锁课 | `tests/e2e-smoke.js` |
-| 完成奖励 | +20 XP，显示等级进度 | `tests/e2e-smoke.js` |
-| 每日任务 | 课程、游戏、20 分钟三项 | `renderDashboard()` |
-| 中途恢复 | 记录 stepIndex / remaining，刷新恢复 | 浏览器回归 |
-| 双模式游戏 | 看音名找键 / 听声音辨音 | `tests/e2e-smoke.js` |
-| 账户系统 | 注册、登录、退出、会话 | `tests/api-integration.py` |
-| 跨设备同步 | SQLite + revision 冲突检测 | `tests/api-integration.py` |
-| 离线能力 | Service Worker + 单文件离线包 | `sw.js` / `琴阶PianoPath.html` |
+| 首次引导 | 三步选择，保存后进入第一课 | Playwright |
+| 掌握门槛 | 2/3 通过才完成课程并解锁下一课 | Playwright |
+| 跟弹练习 | 点击 / 电脑键盘 / MIDI，音高判定与结算 | Playwright |
+| 学习反馈 | 四项能力、热力图、复习、跟弹历史 | Playwright / app state |
+| 账户系统 | 注册、登录、退出、会话 | API integration |
+| 跨设备同步 | SQLite + revision 冲突检测 | API integration |
+| 离线能力 | Service Worker + 单文件离线包 | `sw.js` / standalone build |
 | 响应式 | 桌面 / 移动端无横向溢出 | Playwright |
 | 安全性 | PBKDF2、HttpOnly Cookie、私有 DB、CSP | `server.py` |
-| GitHub Pages | HTTP 200，无控制台错误 | 线上验收 |
+| 线上部署 | GitHub Pages 自动构建与部署 | GitHub Actions |
 
 ## 仍需商业级建设
 
-- 支付/订阅、隐私政策与服务条款
-- 服务端部署与正式域名（GitHub Pages 不支持 Python 后端）
-- 真人教师批改、家长/教师控制台
-- 更大的分级曲库与版权授权
-- 崩溃监控、产品分析、A/B 测试
-- 正式内容团队审校与无障碍审计
+- 正式云端 API 部署、正式域名、监控与备份策略
+- 支付/订阅、退款流程、隐私政策与服务条款
+- 教师/家长控制台、真人批改和内容审核工作流
+- 更大曲库、版权授权与专业钢琴教师审校
+- 产品分析、崩溃监控、A/B 测试与留存实验
+- 无障碍专项审计与多浏览器/真机矩阵

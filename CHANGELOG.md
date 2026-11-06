@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.10.0 — 2026-11-06
+
+- Added interactive play-along drills with target-note highlighting, instant pitch feedback, streak tracking and three-star scoring.
+- Added pointer, computer-keyboard and optional Web MIDI input for hands-on practice.
+- Added play-along demonstrations, home entry, XP, skill-profile contribution and practice history.
+- Expanded automated desktop/mobile regression coverage for wrong-note recovery, keyboard input and persistent results.
+- Completed the 1.9 learning-path, mastery gate and native-font improvements.
+
 ## 1.9.0 — 2026-11-06
 
 - Added a four-skill learning report for sight-reading, technique, repertoire and ear training.

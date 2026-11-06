@@ -148,10 +148,10 @@
               <span><small>音名闪现</small><strong>看键或听音，连对 10 题</strong></span>
               <span class="game-tile-best">最佳 <b id="homeGameBest">—</b></span>
             </button>
-            <button class="game-tile beat-game-tile" id="routeWarmup" type="button">
-              <span class="game-tile-icon">♩</span>
-              <span><small>节拍热身</small><strong>跟上拍点，把节奏弹稳</strong></span>
-              <span class="game-tile-best">3 分钟</span>
+            <button class="game-tile play-game-tile" id="startPlayAlongHome" type="button">
+              <span class="game-tile-icon">⌨</span>
+              <span><small>跟弹挑战</small><strong>键盘、点击或 MIDI 都能练</strong></span>
+              <span class="game-tile-best">2 分钟</span>
             </button>
           </div>
         </section>
@@ -385,6 +385,7 @@
             <div class="timer-actions">
               <button class="timer-control" id="timerToggle" aria-label="暂停计时"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
               <button class="metronome-button" id="metronomeToggle" type="button" aria-label="开启节拍器" aria-pressed="false"><span class="metro-icon">♩</span><span id="metronomeLabel">节拍</span></button>
+              <button class="playalong-button" id="openPlayAlong" type="button"><span>⌨</span> 跟弹练习</button>
               <button class="checkpoint-button" id="openCheckpoint" type="button">◎ 掌握检查</button>
               <button class="btn btn-primary" id="completeStep" type="button">完成这一段</button>
             </div>
@@ -409,6 +410,57 @@
           <div class="lesson-steps" id="lessonSteps"></div>
           <button class="btn btn-ghost full-width" id="finishSession" type="button">提前完成本次练习</button>
         </aside>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="playAlongModal" role="dialog" aria-modal="true" aria-labelledby="playAlongTitle">
+    <div class="playalong-card" id="playAlongCard" data-total="10">
+      <button class="icon-button modal-close" id="closePlayAlong" aria-label="关闭跟弹练习"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">键盘 A–J 可用</span></div>
+      <h2 id="playAlongTitle">跟着亮起的音弹</h2>
+      <p class="playalong-subtitle" id="playAlongSubtitle">先听一次示范，再按你的速度弹；错音不会中断整段。</p>
+      <div class="playalong-listen-row">
+        <button class="btn btn-soft" id="playAlongListen" type="button"><span>◉</span> 听一次示范</button>
+        <span id="playAlongListenStatus">示范会逐个播放这组音符</span>
+      </div>
+
+      <div class="playalong-ready" id="playAlongReady">
+        <div class="playalong-ready-art" aria-hidden="true"><span>♫</span><i></i><i></i><i></i></div>
+        <div class="playalong-ready-copy">
+          <strong id="playAlongPatternTitle">C 五指位</strong>
+          <span id="playAlongPatternCue">右手 1–2–3–4–5，慢速弹准每个音</span>
+        </div>
+        <div class="playalong-input-note" id="playAlongInputNote">连接 MIDI 可获得真实琴键反馈；没有设备也能用电脑键盘或点击琴键。</div>
+        <div class="playalong-ready-actions">
+          <button class="btn btn-primary" id="playAlongStart" type="button">开始 10 音跟弹</button>
+          <button class="btn btn-soft" id="playAlongMidiConnect" type="button">连接 MIDI 键盘</button>
+        </div>
+      </div>
+
+      <div class="playalong-practice hidden" id="playAlongPractice">
+        <div class="playalong-metrics">
+          <span><small>进度</small><strong id="playAlongProgress">1 / 10</strong></span>
+          <span><small>准确率</small><strong id="playAlongAccuracy">100%</strong></span>
+          <span><small>连续弹对</small><strong id="playAlongStreak">0</strong></span>
+        </div>
+        <div class="playalong-sequence" id="playAlongSequence" aria-label="本组音符"></div>
+        <div class="playalong-target-box">
+          <small>现在弹</small>
+          <strong id="playAlongTarget" data-pc="0" aria-live="polite">C</strong>
+          <span>任意八度</span>
+        </div>
+        <div class="playalong-keyboard" id="playAlongKeyboard" aria-label="跟弹钢琴键盘"></div>
+        <div class="playalong-feedback" id="playAlongFeedback" aria-live="polite">慢一点，弹准比弹快重要。</div>
+        <div class="playalong-key-hint">电脑键盘：A W S E D F T G Y H U J（对应 C 到 B）</div>
+      </div>
+
+      <div class="playalong-result hidden" id="playAlongResult">
+        <div class="playalong-stars" id="playAlongStars" aria-hidden="true">★ ★ ★</div>
+        <strong class="playalong-result-accuracy" id="playAlongResultAccuracy">100%</strong>
+        <p id="playAlongResultMessage">每个音都听清了。</p>
+        <div class="playalong-result-stats"><span><small>弹对</small><strong id="playAlongCorrect">10</strong></span><span><small>重试</small><strong id="playAlongMistakes">0</strong></span><span><small>奖励</small><strong id="playAlongXp">+15 XP</strong></span></div>
+        <div class="playalong-result-actions"><button class="btn btn-primary" id="playAlongRetry" type="button">再练一次</button><button class="btn btn-soft" id="playAlongReturn" type="button">回到课程</button></div>
       </div>
     </div>
   </div>
@@ -448,7 +500,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.9 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.10 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

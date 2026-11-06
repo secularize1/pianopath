@@ -1204,6 +1204,62 @@ button, input, select, textarea { font-family: inherit; }
 .checkpoint-button.passed { border-color:#b9ddc0; background:#eef8ed; color:#3f8551; }
 .checkpoint-button.passed:hover { background:#e5f5e4; }
 
+
+/* === 1.10 hands-on play along === */
+.playalong-button {
+  display: inline-flex; align-items: center; gap: 5px; height: 35px; padding: 0 10px;
+  border: 1px solid #c9dbe7; border-radius: 10px; background: #f2f8fc; color: #477893;
+  font-size: 10px; font-weight: 800;
+}
+.playalong-button:hover { background: #e8f3fa; }
+.playalong-card {
+  position: relative; width: min(800px, 100%); max-height: calc(100vh - 28px); overflow: auto;
+  padding: 27px 29px 24px; border-radius: 24px; border: 1px solid #dce8e3;
+  background: linear-gradient(150deg,#fffdf7 0%,#f5faf5 100%);
+  box-shadow: 0 30px 100px rgba(28,48,35,.25);
+}
+.playalong-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.playalong-device { padding: 5px 8px; border-radius: 7px; background: #eaf4ed; color: #528163; font-size: 10px; font-weight: 800; }
+.playalong-card h2 { margin: 11px 0 5px; color: #2f4d37; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.04em; }
+.playalong-subtitle { margin: 0; color: #84968a; font-size: 12px; line-height: 1.65; }
+.playalong-ready { display: grid; grid-template-columns: 92px minmax(0,1fr); gap: 15px 18px; align-items: center; margin-top: 23px; padding: 19px; border: 1px solid #e2ebdf; border-radius: 17px; background: rgba(255,255,255,.8); }
+.playalong-ready-art { position: relative; display: grid; place-items: center; width: 92px; height: 92px; border-radius: 23px; background: #e7f3df; color: #4b8e5e; font-size: 42px; transform: rotate(-3deg); }
+.playalong-ready-art::before, .playalong-ready-art::after { content: ""; position: absolute; width: 12px; height: 42px; bottom: 11px; border-radius: 3px; background: #fff; border: 1px solid #cedecc; }
+.playalong-ready-art::before { left: 18px; transform: rotate(-10deg); }.playalong-ready-art::after { right: 16px; transform: rotate(9deg); }
+.playalong-ready-art i { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #f4d270; right: 11px; top: 12px; }.playalong-ready-art i:nth-child(2) { width: 7px; height: 7px; left: 15px; top: 9px; background: #accbe1; }.playalong-ready-art i:nth-child(3) { width: 9px; height: 9px; right: 18px; bottom: 10px; background: #e5a28f; }
+.playalong-ready-copy strong { display: block; color: #385b41; font-size: 20px; }.playalong-ready-copy span { display: block; margin-top: 5px; color: #839287; font-size: 12px; line-height: 1.55; }
+.playalong-input-note { grid-column: 1 / -1; padding: 9px 11px; border-radius: 9px; background: #f7f4e7; color: #92815a; font-size: 11px; line-height: 1.6; }
+.playalong-ready-actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+.playalong-metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.playalong-metrics span { padding: 10px 11px; border-radius: 10px; background: #fff; border: 1px solid #e7ede4; }
+.playalong-metrics small { display: block; color: #97a49b; font-size: 10px; }.playalong-metrics strong { display: block; margin-top: 3px; color: #3f6a4b; font-family: var(--font-number); font-size: 19px; }
+.playalong-sequence { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; margin: 19px 0 14px; }
+.playalong-note { display: grid; place-items: center; width: 41px; height: 34px; border-radius: 8px; border: 1px solid #e2e9df; background: #fbfcf9; color: #8a9b8e; font-size: 11px; font-weight: 800; }
+.playalong-note.current { border-color: #63ad76; background: #e7f5e5; color: #38804a; box-shadow: 0 0 0 3px rgba(99,173,118,.13); transform: translateY(-2px); }.playalong-note.done { background: #edf7ed; border-color: #c8e2c9; color: #62a16e; }
+.playalong-target-box { display: grid; justify-items: center; margin-top: 7px; }
+.playalong-target-box small, .playalong-target-box span { color: #9ba99d; font-size: 10px; }.playalong-target-box span { margin-top: 5px; }
+.playalong-target { display: grid; place-items: center; width: 83px; height: 75px; margin: 6px 0 1px; border-radius: 19px; background: #59b675; color: #fff; font-family: var(--font-number); font-size: 37px; font-weight: 850; box-shadow: 0 6px 0 #3b9254; transition: transform .12s ease; }.playalong-target.sharp { background: #566b72; box-shadow: 0 6px 0 #35474e; }
+.playalong-target.hit { animation: targetPop .25s ease; } @keyframes targetPop { 50% { transform: scale(1.08); } }
+.playalong-keyboard { position: relative; display: flex; height: 166px; margin: 20px auto 0; padding: 6px; gap: 3px; max-width: 720px; border-radius: 13px; background: #30342f; box-shadow: inset 0 -8px 0 #20241f; }
+.playalong-key { position: relative; border: 0; cursor: pointer; transition: transform .08s ease, background .08s ease; }
+.playalong-key.white { flex: 1; height: 100%; border-radius: 3px 3px 7px 7px; background: linear-gradient(#fffefa,#f1f0e7); box-shadow: 0 4px 0 #c5c8be; color: #7a8179; }
+.playalong-key.black { position: absolute; z-index: 2; top: 6px; width: 7.1%; height: 99px; border-radius: 3px 3px 5px 5px; background: linear-gradient(#49504a,#252b27); color: #eaf0e7; box-shadow: 0 4px 0 #121814; }
+.playalong-key.white:hover { background: #fff; transform: translateY(-2px); }.playalong-key.white:active { transform: translateY(2px); box-shadow: 0 1px 0 #c5c8be; }
+.playalong-key.black:hover { background: #353d37; transform: translateY(-1px); }.playalong-key.black:active { transform: translateY(1px); box-shadow: 0 1px 0 #121814; }
+.playalong-key span { position: absolute; bottom: 9px; left: 0; right: 0; font-size: 11px; font-weight: 800; }.playalong-key small { position: absolute; bottom: 29px; left: 0; right: 0; font-size: 9px; opacity: .55; }.playalong-key.black span { bottom: 8px; color: #e9f0e9; }.playalong-key.black small { bottom: 24px; color: #cbd7cb; }
+.playalong-key.target.white { background: #e7f6e5; box-shadow: 0 4px 0 #a6cfa8; }.playalong-key.target.black { background: #477557; box-shadow: 0 4px 0 #274b31; }.playalong-key.hit { background: #bcebbc !important; }.playalong-key.miss { background: #f5cbc2 !important; animation: keyShake .2s ease; }
+.playalong-feedback { min-height: 24px; margin-top: 14px; color: #7d8d80; text-align: center; font-size: 12px; }.playalong-key-hint { margin-top: 4px; color: #a3ada4; text-align: center; font-size: 10px; }
+.playalong-result { padding: 18px 5px 0; text-align: center; }.playalong-stars { color: #e5b742; font-size: 30px; letter-spacing: .13em; }.playalong-result-accuracy { display: block; margin-top: 9px; color: #3d7d4d; font-family: var(--font-number); font-size: 46px; }.playalong-result p { margin: 2px 0 16px; color: #7c9181; font-size: 12px; }.playalong-result-stats { display: flex; justify-content: center; gap: 36px; padding: 14px 0; border-top: 1px solid #e5ece2; border-bottom: 1px solid #e5ece2; }.playalong-result-stats small { display: block; color: #9aa69d; font-size: 10px; }.playalong-result-stats strong { display: block; margin-top: 3px; color: #4b6e55; font-family: var(--font-number); font-size: 17px; }.playalong-result-actions { display: flex; justify-content: center; gap: 9px; margin-top: 17px; }
+@media (max-width: 820px) { .playalong-card { padding: 22px 18px 20px; } .playalong-card h2 { font-size: 26px; } .playalong-keyboard { height: 143px; } .playalong-key.black { height: 85px; } }
+@media (max-width: 540px) { .playalong-button { padding: 0 7px; font-size: 9px; }.playalong-card { padding: 19px 13px 16px; }.playalong-topline .eyebrow { font-size: 9px; }.playalong-ready { grid-template-columns: 64px minmax(0,1fr); padding: 13px; gap: 10px; }.playalong-ready-art { width: 64px; height: 64px; font-size: 30px; }.playalong-ready-art::before,.playalong-ready-art::after { height: 30px; width: 9px; }.playalong-ready-copy strong { font-size: 16px; }.playalong-ready-copy span { font-size: 10px; }.playalong-ready-actions .btn { flex: 1; }.playalong-sequence { gap: 4px; }.playalong-note { width: 31px; height: 29px; font-size: 9px; }.playalong-keyboard { height: 126px; padding: 5px; gap: 2px; }.playalong-key.black { height: 74px; }.playalong-key span { bottom: 7px; font-size: 9px; }.playalong-key small { display: none; }.playalong-result-stats { gap: 18px; } }
+
+.play-game-tile { background:#edf5fa; border-color:#cadfe8; }
+.play-game-tile .game-tile-icon { color:#477e96; }
+.play-game-tile small { color:#7b929d; }
+.play-game-tile strong { color:#385966; }
+
+.playalong-listen-row { display:flex; align-items:center; gap:10px; margin-top:14px; }.playalong-listen-row .btn { display:inline-flex; align-items:center; gap:6px; }.playalong-listen-row > span { color:#95a398; font-size:10px; }.playalong-listen-row .btn:disabled { opacity:.58; cursor:wait; }
+
 </style>
 </head>
 <body>
@@ -1338,10 +1394,10 @@ button, input, select, textarea { font-family: inherit; }
               <span><small>音名闪现</small><strong>看键或听音，连对 10 题</strong></span>
               <span class="game-tile-best">最佳 <b id="homeGameBest">—</b></span>
             </button>
-            <button class="game-tile beat-game-tile" id="routeWarmup" type="button">
-              <span class="game-tile-icon">♩</span>
-              <span><small>节拍热身</small><strong>跟上拍点，把节奏弹稳</strong></span>
-              <span class="game-tile-best">3 分钟</span>
+            <button class="game-tile play-game-tile" id="startPlayAlongHome" type="button">
+              <span class="game-tile-icon">⌨</span>
+              <span><small>跟弹挑战</small><strong>键盘、点击或 MIDI 都能练</strong></span>
+              <span class="game-tile-best">2 分钟</span>
             </button>
           </div>
         </section>
@@ -1575,6 +1631,7 @@ button, input, select, textarea { font-family: inherit; }
             <div class="timer-actions">
               <button class="timer-control" id="timerToggle" aria-label="暂停计时"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
               <button class="metronome-button" id="metronomeToggle" type="button" aria-label="开启节拍器" aria-pressed="false"><span class="metro-icon">♩</span><span id="metronomeLabel">节拍</span></button>
+              <button class="playalong-button" id="openPlayAlong" type="button"><span>⌨</span> 跟弹练习</button>
               <button class="checkpoint-button" id="openCheckpoint" type="button">◎ 掌握检查</button>
               <button class="btn btn-primary" id="completeStep" type="button">完成这一段</button>
             </div>
@@ -1599,6 +1656,57 @@ button, input, select, textarea { font-family: inherit; }
           <div class="lesson-steps" id="lessonSteps"></div>
           <button class="btn btn-ghost full-width" id="finishSession" type="button">提前完成本次练习</button>
         </aside>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="playAlongModal" role="dialog" aria-modal="true" aria-labelledby="playAlongTitle">
+    <div class="playalong-card" id="playAlongCard" data-total="10">
+      <button class="icon-button modal-close" id="closePlayAlong" aria-label="关闭跟弹练习"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">键盘 A–J 可用</span></div>
+      <h2 id="playAlongTitle">跟着亮起的音弹</h2>
+      <p class="playalong-subtitle" id="playAlongSubtitle">先听一次示范，再按你的速度弹；错音不会中断整段。</p>
+      <div class="playalong-listen-row">
+        <button class="btn btn-soft" id="playAlongListen" type="button"><span>◉</span> 听一次示范</button>
+        <span id="playAlongListenStatus">示范会逐个播放这组音符</span>
+      </div>
+
+      <div class="playalong-ready" id="playAlongReady">
+        <div class="playalong-ready-art" aria-hidden="true"><span>♫</span><i></i><i></i><i></i></div>
+        <div class="playalong-ready-copy">
+          <strong id="playAlongPatternTitle">C 五指位</strong>
+          <span id="playAlongPatternCue">右手 1–2–3–4–5，慢速弹准每个音</span>
+        </div>
+        <div class="playalong-input-note" id="playAlongInputNote">连接 MIDI 可获得真实琴键反馈；没有设备也能用电脑键盘或点击琴键。</div>
+        <div class="playalong-ready-actions">
+          <button class="btn btn-primary" id="playAlongStart" type="button">开始 10 音跟弹</button>
+          <button class="btn btn-soft" id="playAlongMidiConnect" type="button">连接 MIDI 键盘</button>
+        </div>
+      </div>
+
+      <div class="playalong-practice hidden" id="playAlongPractice">
+        <div class="playalong-metrics">
+          <span><small>进度</small><strong id="playAlongProgress">1 / 10</strong></span>
+          <span><small>准确率</small><strong id="playAlongAccuracy">100%</strong></span>
+          <span><small>连续弹对</small><strong id="playAlongStreak">0</strong></span>
+        </div>
+        <div class="playalong-sequence" id="playAlongSequence" aria-label="本组音符"></div>
+        <div class="playalong-target-box">
+          <small>现在弹</small>
+          <strong id="playAlongTarget" data-pc="0" aria-live="polite">C</strong>
+          <span>任意八度</span>
+        </div>
+        <div class="playalong-keyboard" id="playAlongKeyboard" aria-label="跟弹钢琴键盘"></div>
+        <div class="playalong-feedback" id="playAlongFeedback" aria-live="polite">慢一点，弹准比弹快重要。</div>
+        <div class="playalong-key-hint">电脑键盘：A W S E D F T G Y H U J（对应 C 到 B）</div>
+      </div>
+
+      <div class="playalong-result hidden" id="playAlongResult">
+        <div class="playalong-stars" id="playAlongStars" aria-hidden="true">★ ★ ★</div>
+        <strong class="playalong-result-accuracy" id="playAlongResultAccuracy">100%</strong>
+        <p id="playAlongResultMessage">每个音都听清了。</p>
+        <div class="playalong-result-stats"><span><small>弹对</small><strong id="playAlongCorrect">10</strong></span><span><small>重试</small><strong id="playAlongMistakes">0</strong></span><span><small>奖励</small><strong id="playAlongXp">+15 XP</strong></span></div>
+        <div class="playalong-result-actions"><button class="btn btn-primary" id="playAlongRetry" type="button">再练一次</button><button class="btn btn-soft" id="playAlongReturn" type="button">回到课程</button></div>
       </div>
     </div>
   </div>
@@ -1638,7 +1746,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.9 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.10 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -1715,7 +1823,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.9.0",
+    "appVersion": "1.10.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -7816,6 +7924,7 @@ window.PIANO_DATA = {
     placement: null,
     quickPractice: null,
     mastery: {},
+    playAlong: {},
     serverPlan: null,
     settingsSource: 'local'
   };
@@ -8056,8 +8165,9 @@ window.PIANO_DATA = {
   function totalXp() {
     const completedLessons = Object.keys(state.completed).length;
     const repertoirePhases = Object.values(state.repertoire || {}).reduce((sum, item) => sum + (Number(item.phaseIndex) || 0), 0);
+    const playAlongXp = Object.values(state.playAlong || {}).reduce((sum, item) => sum + (Number(item.xp) || 0), 0);
     const practiceXp = Math.floor(totalMinutes() / 5);
-    return completedLessons * 20 + repertoirePhases * 15 + practiceXp;
+    return completedLessons * 20 + repertoirePhases * 15 + playAlongXp + practiceXp;
   }
 
   function levelForXp(xp) {
@@ -8132,12 +8242,13 @@ window.PIANO_DATA = {
 
     const todayKey = localDateKey(new Date());
     const gameToday = (state.gameSessions || []).filter((item) => item.date === todayKey);
+    const playAlongToday = state.history.filter((entry) => entry.date === todayKey && entry.type === 'playalong');
     const todayMinutes = minutesForDate(todayKey);
-    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice'].includes(entry.type));
-    const todayGame = gameToday.length > 0;
+    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice', 'playalong'].includes(entry.type));
+    const todayGame = gameToday.length > 0 || playAlongToday.length > 0;
     const quests = [
       { done: todayLesson, label: '完成 1 次课程练习', detail: todayLesson ? '已完成' : '开始今日课程' },
-      { done: todayGame, label: '玩 1 次音名挑战', detail: gameToday.length ? `今日 ${gameToday.length} 局` : '约 2 分钟' },
+      { done: todayGame, label: '完成一次听辨或跟弹', detail: gameToday.length || playAlongToday.length ? `今日 ${gameToday.length + playAlongToday.length} 局` : '约 2 分钟' },
       { done: todayMinutes >= 20, label: '累计练习 20 分钟', detail: `${Math.min(todayMinutes, 20)} / 20 分钟` }
     ];
     const questList = document.querySelector('#dailyQuestList');
@@ -8272,16 +8383,18 @@ window.PIANO_DATA = {
     const repertoirePhases = Object.values(state.repertoire || {}).reduce((sum, item) => sum + (Number(item.phaseIndex) || 0), 0);
     const sightEntries = (state.history || []).filter((entry) => Number(entry.sightDone) > 0).length;
     const gameSessions = (state.gameSessions || []).length;
+    const playAlongSessions = Object.values(state.playAlong || {}).length;
+    const playAlongAccuracy = Object.values(state.playAlong || {}).reduce((sum, item) => sum + (Number(item.bestAccuracy) || 0), 0) / Math.max(1, playAlongSessions);
     const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.rating <= 2 || entry.notes)).length;
     const read = Math.min(100, Math.round(sightEntries * 4 + avgMastery * 0.35 + completedLessons * 1.5));
-    const technique = Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45));
+    const technique = Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45 + playAlongSessions * 2));
     const repertoire = Math.min(100, Math.round(repertoirePhases * 12 + completedLessons * 2));
-    const ear = Math.min(100, Math.round(gameSessions * 6 + avgMastery * 0.2));
+    const ear = Math.min(100, Math.round(gameSessions * 6 + playAlongAccuracy * 0.12 + playAlongSessions * 2 + avgMastery * 0.2));
     const skills = [
       { key: 'read', label: '读谱', value: read, detail: sightEntries ? `${sightEntries} 次视奏` : '还没开始' },
-      { key: 'technique', label: '技术', value: technique, detail: completedLessons ? `${completedLessons} 课完成` : '建立基线' },
+      { key: 'technique', label: '技术', value: technique, detail: completedLessons || playAlongSessions ? `${completedLessons} 课 · ${playAlongSessions} 次跟弹` : '建立基线' },
       { key: 'repertoire', label: '曲目', value: repertoire, detail: repertoirePhases ? `${repertoirePhases} 个阶段` : '选择一首曲子' },
-      { key: 'ear', label: '听觉', value: ear, detail: gameSessions ? `${gameSessions} 次听辨` : '去玩音名游戏' }
+      { key: 'ear', label: '听觉', value: ear, detail: gameSessions || playAlongSessions ? `${gameSessions} 次听辨 · ${playAlongSessions} 次跟弹` : '去玩音名游戏' }
     ];
     const weakest = [...skills].sort((a, b) => a.value - b.value)[0];
     return { skills, weakest, avgMastery, completedLessons, reviewEntries };
@@ -8403,7 +8516,7 @@ window.PIANO_DATA = {
 
   window.PIANO_APP = {
     state, DATA, persist, renderAll, updateNav, showToast, findSession,
-    sessionsForWeek, currentWeekData, currentSessionData, streakCount,
+    sessionsForWeek, currentWeekData, currentSessionData, streakCount, openPlayAlong,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
@@ -8424,6 +8537,7 @@ window.PIANO_DATA = {
   const isNormalLesson = (item) => Boolean(item && !item.quick && !item.repertoireId);
   const masteryPassed = (sessionId) => Boolean(state.mastery?.[sessionId] && Number(state.mastery[sessionId].best) >= MASTERY_PASS_PERCENT);
   const escapeUi = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const localDateKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   const STATIC_HOST = location.protocol === 'file:' || /github\.io$/i.test(location.hostname) || location.hostname.endsWith('.pages.dev') || location.hostname.endsWith('.netlify.app') || location.hostname.endsWith('.vercel.app');
   const SOURCE_URL = 'https://i.ytimg.com/vi/tEtukfFv3Wk/maxresdefault.jpg';
 
@@ -8450,6 +8564,36 @@ window.PIANO_DATA = {
   let onboardingChoices = { level: 'zero', weeklyMinutes: 240, style: 'mixed' };
   let noteGameMode = 'note';
   let activeRepertoirePiece = null;
+  const PLAY_ALONG_PITCHES = [
+    { name: 'C', pc: 0, input: 'a', black: false },
+    { name: 'C♯', pc: 1, input: 'w', black: true },
+    { name: 'D', pc: 2, input: 's', black: false },
+    { name: 'D♯', pc: 3, input: 'e', black: true },
+    { name: 'E', pc: 4, input: 'd', black: false },
+    { name: 'F', pc: 5, input: 'f', black: false },
+    { name: 'F♯', pc: 6, input: 't', black: true },
+    { name: 'G', pc: 7, input: 'g', black: false },
+    { name: 'G♯', pc: 8, input: 'y', black: true },
+    { name: 'A', pc: 9, input: 'h', black: false },
+    { name: 'A♯', pc: 10, input: 'u', black: true },
+    { name: 'B', pc: 11, input: 'j', black: false }
+  ];
+  const PLAY_ALONG_PATTERNS = [
+    { id: 'c-five', title: 'C 五指位', cue: '右手 1–2–3–4–5，慢速弹准每个音', notes: [0, 2, 4, 5, 7, 5, 4, 2, 0, 0] },
+    { id: 'stepwise', title: '级进短句', cue: '保持手腕放松，听每个音是否同样清楚', notes: [0, 2, 4, 2, 4, 5, 4, 2, 0, 2] },
+    { id: 'fifth-up', title: '五度回环', cue: '先看目标音，再落键；不要用手臂找键', notes: [0, 4, 7, 4, 0, 4, 7, 4, 0, 0] },
+    { id: 'broken-triad', title: '分解和弦', cue: 'C–E–G 一次成形，声音均匀地向上走', notes: [0, 4, 7, 12 - 12, 7, 4, 0, 4, 7, 0] }
+  ];
+  let playAlongPattern = PLAY_ALONG_PATTERNS[0];
+  let playAlongSequence = [];
+  let playAlongIndex = 0;
+  let playAlongCorrect = 0;
+  let playAlongMistakes = 0;
+  let playAlongStreak = 0;
+  let playAlongBestStreak = 0;
+  let playAlongActive = false;
+  let playAlongMidi = null;
+  let playAlongMidiAccess = null;
 
   function formatClock(seconds) {
     const safe = Math.max(0, Math.round(seconds));
@@ -9431,6 +9575,232 @@ window.PIANO_DATA = {
     updateProgressDisplay();
   }
 
+  function playAlongKeyMarkup() {
+    const white = PLAY_ALONG_PITCHES.filter((pitch) => !pitch.black);
+    const black = PLAY_ALONG_PITCHES.filter((pitch) => pitch.black);
+    const blackLeft = { 1: 10.2, 3: 24.5, 6: 52.8, 8: 67.0, 10: 81.3 };
+    return white.map((pitch) => `<button class="playalong-key white" type="button" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('') + black.map((pitch) => `<button class="playalong-key black" type="button" style="left:${blackLeft[pitch.pc]}%" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
+  }
+
+  function renderPlayAlongSequence() {
+    const sequence = document.querySelector('#playAlongSequence');
+    if (!sequence) return;
+    sequence.innerHTML = playAlongSequence.map((pc, index) => {
+      const pitch = PLAY_ALONG_PITCHES.find((item) => item.pc === pc) || PLAY_ALONG_PITCHES[0];
+      const className = index < playAlongIndex ? 'done' : index === playAlongIndex ? 'current' : '';
+      return `<span class="playalong-note ${className}">${escapeUi(pitch.name)}</span>`;
+    }).join('');
+  }
+
+  function updatePlayAlongStats() {
+    const total = playAlongSequence.length || 10;
+    const accuracy = playAlongCorrect + playAlongMistakes > 0 ? Math.round((playAlongCorrect / (playAlongCorrect + playAlongMistakes)) * 100) : 100;
+    const progress = Math.min(total, playAlongIndex + (playAlongActive ? 1 : 0));
+    const progressEl = document.querySelector('#playAlongProgress');
+    const accuracyEl = document.querySelector('#playAlongAccuracy');
+    const streakEl = document.querySelector('#playAlongStreak');
+    if (progressEl) progressEl.textContent = `${Math.min(total, Math.max(1, progress || 1))} / ${total}`;
+    if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
+    if (streakEl) streakEl.textContent = String(playAlongStreak);
+    renderPlayAlongSequence();
+  }
+
+  function currentPlayAlongNote() {
+    return PLAY_ALONG_PITCHES.find((item) => item.pc === playAlongSequence[playAlongIndex]) || PLAY_ALONG_PITCHES[0];
+  }
+
+  function showPlayAlongTarget() {
+    const target = document.querySelector('#playAlongTarget');
+    if (!target) return;
+    const pitch = currentPlayAlongNote();
+    target.textContent = pitch.name;
+    target.dataset.pc = String(pitch.pc);
+    target.className = `playalong-target ${pitch.black ? 'sharp' : ''}`;
+    document.querySelectorAll('.playalong-key').forEach((key) => key.classList.toggle('target', Number(key.dataset.playalongPc) === pitch.pc));
+    updatePlayAlongStats();
+  }
+
+  function listenPlayAlongPattern() {
+    const status = document.querySelector('#playAlongListenStatus');
+    const button = document.querySelector('#playAlongListen');
+    if (!button) return;
+    button.disabled = true;
+    if (status) status.textContent = '正在播放示范…';
+    let index = 0;
+    const playNext = () => {
+      if (index >= playAlongSequence.length) {
+        button.disabled = false;
+        if (status) status.textContent = '示范结束，按你的速度开始。';
+        return;
+      }
+      const pc = playAlongSequence[index];
+      playTone(261.63 * Math.pow(2, pc / 12), .32);
+      index += 1;
+      setTimeout(playNext, 420);
+    };
+    playNext();
+  }
+
+  function openPlayAlong() {
+    const stageIndex = Number.isInteger(stepIndex) ? Math.min(stepIndex, 2) : 0;
+    playAlongPattern = PLAY_ALONG_PATTERNS[stageIndex % PLAY_ALONG_PATTERNS.length] || PLAY_ALONG_PATTERNS[0];
+    playAlongSequence = [...playAlongPattern.notes];
+    playAlongIndex = 0;
+    playAlongCorrect = 0;
+    playAlongMistakes = 0;
+    playAlongStreak = 0;
+    playAlongBestStreak = 0;
+    playAlongActive = false;
+    const keyboard = document.querySelector('#playAlongKeyboard');
+    if (keyboard && !keyboard.children.length) keyboard.innerHTML = playAlongKeyMarkup();
+    const title = document.querySelector('#playAlongPatternTitle');
+    const cue = document.querySelector('#playAlongPatternCue');
+    if (title) title.textContent = playAlongPattern.title;
+    if (cue) cue.textContent = playAlongPattern.cue;
+    document.querySelector('#playAlongReady')?.classList.remove('hidden');
+    document.querySelector('#playAlongPractice')?.classList.add('hidden');
+    document.querySelector('#playAlongResult')?.classList.add('hidden');
+    document.querySelector('#playAlongModal')?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePlayAlong() {
+    playAlongActive = false;
+    document.querySelector('#playAlongModal')?.classList.add('hidden');
+    const lessonOpen = document.querySelector('#lessonModal') && !document.querySelector('#lessonModal').classList.contains('hidden');
+    document.body.style.overflow = lessonOpen ? 'hidden' : '';
+  }
+
+  function startPlayAlong() {
+    playAlongIndex = 0;
+    playAlongCorrect = 0;
+    playAlongMistakes = 0;
+    playAlongStreak = 0;
+    playAlongBestStreak = 0;
+    playAlongActive = true;
+    document.querySelector('#playAlongReady')?.classList.add('hidden');
+    document.querySelector('#playAlongPractice')?.classList.remove('hidden');
+    document.querySelector('#playAlongResult')?.classList.add('hidden');
+    document.querySelector('#playAlongFeedback').textContent = '慢一点，弹准比弹快重要。';
+    showPlayAlongTarget();
+  }
+
+  function replayPlayAlongTarget() {
+    const pitch = currentPlayAlongNote();
+    const frequency = 261.63 * Math.pow(2, pitch.pc / 12);
+    playTone(frequency, .35);
+  }
+
+  function answerPlayAlong(pc, source = 'pointer') {
+    if (!playAlongActive) return;
+    const expected = currentPlayAlongNote().pc;
+    if (pc === expected) {
+      playAlongCorrect += 1;
+      playAlongStreak += 1;
+      playAlongBestStreak = Math.max(playAlongBestStreak, playAlongStreak);
+      document.querySelector('#playAlongFeedback').textContent = playAlongStreak >= 5 ? `连对 ${playAlongStreak} 音，节奏很稳。` : '对了，保持这个动作。';
+      const key = document.querySelector(`.playalong-key[data-playalong-pc="${pc}"]`);
+      key?.classList.add('hit');
+      setTimeout(() => key?.classList.remove('hit'), 220);
+      playAlongIndex += 1;
+      if (playAlongIndex >= playAlongSequence.length) {
+        finishPlayAlong();
+        return;
+      }
+      showPlayAlongTarget();
+      return;
+    }
+    playAlongMistakes += 1;
+    playAlongStreak = 0;
+    const targetName = currentPlayAlongNote().name;
+    document.querySelector('#playAlongFeedback').textContent = `还差一步：目标音是 ${targetName}。听一遍，再来。`;
+    const key = document.querySelector(`.playalong-key[data-playalong-pc="${pc}"]`);
+    key?.classList.add('miss');
+    setTimeout(() => key?.classList.remove('miss'), 260);
+    updatePlayAlongStats();
+    replayPlayAlongTarget();
+  }
+
+  function finishPlayAlong() {
+    playAlongActive = false;
+    const total = playAlongSequence.length;
+    const accuracy = Math.round((playAlongCorrect / Math.max(1, playAlongCorrect + playAlongMistakes)) * 100);
+    const stars = accuracy >= 92 ? 3 : accuracy >= 75 ? 2 : 1;
+    const xp = stars === 3 ? 15 : stars === 2 ? 10 : 5;
+    const key = session?.id || 'free-play';
+    const old = state.playAlong?.[key] || { attempts: 0, bestAccuracy: 0, bestStreak: 0, xp: 0 };
+    state.playAlong = {
+      ...(state.playAlong || {}),
+      [key]: {
+        attempts: old.attempts + 1,
+        bestAccuracy: Math.max(old.bestAccuracy, accuracy),
+        bestStreak: Math.max(old.bestStreak, playAlongBestStreak),
+        lastAccuracy: accuracy,
+        xp: Math.max(old.xp, xp),
+        updatedAt: new Date().toISOString()
+      }
+    };
+    const today = localDateKey(new Date());
+    state.history = [{
+      id: `playalong-${Date.now()}`,
+      type: 'playalong',
+      title: `跟弹练习：${playAlongPattern.title}`,
+      week: session?.week || 0,
+      date: today,
+      minutes: 2,
+      rating: stars,
+      ratingLabel: '跟弹',
+      notes: `${playAlongCorrect}/${total} 音正确，连对 ${playAlongBestStreak}`,
+      sightDone: 0,
+      completedAt: new Date().toISOString()
+    }, ...state.history].slice(0, 400);
+    APP.persist();
+    APP.renderAll();
+    updateProgressDisplay();
+    document.querySelector('#playAlongPractice')?.classList.add('hidden');
+    document.querySelector('#playAlongResult')?.classList.remove('hidden');
+    document.querySelector('#playAlongStars').textContent = '★ '.repeat(stars) + '☆ '.repeat(3 - stars);
+    document.querySelector('#playAlongResultAccuracy').textContent = `${accuracy}%`;
+    document.querySelector('#playAlongCorrect').textContent = String(playAlongCorrect);
+    document.querySelector('#playAlongMistakes').textContent = String(playAlongMistakes);
+    document.querySelector('#playAlongXp').textContent = `+${xp} XP`;
+    document.querySelector('#playAlongResultMessage').textContent = accuracy >= 92 ? '每个音都听清了。' : accuracy >= 75 ? '节奏和音高已经稳定，再练一轮会更顺。' : '先把目标音看准，再慢速弹一次。';
+  }
+
+  async function connectPlayAlongMidi() {
+    const note = document.querySelector('#playAlongInputNote');
+    if (!navigator.requestMIDIAccess) {
+      if (note) note.textContent = '此浏览器没有 MIDI 支持。仍可用电脑键盘或点击琴键。';
+      return;
+    }
+    try {
+      playAlongMidiAccess = await navigator.requestMIDIAccess();
+      const inputs = Array.from(playAlongMidiAccess.inputs.values());
+      if (!inputs.length) {
+        if (note) note.textContent = '没有检测到 MIDI 键盘。插上设备后重试。';
+        return;
+      }
+      playAlongMidi = inputs[0];
+      playAlongMidi.onmidimessage = (event) => {
+        const [command, noteNumber, velocity] = event.data;
+        if ((command & 0xf0) === 0x90 && velocity > 0) answerPlayAlong(noteNumber % 12, 'midi');
+      };
+      if (note) note.textContent = `已连接：${playAlongMidi.name}。直接弹下对应琴键。`;
+      document.querySelector('#playAlongDevice').textContent = 'MIDI 已连接';
+    } catch (error) {
+      if (note) note.textContent = 'MIDI 连接被浏览器拦截。检查权限后再试，或使用键盘。';
+    }
+  }
+
+  function handlePlayAlongKeydown(event) {
+    if (!playAlongActive || !document.querySelector('#playAlongModal') || document.querySelector('#playAlongModal').classList.contains('hidden')) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const pitch = PLAY_ALONG_PITCHES.find((item) => item.input === event.key.toLowerCase());
+    if (!pitch) return;
+    event.preventDefault();
+    answerPlayAlong(pitch.pc, 'keyboard');
+  }
+
   function stopMetronome() {
     clearInterval(metronomeTimer);
     metronomeTimer = null;
@@ -9542,9 +9912,9 @@ window.PIANO_DATA = {
     document.querySelector('#accountSyncNow')?.addEventListener('click', () => syncNow({ force: true }));
     document.querySelector('#accountLogout')?.addEventListener('click', logoutAccount);
     window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
-    $('#routeWarmup')?.addEventListener('click', openWarmup);
     $('#routeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     $('#startRhythmGame')?.addEventListener('click', openNoteGame);
+    $('#startPlayAlongHome')?.addEventListener('click', openPlayAlong);
     document.querySelectorAll('#onboardingForm .choice-chip').forEach((button) => button.addEventListener('click', () => chooseOnboarding(button)));
     document.querySelector('#onboardingForm')?.addEventListener('submit', saveOnboarding);
     document.querySelector('#openPlacement')?.addEventListener('click', openPlacement);
@@ -9573,6 +9943,18 @@ window.PIANO_DATA = {
     });
     $('#closeLesson').addEventListener('click', closeSession);
     $('#metronomeToggle')?.addEventListener('click', cycleMetronome);
+    document.querySelector('#openPlayAlong')?.addEventListener('click', openPlayAlong);
+    document.querySelector('#closePlayAlong')?.addEventListener('click', closePlayAlong);
+    document.querySelector('#playAlongStart')?.addEventListener('click', startPlayAlong);
+    document.querySelector('#playAlongListen')?.addEventListener('click', listenPlayAlongPattern);
+    document.querySelector('#playAlongMidiConnect')?.addEventListener('click', connectPlayAlongMidi);
+    document.querySelector('#playAlongRetry')?.addEventListener('click', startPlayAlong);
+    document.querySelector('#playAlongReturn')?.addEventListener('click', closePlayAlong);
+    document.querySelector('#playAlongKeyboard')?.addEventListener('click', (event) => {
+      const key = event.target.closest('[data-playalong-pc]');
+      if (key) answerPlayAlong(Number(key.dataset.playalongPc), 'pointer');
+    });
+    document.addEventListener('keydown', handlePlayAlongKeydown);
     document.querySelector('#openCheckpoint')?.addEventListener('click', openCheckpoint);
     document.querySelector('#closeCheckpoint')?.addEventListener('click', closeCheckpoint);
     document.querySelector('#checkpointNext')?.addEventListener('click', nextCheckpoint);
@@ -9672,11 +10054,13 @@ window.PIANO_DATA = {
         else if (backdrop.id === 'settingsModal') closeSettings();
         else if (backdrop.id === 'warmupModal') closeWarmup();
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
+        else if (backdrop.id === 'playAlongModal') closePlayAlong();
         else if (backdrop.id === 'videoModal') closeVideo();
       });
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
         if (!$('#accountModal').classList.contains('hidden')) closeAccount();
         else if (!$('#onboardingModal').classList.contains('hidden')) closeOnboarding();
         else if (!$('#settingsModal').classList.contains('hidden')) closeSettings();

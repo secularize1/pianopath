@@ -17,6 +17,7 @@
     placement: null,
     quickPractice: null,
     mastery: {},
+    playAlong: {},
     serverPlan: null,
     settingsSource: 'local'
   };
@@ -257,8 +258,9 @@
   function totalXp() {
     const completedLessons = Object.keys(state.completed).length;
     const repertoirePhases = Object.values(state.repertoire || {}).reduce((sum, item) => sum + (Number(item.phaseIndex) || 0), 0);
+    const playAlongXp = Object.values(state.playAlong || {}).reduce((sum, item) => sum + (Number(item.xp) || 0), 0);
     const practiceXp = Math.floor(totalMinutes() / 5);
-    return completedLessons * 20 + repertoirePhases * 15 + practiceXp;
+    return completedLessons * 20 + repertoirePhases * 15 + playAlongXp + practiceXp;
   }
 
   function levelForXp(xp) {
@@ -333,12 +335,13 @@
 
     const todayKey = localDateKey(new Date());
     const gameToday = (state.gameSessions || []).filter((item) => item.date === todayKey);
+    const playAlongToday = state.history.filter((entry) => entry.date === todayKey && entry.type === 'playalong');
     const todayMinutes = minutesForDate(todayKey);
-    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice'].includes(entry.type));
-    const todayGame = gameToday.length > 0;
+    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice', 'playalong'].includes(entry.type));
+    const todayGame = gameToday.length > 0 || playAlongToday.length > 0;
     const quests = [
       { done: todayLesson, label: '完成 1 次课程练习', detail: todayLesson ? '已完成' : '开始今日课程' },
-      { done: todayGame, label: '玩 1 次音名挑战', detail: gameToday.length ? `今日 ${gameToday.length} 局` : '约 2 分钟' },
+      { done: todayGame, label: '完成一次听辨或跟弹', detail: gameToday.length || playAlongToday.length ? `今日 ${gameToday.length + playAlongToday.length} 局` : '约 2 分钟' },
       { done: todayMinutes >= 20, label: '累计练习 20 分钟', detail: `${Math.min(todayMinutes, 20)} / 20 分钟` }
     ];
     const questList = document.querySelector('#dailyQuestList');
@@ -473,16 +476,18 @@
     const repertoirePhases = Object.values(state.repertoire || {}).reduce((sum, item) => sum + (Number(item.phaseIndex) || 0), 0);
     const sightEntries = (state.history || []).filter((entry) => Number(entry.sightDone) > 0).length;
     const gameSessions = (state.gameSessions || []).length;
+    const playAlongSessions = Object.values(state.playAlong || {}).length;
+    const playAlongAccuracy = Object.values(state.playAlong || {}).reduce((sum, item) => sum + (Number(item.bestAccuracy) || 0), 0) / Math.max(1, playAlongSessions);
     const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.rating <= 2 || entry.notes)).length;
     const read = Math.min(100, Math.round(sightEntries * 4 + avgMastery * 0.35 + completedLessons * 1.5));
-    const technique = Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45));
+    const technique = Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45 + playAlongSessions * 2));
     const repertoire = Math.min(100, Math.round(repertoirePhases * 12 + completedLessons * 2));
-    const ear = Math.min(100, Math.round(gameSessions * 6 + avgMastery * 0.2));
+    const ear = Math.min(100, Math.round(gameSessions * 6 + playAlongAccuracy * 0.12 + playAlongSessions * 2 + avgMastery * 0.2));
     const skills = [
       { key: 'read', label: '读谱', value: read, detail: sightEntries ? `${sightEntries} 次视奏` : '还没开始' },
-      { key: 'technique', label: '技术', value: technique, detail: completedLessons ? `${completedLessons} 课完成` : '建立基线' },
+      { key: 'technique', label: '技术', value: technique, detail: completedLessons || playAlongSessions ? `${completedLessons} 课 · ${playAlongSessions} 次跟弹` : '建立基线' },
       { key: 'repertoire', label: '曲目', value: repertoire, detail: repertoirePhases ? `${repertoirePhases} 个阶段` : '选择一首曲子' },
-      { key: 'ear', label: '听觉', value: ear, detail: gameSessions ? `${gameSessions} 次听辨` : '去玩音名游戏' }
+      { key: 'ear', label: '听觉', value: ear, detail: gameSessions || playAlongSessions ? `${gameSessions} 次听辨 · ${playAlongSessions} 次跟弹` : '去玩音名游戏' }
     ];
     const weakest = [...skills].sort((a, b) => a.value - b.value)[0];
     return { skills, weakest, avgMastery, completedLessons, reviewEntries };
@@ -604,7 +609,7 @@
 
   window.PIANO_APP = {
     state, DATA, persist, renderAll, updateNav, showToast, findSession,
-    sessionsForWeek, currentWeekData, currentSessionData, streakCount,
+    sessionsForWeek, currentWeekData, currentSessionData, streakCount, openPlayAlong,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
@@ -625,6 +630,7 @@
   const isNormalLesson = (item) => Boolean(item && !item.quick && !item.repertoireId);
   const masteryPassed = (sessionId) => Boolean(state.mastery?.[sessionId] && Number(state.mastery[sessionId].best) >= MASTERY_PASS_PERCENT);
   const escapeUi = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const localDateKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   const STATIC_HOST = location.protocol === 'file:' || /github\.io$/i.test(location.hostname) || location.hostname.endsWith('.pages.dev') || location.hostname.endsWith('.netlify.app') || location.hostname.endsWith('.vercel.app');
   const SOURCE_URL = 'https://i.ytimg.com/vi/tEtukfFv3Wk/maxresdefault.jpg';
 
@@ -651,6 +657,36 @@
   let onboardingChoices = { level: 'zero', weeklyMinutes: 240, style: 'mixed' };
   let noteGameMode = 'note';
   let activeRepertoirePiece = null;
+  const PLAY_ALONG_PITCHES = [
+    { name: 'C', pc: 0, input: 'a', black: false },
+    { name: 'C♯', pc: 1, input: 'w', black: true },
+    { name: 'D', pc: 2, input: 's', black: false },
+    { name: 'D♯', pc: 3, input: 'e', black: true },
+    { name: 'E', pc: 4, input: 'd', black: false },
+    { name: 'F', pc: 5, input: 'f', black: false },
+    { name: 'F♯', pc: 6, input: 't', black: true },
+    { name: 'G', pc: 7, input: 'g', black: false },
+    { name: 'G♯', pc: 8, input: 'y', black: true },
+    { name: 'A', pc: 9, input: 'h', black: false },
+    { name: 'A♯', pc: 10, input: 'u', black: true },
+    { name: 'B', pc: 11, input: 'j', black: false }
+  ];
+  const PLAY_ALONG_PATTERNS = [
+    { id: 'c-five', title: 'C 五指位', cue: '右手 1–2–3–4–5，慢速弹准每个音', notes: [0, 2, 4, 5, 7, 5, 4, 2, 0, 0] },
+    { id: 'stepwise', title: '级进短句', cue: '保持手腕放松，听每个音是否同样清楚', notes: [0, 2, 4, 2, 4, 5, 4, 2, 0, 2] },
+    { id: 'fifth-up', title: '五度回环', cue: '先看目标音，再落键；不要用手臂找键', notes: [0, 4, 7, 4, 0, 4, 7, 4, 0, 0] },
+    { id: 'broken-triad', title: '分解和弦', cue: 'C–E–G 一次成形，声音均匀地向上走', notes: [0, 4, 7, 12 - 12, 7, 4, 0, 4, 7, 0] }
+  ];
+  let playAlongPattern = PLAY_ALONG_PATTERNS[0];
+  let playAlongSequence = [];
+  let playAlongIndex = 0;
+  let playAlongCorrect = 0;
+  let playAlongMistakes = 0;
+  let playAlongStreak = 0;
+  let playAlongBestStreak = 0;
+  let playAlongActive = false;
+  let playAlongMidi = null;
+  let playAlongMidiAccess = null;
 
   function formatClock(seconds) {
     const safe = Math.max(0, Math.round(seconds));
@@ -1632,6 +1668,232 @@
     updateProgressDisplay();
   }
 
+  function playAlongKeyMarkup() {
+    const white = PLAY_ALONG_PITCHES.filter((pitch) => !pitch.black);
+    const black = PLAY_ALONG_PITCHES.filter((pitch) => pitch.black);
+    const blackLeft = { 1: 10.2, 3: 24.5, 6: 52.8, 8: 67.0, 10: 81.3 };
+    return white.map((pitch) => `<button class="playalong-key white" type="button" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('') + black.map((pitch) => `<button class="playalong-key black" type="button" style="left:${blackLeft[pitch.pc]}%" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
+  }
+
+  function renderPlayAlongSequence() {
+    const sequence = document.querySelector('#playAlongSequence');
+    if (!sequence) return;
+    sequence.innerHTML = playAlongSequence.map((pc, index) => {
+      const pitch = PLAY_ALONG_PITCHES.find((item) => item.pc === pc) || PLAY_ALONG_PITCHES[0];
+      const className = index < playAlongIndex ? 'done' : index === playAlongIndex ? 'current' : '';
+      return `<span class="playalong-note ${className}">${escapeUi(pitch.name)}</span>`;
+    }).join('');
+  }
+
+  function updatePlayAlongStats() {
+    const total = playAlongSequence.length || 10;
+    const accuracy = playAlongCorrect + playAlongMistakes > 0 ? Math.round((playAlongCorrect / (playAlongCorrect + playAlongMistakes)) * 100) : 100;
+    const progress = Math.min(total, playAlongIndex + (playAlongActive ? 1 : 0));
+    const progressEl = document.querySelector('#playAlongProgress');
+    const accuracyEl = document.querySelector('#playAlongAccuracy');
+    const streakEl = document.querySelector('#playAlongStreak');
+    if (progressEl) progressEl.textContent = `${Math.min(total, Math.max(1, progress || 1))} / ${total}`;
+    if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
+    if (streakEl) streakEl.textContent = String(playAlongStreak);
+    renderPlayAlongSequence();
+  }
+
+  function currentPlayAlongNote() {
+    return PLAY_ALONG_PITCHES.find((item) => item.pc === playAlongSequence[playAlongIndex]) || PLAY_ALONG_PITCHES[0];
+  }
+
+  function showPlayAlongTarget() {
+    const target = document.querySelector('#playAlongTarget');
+    if (!target) return;
+    const pitch = currentPlayAlongNote();
+    target.textContent = pitch.name;
+    target.dataset.pc = String(pitch.pc);
+    target.className = `playalong-target ${pitch.black ? 'sharp' : ''}`;
+    document.querySelectorAll('.playalong-key').forEach((key) => key.classList.toggle('target', Number(key.dataset.playalongPc) === pitch.pc));
+    updatePlayAlongStats();
+  }
+
+  function listenPlayAlongPattern() {
+    const status = document.querySelector('#playAlongListenStatus');
+    const button = document.querySelector('#playAlongListen');
+    if (!button) return;
+    button.disabled = true;
+    if (status) status.textContent = '正在播放示范…';
+    let index = 0;
+    const playNext = () => {
+      if (index >= playAlongSequence.length) {
+        button.disabled = false;
+        if (status) status.textContent = '示范结束，按你的速度开始。';
+        return;
+      }
+      const pc = playAlongSequence[index];
+      playTone(261.63 * Math.pow(2, pc / 12), .32);
+      index += 1;
+      setTimeout(playNext, 420);
+    };
+    playNext();
+  }
+
+  function openPlayAlong() {
+    const stageIndex = Number.isInteger(stepIndex) ? Math.min(stepIndex, 2) : 0;
+    playAlongPattern = PLAY_ALONG_PATTERNS[stageIndex % PLAY_ALONG_PATTERNS.length] || PLAY_ALONG_PATTERNS[0];
+    playAlongSequence = [...playAlongPattern.notes];
+    playAlongIndex = 0;
+    playAlongCorrect = 0;
+    playAlongMistakes = 0;
+    playAlongStreak = 0;
+    playAlongBestStreak = 0;
+    playAlongActive = false;
+    const keyboard = document.querySelector('#playAlongKeyboard');
+    if (keyboard && !keyboard.children.length) keyboard.innerHTML = playAlongKeyMarkup();
+    const title = document.querySelector('#playAlongPatternTitle');
+    const cue = document.querySelector('#playAlongPatternCue');
+    if (title) title.textContent = playAlongPattern.title;
+    if (cue) cue.textContent = playAlongPattern.cue;
+    document.querySelector('#playAlongReady')?.classList.remove('hidden');
+    document.querySelector('#playAlongPractice')?.classList.add('hidden');
+    document.querySelector('#playAlongResult')?.classList.add('hidden');
+    document.querySelector('#playAlongModal')?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePlayAlong() {
+    playAlongActive = false;
+    document.querySelector('#playAlongModal')?.classList.add('hidden');
+    const lessonOpen = document.querySelector('#lessonModal') && !document.querySelector('#lessonModal').classList.contains('hidden');
+    document.body.style.overflow = lessonOpen ? 'hidden' : '';
+  }
+
+  function startPlayAlong() {
+    playAlongIndex = 0;
+    playAlongCorrect = 0;
+    playAlongMistakes = 0;
+    playAlongStreak = 0;
+    playAlongBestStreak = 0;
+    playAlongActive = true;
+    document.querySelector('#playAlongReady')?.classList.add('hidden');
+    document.querySelector('#playAlongPractice')?.classList.remove('hidden');
+    document.querySelector('#playAlongResult')?.classList.add('hidden');
+    document.querySelector('#playAlongFeedback').textContent = '慢一点，弹准比弹快重要。';
+    showPlayAlongTarget();
+  }
+
+  function replayPlayAlongTarget() {
+    const pitch = currentPlayAlongNote();
+    const frequency = 261.63 * Math.pow(2, pitch.pc / 12);
+    playTone(frequency, .35);
+  }
+
+  function answerPlayAlong(pc, source = 'pointer') {
+    if (!playAlongActive) return;
+    const expected = currentPlayAlongNote().pc;
+    if (pc === expected) {
+      playAlongCorrect += 1;
+      playAlongStreak += 1;
+      playAlongBestStreak = Math.max(playAlongBestStreak, playAlongStreak);
+      document.querySelector('#playAlongFeedback').textContent = playAlongStreak >= 5 ? `连对 ${playAlongStreak} 音，节奏很稳。` : '对了，保持这个动作。';
+      const key = document.querySelector(`.playalong-key[data-playalong-pc="${pc}"]`);
+      key?.classList.add('hit');
+      setTimeout(() => key?.classList.remove('hit'), 220);
+      playAlongIndex += 1;
+      if (playAlongIndex >= playAlongSequence.length) {
+        finishPlayAlong();
+        return;
+      }
+      showPlayAlongTarget();
+      return;
+    }
+    playAlongMistakes += 1;
+    playAlongStreak = 0;
+    const targetName = currentPlayAlongNote().name;
+    document.querySelector('#playAlongFeedback').textContent = `还差一步：目标音是 ${targetName}。听一遍，再来。`;
+    const key = document.querySelector(`.playalong-key[data-playalong-pc="${pc}"]`);
+    key?.classList.add('miss');
+    setTimeout(() => key?.classList.remove('miss'), 260);
+    updatePlayAlongStats();
+    replayPlayAlongTarget();
+  }
+
+  function finishPlayAlong() {
+    playAlongActive = false;
+    const total = playAlongSequence.length;
+    const accuracy = Math.round((playAlongCorrect / Math.max(1, playAlongCorrect + playAlongMistakes)) * 100);
+    const stars = accuracy >= 92 ? 3 : accuracy >= 75 ? 2 : 1;
+    const xp = stars === 3 ? 15 : stars === 2 ? 10 : 5;
+    const key = session?.id || 'free-play';
+    const old = state.playAlong?.[key] || { attempts: 0, bestAccuracy: 0, bestStreak: 0, xp: 0 };
+    state.playAlong = {
+      ...(state.playAlong || {}),
+      [key]: {
+        attempts: old.attempts + 1,
+        bestAccuracy: Math.max(old.bestAccuracy, accuracy),
+        bestStreak: Math.max(old.bestStreak, playAlongBestStreak),
+        lastAccuracy: accuracy,
+        xp: Math.max(old.xp, xp),
+        updatedAt: new Date().toISOString()
+      }
+    };
+    const today = localDateKey(new Date());
+    state.history = [{
+      id: `playalong-${Date.now()}`,
+      type: 'playalong',
+      title: `跟弹练习：${playAlongPattern.title}`,
+      week: session?.week || 0,
+      date: today,
+      minutes: 2,
+      rating: stars,
+      ratingLabel: '跟弹',
+      notes: `${playAlongCorrect}/${total} 音正确，连对 ${playAlongBestStreak}`,
+      sightDone: 0,
+      completedAt: new Date().toISOString()
+    }, ...state.history].slice(0, 400);
+    APP.persist();
+    APP.renderAll();
+    updateProgressDisplay();
+    document.querySelector('#playAlongPractice')?.classList.add('hidden');
+    document.querySelector('#playAlongResult')?.classList.remove('hidden');
+    document.querySelector('#playAlongStars').textContent = '★ '.repeat(stars) + '☆ '.repeat(3 - stars);
+    document.querySelector('#playAlongResultAccuracy').textContent = `${accuracy}%`;
+    document.querySelector('#playAlongCorrect').textContent = String(playAlongCorrect);
+    document.querySelector('#playAlongMistakes').textContent = String(playAlongMistakes);
+    document.querySelector('#playAlongXp').textContent = `+${xp} XP`;
+    document.querySelector('#playAlongResultMessage').textContent = accuracy >= 92 ? '每个音都听清了。' : accuracy >= 75 ? '节奏和音高已经稳定，再练一轮会更顺。' : '先把目标音看准，再慢速弹一次。';
+  }
+
+  async function connectPlayAlongMidi() {
+    const note = document.querySelector('#playAlongInputNote');
+    if (!navigator.requestMIDIAccess) {
+      if (note) note.textContent = '此浏览器没有 MIDI 支持。仍可用电脑键盘或点击琴键。';
+      return;
+    }
+    try {
+      playAlongMidiAccess = await navigator.requestMIDIAccess();
+      const inputs = Array.from(playAlongMidiAccess.inputs.values());
+      if (!inputs.length) {
+        if (note) note.textContent = '没有检测到 MIDI 键盘。插上设备后重试。';
+        return;
+      }
+      playAlongMidi = inputs[0];
+      playAlongMidi.onmidimessage = (event) => {
+        const [command, noteNumber, velocity] = event.data;
+        if ((command & 0xf0) === 0x90 && velocity > 0) answerPlayAlong(noteNumber % 12, 'midi');
+      };
+      if (note) note.textContent = `已连接：${playAlongMidi.name}。直接弹下对应琴键。`;
+      document.querySelector('#playAlongDevice').textContent = 'MIDI 已连接';
+    } catch (error) {
+      if (note) note.textContent = 'MIDI 连接被浏览器拦截。检查权限后再试，或使用键盘。';
+    }
+  }
+
+  function handlePlayAlongKeydown(event) {
+    if (!playAlongActive || !document.querySelector('#playAlongModal') || document.querySelector('#playAlongModal').classList.contains('hidden')) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const pitch = PLAY_ALONG_PITCHES.find((item) => item.input === event.key.toLowerCase());
+    if (!pitch) return;
+    event.preventDefault();
+    answerPlayAlong(pitch.pc, 'keyboard');
+  }
+
   function stopMetronome() {
     clearInterval(metronomeTimer);
     metronomeTimer = null;
@@ -1743,9 +2005,9 @@
     document.querySelector('#accountSyncNow')?.addEventListener('click', () => syncNow({ force: true }));
     document.querySelector('#accountLogout')?.addEventListener('click', logoutAccount);
     window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
-    $('#routeWarmup')?.addEventListener('click', openWarmup);
     $('#routeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     $('#startRhythmGame')?.addEventListener('click', openNoteGame);
+    $('#startPlayAlongHome')?.addEventListener('click', openPlayAlong);
     document.querySelectorAll('#onboardingForm .choice-chip').forEach((button) => button.addEventListener('click', () => chooseOnboarding(button)));
     document.querySelector('#onboardingForm')?.addEventListener('submit', saveOnboarding);
     document.querySelector('#openPlacement')?.addEventListener('click', openPlacement);
@@ -1774,6 +2036,18 @@
     });
     $('#closeLesson').addEventListener('click', closeSession);
     $('#metronomeToggle')?.addEventListener('click', cycleMetronome);
+    document.querySelector('#openPlayAlong')?.addEventListener('click', openPlayAlong);
+    document.querySelector('#closePlayAlong')?.addEventListener('click', closePlayAlong);
+    document.querySelector('#playAlongStart')?.addEventListener('click', startPlayAlong);
+    document.querySelector('#playAlongListen')?.addEventListener('click', listenPlayAlongPattern);
+    document.querySelector('#playAlongMidiConnect')?.addEventListener('click', connectPlayAlongMidi);
+    document.querySelector('#playAlongRetry')?.addEventListener('click', startPlayAlong);
+    document.querySelector('#playAlongReturn')?.addEventListener('click', closePlayAlong);
+    document.querySelector('#playAlongKeyboard')?.addEventListener('click', (event) => {
+      const key = event.target.closest('[data-playalong-pc]');
+      if (key) answerPlayAlong(Number(key.dataset.playalongPc), 'pointer');
+    });
+    document.addEventListener('keydown', handlePlayAlongKeydown);
     document.querySelector('#openCheckpoint')?.addEventListener('click', openCheckpoint);
     document.querySelector('#closeCheckpoint')?.addEventListener('click', closeCheckpoint);
     document.querySelector('#checkpointNext')?.addEventListener('click', nextCheckpoint);
@@ -1873,11 +2147,13 @@
         else if (backdrop.id === 'settingsModal') closeSettings();
         else if (backdrop.id === 'warmupModal') closeWarmup();
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
+        else if (backdrop.id === 'playAlongModal') closePlayAlong();
         else if (backdrop.id === 'videoModal') closeVideo();
       });
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
         if (!$('#accountModal').classList.contains('hidden')) closeAccount();
         else if (!$('#onboardingModal').classList.contains('hidden')) closeOnboarding();
         else if (!$('#settingsModal').classList.contains('hidden')) closeSettings();

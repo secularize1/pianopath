@@ -353,15 +353,14 @@
 
     const currentId = current?.id;
     const currentMastery = currentId ? state.mastery?.[currentId] : null;
-    const mainDone = Boolean(todayLesson);
+    const mainDone = Boolean(currentId && isComplete(currentId));
     const checkDone = Boolean(mainDone && currentMastery && Number(currentMastery.best) >= MASTERY_PASS_PERCENT);
-    const activityDone = todayMinutes > 0 || todayGame;
     const routeMain = document.querySelector('#routeMain');
     const routeCheck = document.querySelector('#routeCheck');
     const routeDone = document.querySelector('#routeDone');
     if (routeMain) routeMain.className = mainDone ? 'done' : 'active';
     if (routeCheck) routeCheck.className = checkDone ? 'done' : mainDone ? 'active' : '';
-    if (routeDone) routeDone.className = activityDone ? 'done' : checkDone ? 'active' : '';
+    if (routeDone) routeDone.className = checkDone ? 'done active' : '';
 
     const best = localStorage.getItem('pianopath-note-game-best') || localStorage.getItem('pianopath-ear-game-best');
     const gameBest = document.querySelector('#homeGameBest');
@@ -517,7 +516,7 @@
     $('#statSessionsHint').textContent = sessions ? `完成率 ${Math.round((sessions / 48) * 100)}%` : '第一周还在等你';
     $('#statSight').innerHTML = `${sight} <small>次</small>`;
 
-    const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.rating <= 2 || entry.notes));
+    const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.needsReview || entry.rating <= 2 || entry.notes));
     const reviewList = document.querySelector('#reviewList');
     if (reviewList) {
       const unique = [];
@@ -1274,6 +1273,8 @@
     const passed = !isLesson || masteryPassed(finished.id);
     if (isLesson && !passed) {
       entry.type = 'lesson-practice';
+      entry.needsReview = true;
+      entry.notes = entry.notes || '掌握检查未通过：先复习错题对应的动作与听感，再重测。';
       entry.mastery = state.mastery?.[finished.id] || null;
       state.history = [entry, ...state.history.filter((item) => item.id !== finished.id || item.date !== entry.date)];
       state.history = state.history.slice(0, 400);
@@ -1309,9 +1310,6 @@
     $('#completeModal').classList.add('hidden');
     completionPreview = null;
     APP.showToast(finished.repertoireId ? '曲目阶段已保存，继续下一阶段。' : '已保存。下一课已经准备好。');
-    document.querySelector('#routeMain')?.classList.add('done');
-    document.querySelector('#routeCheck')?.classList.add('done');
-    document.querySelector('#routeDone')?.classList.add('active');
     if (finished.repertoireId) {
       APP.updateNav('repertoire');
       setTimeout(() => APP.renderRepertoire(), 180);
@@ -2138,6 +2136,56 @@
       a.download = `pianopath-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
+    });
+    $('#importData')?.addEventListener('click', () => $('#importDataInput')?.click());
+    $('#importDataInput')?.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        APP.showToast('备份文件过大，无法导入。');
+        return;
+      }
+      try {
+        const parsed = JSON.parse(await file.text());
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('invalid');
+        if (!parsed.profile || typeof parsed.profile !== 'object' || Array.isArray(parsed.profile)) throw new Error('invalid');
+        const normalizeMap = (value) => value && typeof value === 'object' && !Array.isArray(value) ? Object.fromEntries(Object.entries(value).slice(0, 500)) : {};
+        const normalizeList = (value) => Array.isArray(value) ? value.slice(0, 500).filter((item) => item && typeof item === 'object') : [];
+        const weeklyMinutes = Math.max(60, Math.min(1200, Number(parsed.profile.weeklyMinutes) || 240));
+        const daysPerWeek = Math.max(1, Math.min(7, Number(parsed.profile.daysPerWeek) || 4));
+        const sessionMinutes = Math.max(10, Math.min(180, Number(parsed.profile.sessionMinutes) || Math.round(weeklyMinutes / daysPerWeek)));
+        const next = {
+          profile: {
+            weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '', startWeek: 1,
+            weeklyMinutes,
+            daysPerWeek,
+            sessionMinutes,
+            level: ['zero', 'basic', 'return'].includes(parsed.profile.level) ? parsed.profile.level : 'zero',
+            style: ['classical', 'pop', 'mixed'].includes(parsed.profile.style) ? parsed.profile.style : 'mixed',
+            goal: String(parsed.profile.goal || '').slice(0, 80),
+            startWeek: Math.max(1, Math.min(12, Number(parsed.profile.startWeek) || 1))
+          },
+          completed: normalizeMap(parsed.completed),
+          mastery: normalizeMap(parsed.mastery),
+          repertoire: normalizeMap(parsed.repertoire),
+          playAlong: normalizeMap(parsed.playAlong),
+          history: normalizeList(parsed.history),
+          gameSessions: normalizeList(parsed.gameSessions),
+          activeSession: null,
+          placement: parsed.placement && typeof parsed.placement === 'object' ? parsed.placement : null,
+          quickPractice: parsed.quickPractice && typeof parsed.quickPractice === 'object' ? parsed.quickPractice : null,
+          serverPlan: null,
+          settingsSource: 'local'
+        };
+        APP.replaceState(next);
+        APP.persist();
+        APP.renderAll();
+        updateProgressDisplay();
+        APP.showToast('备份已导入。当前课程进度已恢复。');
+      } catch (error) {
+        APP.showToast('这个文件不是有效的琴阶备份。');
+      }
     });
     $$('.modal-backdrop').forEach((backdrop) => {
       backdrop.addEventListener('click', (event) => {

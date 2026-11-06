@@ -6,6 +6,7 @@
  */
 const { chromium } = require('playwright');
 const path = require('path');
+const fs = require('fs');
 const assert = require('assert');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -232,6 +233,15 @@ const PLAY_ALONG_KEYS = { '0': 'a', '1': 'w', '2': 's', '3': 'e', '4': 'd', '5':
     await page.waitForTimeout(300);
     assert.equal(await page.locator('.skill-meter').count(), 4, `${name}: skill meters missing`);
     assert.ok((await page.locator('#skillFocusText').innerText()).length > 0, `${name}: next skill suggestion missing`);
+    assert.equal(await page.locator('#importData').isVisible(), true, `${name}: backup import missing`);
+    const backupPath = path.join(ROOT, 'tests', `backup-${name}.json`);
+    fs.writeFileSync(backupPath, JSON.stringify({ profile: { weeklyMinutes: 180, daysPerWeek: 3, sessionMinutes: 60, level: 'basic', style: 'mixed', goal: '导入回归' }, completed: {}, mastery: {}, repertoire: {}, playAlong: { imported: { xp: 9 } }, history: [], gameSessions: [], unexpected: 'ignored' }));
+    await page.locator('#importDataInput').setInputFiles(backupPath);
+    await page.waitForTimeout(350);
+    const imported = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')));
+    assert.equal(imported.profile.weeklyMinutes, 180, `${name}: imported plan not restored`);
+    assert.equal(imported.unexpected, undefined, `${name}: unknown backup fields were imported`);
+    fs.unlinkSync(backupPath);
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.equal(overflow, 0, `${name}: horizontal overflow ${overflow}px`);

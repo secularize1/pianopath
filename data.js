@@ -4,15 +4,8 @@ window.PIANO_DATA = {
     "weeklyMinutes": 240,
     "totalWeeks": 12,
     "totalHours": 48,
-    "verifiedAt": "2026-11-06",
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "sourceRules": [
-      "中文视频创作者：Bilibili 粉丝数 ≥ 25 万；英文频道：YouTube 订阅数 ≥ 25 万。",
-      "官方机构、出版社和方法书不受粉丝门槛限制，但必须能核验机构身份。",
-      "播放量不作为唯一权威依据；粉丝量也不等于教学质量，仍以课程结构、专业资历和适用性二次筛选。"
-    ],
-    "localePolicy": "默认隐藏需翻墙的资源；教学库可切换“国内可用/全部来源”。",
-    "appVersion": "1.8.0",
+    "appVersion": "1.9.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },

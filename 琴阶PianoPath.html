@@ -36,7 +36,7 @@
   --shadow: 0 7px 0 rgba(32, 49, 38, .06), 0 18px 38px rgba(32, 49, 38, .05);
   --shadow-hover: 0 8px 0 rgba(32, 49, 38, .08), 0 24px 56px rgba(32, 49, 38, .10);
   --radius: 22px;
-  --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "Segoe UI", Arial, sans-serif;
+  --font: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -780,20 +780,6 @@ body {
 .path-stop small { display: block; margin-top: 3px; font-size: 8px; }
 .path-track-caption { display: flex; justify-content: space-between; gap: 12px; margin-top: 13px; padding-top: 11px; border-top: 1px solid #eef1eb; color: #9aa79f; font-size: 9px; }
 .path-track-caption strong { color: #5b7161; font-weight: 750; }
-.home-game {
-  position: relative; min-height: 152px; overflow: hidden; padding: 19px;
-  border: 1px solid #ecd99c; border-radius: 20px; background: #fff8df; text-align: left; color: #6b5a2d;
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.home-game:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(126,103,41,.12); }
-.home-game-label { display: block; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; color: #ad8d42; }
-.home-game strong { display: block; margin-top: 8px; font-size: 22px; letter-spacing: -.7px; color: #544626; }
-.home-game p { position: relative; z-index: 1; max-width: 250px; margin: 6px 0 15px; color: #9b874e; font-size: 9px; line-height: 1.6; }
-.home-game-meta { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 10px; font-size: 8px; color: #aa955c; }
-.home-game-meta b { color: #7d6625; }
-.home-game-meta em { color: #8c6d20; font-style: normal; font-weight: 800; }
-.home-game-notes { position: absolute; right: 17px; top: 12px; display: flex; flex-direction: column; gap: 3px; color: rgba(166,136,56,.20); font-style: normal; font-size: 24px; transform: rotate(11deg); }
-.home-game-notes i { font-style: normal; }
 /* less clutter on the resource cards */
 .resource-author span { color: #6f9a79; }
 .resource-footer span { max-width: 68%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -818,7 +804,6 @@ body {
   .week-trail { grid-template-columns: 1fr 1fr; gap: 10px; }
   .week-trail::before { display: none; }
   .home-bottom { grid-template-columns: 1fr; }
-  .home-game { min-height: 135px; }
 }
 @media (max-width: 540px) {
   .home-start-copy { padding: 23px 15px 19px; }
@@ -1082,6 +1067,143 @@ body.modal-open { overflow:hidden; }
 .checkpoint-done { padding:10px 0 2px; text-align:center; }.checkpoint-done strong { display:block; color:#4b8858; font-size:22px; }.checkpoint-done p { margin:7px 0 12px; color:#88988e; font-size:9px; line-height:1.6; }
 @media(max-width:540px){ .timer-actions { flex-wrap:wrap; }.checkpoint-button { flex:1; }.checkpoint-panel { padding:13px; } }
 
+/* Skill profile */
+.skill-report { padding:19px 21px; margin-bottom:15px; background:linear-gradient(145deg,#fbfcf8,#f5f9f0); }
+.skill-report-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.skill-report-head h3 { margin:5px 0 4px; font-size:19px; letter-spacing:-.4px; }.skill-report-head p { margin:0; color:#89988d; font-size:9px; }
+.skill-level { padding:6px 9px; border-radius:8px; background:#e7f5e5; color:#438654; font-size:10px; font-weight:850; }
+.skill-report-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px; }
+.skill-meter { padding:11px 10px; border:1px solid #e9eee4; border-radius:10px; background:#fff; }
+.skill-meter-top { display:flex; align-items:center; justify-content:space-between; font-size:9px; color:#6b806f; }.skill-meter-top strong { color:#516b58; font-size:11px; }
+.skill-meter-bar { height:6px; margin-top:8px; overflow:hidden; border-radius:6px; background:#edf2e9; }.skill-meter-bar i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#a8d8b3,#54af6b); }
+.skill-meter small { display:block; margin-top:6px; color:#9ca79f; font-size:8px; }
+.skill-focus { display:flex; align-items:center; justify-content:space-between; width:100%; gap:12px; margin-top:12px; padding:10px 12px; border:1px solid #dfe9da; border-radius:10px; background:#fff; text-align:left; color:#58705f; }
+.skill-focus small { display:block; margin-bottom:3px; color:#98a59b; font-size:8px; }.skill-focus strong { display:block; font-size:9px; }.skill-focus > span:last-child { color:#4c925e; font-size:9px; font-weight:800; white-space:nowrap; }
+@media(max-width:820px){ .skill-report-grid{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:540px){ .skill-report{padding:15px}.skill-report-head h3{font-size:17px}.skill-report-grid{gap:6px}.skill-meter{padding:9px 8px}.skill-focus{align-items:flex-start}.skill-focus > span:last-child{padding-top:11px} }
+
+
+/* === PianoPath 1.9: calmer type and a single learning route === */
+:root {
+  --font-body: var(--font);
+  --font-display: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+  --font-number: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+}
+body { font-family: var(--font-body); font-size: 14px; line-height: 1.55; }
+button, input, select, textarea { font-family: inherit; }
+.topbar-greeting h1, .home-start h2, .home-section-head h3, .page-intro h2,
+.lesson-stage h2, .complete-card h2, .settings-card h2, .repertoire-modal-card h2,
+.note-game-card h2, .onboarding-card h2 { font-family: var(--font-display); font-weight: 760; }
+.timer-ring span, .home-art-card strong, .stat-card strong, .path-stop strong,
+.home-path-percent, .level-badge, .xp-pill strong, .complete-stats strong { font-family: var(--font-number); font-variant-numeric: tabular-nums; }
+.topbar-greeting p, .home-kicker, .home-label, .eyebrow { letter-spacing: .04em; }
+.home-start h2 { letter-spacing: -.035em; }
+.home-start p { font-size: 14px; line-height: 1.7; }
+.home-main-cta { min-height: 78px; }
+.home-cta-copy strong { font-size: 17px; }
+.home-cta-copy small, .home-cta-duration { font-size: 10px; }
+.home-route { display: flex; align-items: center; gap: 8px; width: min(100%, 475px); margin-top: 18px; color: #8a9a8e; font-size: 11px; font-weight: 700; }
+.home-route span { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.home-route i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,.7); color: #8b9a8e; font-size: 10px; font-style: normal; }
+.home-route span.active { color: #347b48; }
+.home-route span.active i { background: #51aa68; color: #fff; }
+.home-route span.done { color: #5f8770; }
+.home-route span.done i { background: #dcefdc; color: #3e9253; }
+.home-route b { flex: 1; max-width: 46px; height: 1px; background: #ccdccc; }
+.home-secondary { align-items: center; justify-content: flex-start; gap: 7px; font-size: 11px; }
+.home-warm-link { font-size: 11px; }
+.home-week, .home-game-lab { margin-top: 18px; }
+.home-week { padding: 22px 24px 20px; }
+.home-section-head h3 { font-size: 21px; }
+.week-trail-item { padding: 7px 7px 8px; border-radius: 12px; }
+.week-trail-item:hover { background: #f5f9f2; }
+.week-trail-item.locked { opacity: .58; }
+.trail-node { width: 48px; height: 48px; border-radius: 16px; font-size: 12px; }
+.trail-copy small { font-size: 10px; }
+.trail-copy strong { font-size: 12px; }
+.trail-copy em { font-size: 10px; }
+.home-game-lab { padding: 20px 24px 22px; border: 1px solid #e7e4cf; border-radius: 22px; background: #fffdf3; }
+.home-game-lab-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.home-game-lab-head h3 { margin: 5px 0 0; font-family: var(--font-display); font-size: 21px; letter-spacing: -.025em; }
+.home-game-lab-head > span { color: #a29268; font-size: 11px; }
+.game-lab-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 16px; }
+.game-tile { position: relative; display: grid; grid-template-columns: 46px minmax(0,1fr) auto; align-items: center; gap: 12px; min-height: 88px; padding: 14px; border: 1px solid #e9e2ca; border-radius: 16px; text-align: left; color: #5f583f; transition: transform .16s ease, box-shadow .16s ease; }
+.game-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(98, 87, 52, .08); }
+.game-tile:active { transform: translateY(1px); }
+.note-game-tile { background: #edf7ec; border-color: #cfe4cd; }
+.beat-game-tile { background: #fff2db; border-color: #edddba; }
+.game-tile-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,.75); color: #438858; font-size: 23px; }
+.beat-game-tile .game-tile-icon { color: #a87828; }
+.game-tile small { display: block; color: #829488; font-size: 10px; font-weight: 750; }
+.game-tile strong { display: block; margin-top: 4px; color: #385643; font-size: 13px; line-height: 1.45; }
+.beat-game-tile small { color: #9d875d; }
+.beat-game-tile strong { color: #66542f; }
+.game-tile-best { align-self: end; color: #829488; font-size: 10px; white-space: nowrap; }
+.game-tile-best b { color: #3f7650; font-size: 11px; }
+.beat-game-tile .game-tile-best { color: #9a8456; }
+@media (max-width: 820px) {
+  .game-lab-grid { grid-template-columns: 1fr; }
+  .home-game-lab { padding: 17px; }
+}
+@media (max-width: 540px) {
+  .home-start h2 { font-size: 31px; }
+  .home-route { gap: 5px; font-size: 10px; }
+  .home-route b { max-width: 18px; }
+  .home-week { padding: 17px 14px 15px; }
+  .home-section-head h3, .home-game-lab-head h3 { font-size: 18px; }
+  .game-tile { grid-template-columns: 40px minmax(0,1fr); min-height: 82px; padding: 11px; }
+  .game-tile-icon { width: 40px; height: 40px; }
+  .game-tile-best { grid-column: 2; align-self: auto; }
+  .home-game-lab-head > span { display: none; }
+}
+
+
+/* Readability pass: keep compact game-like rhythm, remove micro-print. */
+.sidebar .brand small, .profile-mini small, .sidebar-footer, .streak-day,
+.topbar-greeting p, .eyebrow, .lesson-kicker, .lesson-source, .step-instruction small,
+.lesson-step, .lesson-step strong, .lesson-step small, .lesson-step-num,
+.cue, .home-label, .home-kicker, .home-week-pill, .path-track-caption,
+.resource-body p, .resource-footer, .method-card span, .method-card a,
+.week-day-btn strong, .week-day-btn span, .week-tag, .stat-card > span,
+.stat-card em, .history-item small, .history-item > span:last-child,
+.mobile-nav a, .daily-quests-head, .daily-quests-head strong,
+.daily-quest strong, .daily-quest small, .complete-stats small,
+.rating-label, .notes-field span, .form-row label > span,
+.repertoire-progress-top, .repertoire-progress-top strong,
+.repertoire-actions .btn, .repertoire-actions .text-button,
+.repertoire-note, .repertoire-modal-meta span, .repertoire-phase,
+.repertoire-modal-hint, .checkpoint-progress, .checkpoint-feedback,
+.checkpoint-option, .skill-report-head p, .skill-meter small,
+.skill-focus small, .skill-focus strong, .skill-focus > span:last-child {
+  font-size: max(10px, .625rem);
+}
+.profile-mini strong, .resource-body h3, .resource-footer a, .method-card strong,
+.stat-card strong small, .week-day-btn strong, .daily-quest strong,
+.lesson-step strong, .lesson-source a, .home-warm-link, .home-secondary,
+.game-tile small, .game-tile-best, .mobile-nav a {
+  font-size: max(11px, .6875rem);
+}
+.lesson-step { line-height: 1.55; }
+.lesson-step strong { line-height: 1.45; }
+.lesson-step small { margin-top: 4px; }
+.resource-body p { line-height: 1.7; }
+.daily-quest-list { gap: 9px; }
+.daily-quest { padding: 10px; }
+.home-game-lab-head > span { font-size: 11px; }
+.checkpoint-option { padding: 11px 12px; }
+.checkpoint-feedback { line-height: 1.7; }
+.skill-meter-top { font-size: 11px; }
+.skill-meter-top strong { font-size: 13px; }
+.skill-focus strong { line-height: 1.55; }
+@media (max-width: 540px) {
+  .mobile-nav a { font-size: 10px; }
+  .daily-quest-list { grid-template-columns: 1fr; }
+  .lesson-step small { font-size: 10px; }
+}
+
+.checkpoint-button.passed { border-color:#b9ddc0; background:#eef8ed; color:#3f8551; }
+.checkpoint-button.passed:hover { background:#e5f5e4; }
+
 </style>
 </head>
 <body>
@@ -1168,7 +1290,12 @@ body.modal-open { overflow:hidden; }
         <section class="home-start">
           <div class="home-start-copy">
             <div class="home-kicker"><span class="home-kicker-dot"></span><span id="homeStage">第 1 周 · 起步</span><span class="home-week-pill" id="homeWeekProgress">0 / 4</span></div>
-            <h2>开始今天的钢琴练习</h2>
+            <div class="home-route" aria-label="今日学习路线">
+              <span id="routeMain" class="active"><i>1</i>主课</span><b aria-hidden="true"></b>
+              <span id="routeCheck"><i>2</i>掌握检查</span><b aria-hidden="true"></b>
+              <span id="routeDone"><i>3</i>今日完成</span>
+            </div>
+            <h2>今天，练好这一课</h2>
             <p id="homeLessonGoal">身体对位，手指编号不混乱</p>
             <button class="home-main-cta" id="startToday" type="button">
               <span class="home-cta-play">▶</span>
@@ -1176,9 +1303,8 @@ body.modal-open { overflow:hidden; }
               <span class="home-cta-duration" id="homeLessonDuration">60 分钟</span>
             </button>
             <div class="home-secondary">
-              <button class="home-warm-link" id="routeWarmup" type="button">♩ 先做 3 分钟节拍热身</button>
-              <button class="home-warm-link quick-link" id="quickPractice" type="button">只有 5 分钟？快练一下 →</button>
-              <button class="home-warm-link" id="homeReview" type="button">复习弱点 →</button>
+              <span>主课没时间？</span>
+              <button class="home-warm-link quick-link" id="quickPractice" type="button">换成 5 分钟快练 →</button>
             </div>
           </div>
           <div class="home-start-art" aria-hidden="true">
@@ -1191,32 +1317,33 @@ body.modal-open { overflow:hidden; }
 
         <section class="home-week card">
           <div class="home-section-head">
-            <div><span class="home-label">本周路线</span><h3>跟着四次练习走完这一周</h3></div>
-            <button class="text-button" data-nav="path">查看完整 12 周 →</button>
+            <div><span class="home-label">本周路线</span><h3>四次练习，走完这一周</h3></div>
+            <button class="text-button" data-nav="path">查看 12 周路径 →</button>
           </div>
           <div class="week-trail" id="homeWeekTrail"></div>
           <div class="daily-quests">
-            <div class="daily-quests-head"><span>今日任务</span><strong id="dailyQuestCount">0 / 3</strong></div>
+            <div class="daily-quests-head"><span>今日小目标</span><strong id="dailyQuestCount">0 / 3</strong></div>
             <div class="daily-quest-list" id="dailyQuestList"></div>
           </div>
         </section>
 
-        <section class="home-bottom">
-          <article class="home-path-preview card">
-            <div class="home-section-head">
-              <div><span class="home-label">12 周路径</span><h3>从第一颗音到完整演奏</h3></div>
-              <span class="home-path-percent" id="homePathPercent">0%</span>
-            </div>
-            <div class="path-track" id="homePathTrack"></div>
-            <div class="path-track-caption"><strong id="homePathCurrent">起步 · 第 1 周</strong><span id="homePathNext">下一站：第 2 周</span></div>
-          </article>
-          <button class="home-game" id="startRhythmGame" type="button">
-            <span class="home-game-label">每日小游戏</span>
-            <strong>节拍热身</strong>
-            <p>跟着四个音拍点一下，看看你能命中几拍。</p>
-            <span class="home-game-meta"><span>最佳 <b id="homeGameBest">—</b></span><em>开始挑战 →</em></span>
-            <span class="home-game-notes" aria-hidden="true"><i>♪</i><i>♫</i><i>♩</i></span>
-          </button>
+        <section class="home-game-lab">
+          <div class="home-game-lab-head">
+            <div><span class="home-label">边玩边练</span><h3>换一种方式练耳和拍子</h3></div>
+            <span>每局 2–3 分钟</span>
+          </div>
+          <div class="game-lab-grid">
+            <button class="game-tile note-game-tile" id="startRhythmGame" type="button">
+              <span class="game-tile-icon">♪</span>
+              <span><small>音名闪现</small><strong>看键或听音，连对 10 题</strong></span>
+              <span class="game-tile-best">最佳 <b id="homeGameBest">—</b></span>
+            </button>
+            <button class="game-tile beat-game-tile" id="routeWarmup" type="button">
+              <span class="game-tile-icon">♩</span>
+              <span><small>节拍热身</small><strong>跟上拍点，把节奏弹稳</strong></span>
+              <span class="game-tile-best">3 分钟</span>
+            </button>
+          </div>
         </section>
       </div>
 
@@ -1225,7 +1352,7 @@ body.modal-open { overflow:hidden; }
           <div>
             <span class="eyebrow">12-WEEK PATH</span>
             <h2>每周 4 小时，走成一条能力线</h2>
-            <p>不是 48 小时堆满练习，而是每周解决一个明确问题。完成一周，才进入下一周。</p>
+            <p>每课先完成练习，再通过 2 / 3 掌握检查，才会进入下一次。</p>
           </div>
           <button class="btn btn-primary" id="customizeTop" type="button">个性化我的计划</button>
         </section>
@@ -1248,8 +1375,8 @@ body.modal-open { overflow:hidden; }
         <section class="page-intro library-intro">
           <div>
             <span class="eyebrow">CURATED LIBRARY</span>
-            <h2>少而准的教学来源</h2>
-            <p>默认只显示国内可访问的 B 站公开课与官方资料；YouTube 仅作为可切换的海外补充。视频在新窗口/内嵌播放器打开，素材本地缓存。</p>
+            <h2>跟一位老师，练一小段</h2>
+            <p>优先使用国内可直接打开的老师与官方课程。每节课都能回到对应示范。</p>
           </div>
         </section>
         <div class="library-toolbar">
@@ -1288,6 +1415,14 @@ body.modal-open { overflow:hidden; }
             <p>看趋势，不追完美连续。练习记录比“感觉练过”更可靠。</p>
           </div>
           <button class="btn btn-secondary" id="exportData" type="button">导出我的记录</button>
+        </section>
+        <section class="skill-report card">
+          <div class="skill-report-head">
+            <div><span class="eyebrow">SKILL PROFILE</span><h3>你的四项能力</h3><p id="skillReportNote">完成练习和掌握检查后，这里会更新。</p></div>
+            <span class="skill-level" id="skillLevel">Lv.1</span>
+          </div>
+          <div class="skill-report-grid" id="skillReportGrid"></div>
+          <button class="skill-focus" id="skillFocusButton" type="button"><span><small>下一步建议</small><strong id="skillFocusText">先完成第一课，建立能力基线。</strong></span><span>去练习 →</span></button>
         </section>
         <section class="stats-top-grid">
           <article class="stat-card accent-green"><span>总练习</span><strong id="statMinutes">0 <small>分钟</small></strong><em id="statMinutesHint">从今天开始</em></article>
@@ -1503,7 +1638,7 @@ body.modal-open { overflow:hidden; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.8 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.9 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -1579,15 +1714,8 @@ window.PIANO_DATA = {
     "weeklyMinutes": 240,
     "totalWeeks": 12,
     "totalHours": 48,
-    "verifiedAt": "2026-11-06",
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "sourceRules": [
-      "中文视频创作者：Bilibili 粉丝数 ≥ 25 万；英文频道：YouTube 订阅数 ≥ 25 万。",
-      "官方机构、出版社和方法书不受粉丝门槛限制，但必须能核验机构身份。",
-      "播放量不作为唯一权威依据；粉丝量也不等于教学质量，仍以课程结构、专业资历和适用性二次筛选。"
-    ],
-    "localePolicy": "默认隐藏需翻墙的资源；教学库可切换“国内可用/全部来源”。",
-    "appVersion": "1.8.0",
+    "appVersion": "1.9.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -7676,6 +7804,7 @@ window.PIANO_DATA = {
   const STORAGE_KEY = 'pianopath-state-v1';
   const DAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
   const PHASE_COLORS = { '起步': '#5bbd78', '基础 I': '#f3cf66', '基础 II': '#ef8d78', '进阶 I': '#7ab6d9', '进阶 II': '#9d8ad6', '巩固': '#6eb98b', '展示': '#1f2a24' };
+  const MASTERY_PASS_PERCENT = 67;
 
   const defaultState = {
     profile: { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '', startWeek: 1 },
@@ -7781,6 +7910,15 @@ window.PIANO_DATA = {
 
   function isComplete(sessionId) {
     return Boolean(completedEntry(sessionId));
+  }
+
+  function isNormalLesson(session) {
+    return Boolean(session && !session.quick && !session.repertoireId);
+  }
+
+  function masteryPassed(sessionId) {
+    const mastery = state.mastery?.[sessionId];
+    return Boolean(mastery && Number(mastery.best) >= MASTERY_PASS_PERCENT);
   }
 
   function splitMinutes(total, count) {
@@ -7962,8 +8100,6 @@ window.PIANO_DATA = {
     const { week, sessions } = currentWeekData();
     const session = currentSessionData();
     const weekDone = sessions.filter((item) => isComplete(item.id)).length;
-    const lessonsCompleted = Object.keys(state.completed).length;
-    const pathPercent = Math.round((lessonsCompleted / 48) * 100);
     const current = session || sessions[0];
 
     if (current) {
@@ -7994,31 +8130,10 @@ window.PIANO_DATA = {
       }).join('');
     }
 
-    const track = document.querySelector('#homePathTrack');
-    if (track) {
-      const groups = [
-        { label: '起步', range: '1–2 周', start: 0, end: 2 },
-        { label: '基础', range: '3–6 周', start: 2, end: 6 },
-        { label: '进阶', range: '7–10 周', start: 6, end: 10 },
-        { label: '展示', range: '11–12 周', start: 10, end: 12 }
-      ];
-      const currentGroup = Math.max(0, Math.floor((Math.max(1, Number(week.id) || 1) - 1) / 2));
-      track.innerHTML = groups.map((group, groupIndex) => {
-        const completedInGroup = Math.max(0, Math.min(group.end, Math.ceil(lessonsCompleted / 4)) - group.start);
-        const totalInGroup = group.end - group.start;
-        const inCurrentGroup = groupIndex === currentGroup;
-        const stateClass = completedInGroup >= totalInGroup ? 'done' : inCurrentGroup ? 'current' : '';
-        return `<div class="path-stop ${stateClass}"><span class="path-stop-dot">${completedInGroup >= totalInGroup ? '✓' : ''}</span><strong>${group.label}</strong><small>${group.range}</small></div>`;
-      }).join('');
-      document.querySelector('#homePathPercent').textContent = `${pathPercent}%`;
-      document.querySelector('#homePathCurrent').textContent = `第 ${week.id} 周 · ${week.title}`;
-      document.querySelector('#homePathNext').textContent = week.id >= 12 ? '完成阶段后生成下一阶段计划' : `下一站：第 ${week.id + 1} 周`;
-    }
-
     const todayKey = localDateKey(new Date());
     const gameToday = (state.gameSessions || []).filter((item) => item.date === todayKey);
     const todayMinutes = minutesForDate(todayKey);
-    const todayLesson = state.history.some((entry) => entry.date === todayKey && entry.type !== 'game');
+    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice'].includes(entry.type));
     const todayGame = gameToday.length > 0;
     const quests = [
       { done: todayLesson, label: '完成 1 次课程练习', detail: todayLesson ? '已完成' : '开始今日课程' },
@@ -8032,10 +8147,21 @@ window.PIANO_DATA = {
       if (questCount) questCount.textContent = `${quests.filter((quest) => quest.done).length} / 3`;
     }
 
+    const currentId = current?.id;
+    const currentMastery = currentId ? state.mastery?.[currentId] : null;
+    const mainDone = Boolean(todayLesson);
+    const checkDone = Boolean(mainDone && currentMastery && Number(currentMastery.best) >= MASTERY_PASS_PERCENT);
+    const activityDone = todayMinutes > 0 || todayGame;
+    const routeMain = document.querySelector('#routeMain');
+    const routeCheck = document.querySelector('#routeCheck');
+    const routeDone = document.querySelector('#routeDone');
+    if (routeMain) routeMain.className = mainDone ? 'done' : 'active';
+    if (routeCheck) routeCheck.className = checkDone ? 'done' : mainDone ? 'active' : '';
+    if (routeDone) routeDone.className = activityDone ? 'done' : checkDone ? 'active' : '';
+
     const best = localStorage.getItem('pianopath-note-game-best') || localStorage.getItem('pianopath-ear-game-best');
     const gameBest = document.querySelector('#homeGameBest');
     if (gameBest) gameBest.textContent = best ? `${best} 分` : '—';
-    document.querySelector('#homePathNext').textContent = week.id >= 12 ? '准备进入下一阶段' : `下一站 · 第 ${week.id + 1} 周`;
   }
 
   function renderPath() {
@@ -8087,7 +8213,7 @@ window.PIANO_DATA = {
       const haystack = `${item.creator} ${item.title} ${item.description} ${(item.topics || []).join(' ')}`.toLowerCase();
       return matchTopic && (!searchTerm || haystack.includes(searchTerm.toLowerCase()));
     });
-    $('#resourceGrid').innerHTML = filtered.map((item) => `<article class="resource-card ${item.supplement ? 'supplement' : ''}"><div class="resource-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='assets/fallback.svg'"><span class="resource-platform">${escapeHtml(item.platform === 'Bilibili' ? 'B站 · 国内可看' : item.platform)}</span>${item.supplement ? '<span class="resource-badge">补充资源</span>' : ''}</div><div class="resource-body"><div class="resource-author"><strong>${escapeHtml(item.creator)}</strong><span>${item.region === 'global' ? '海外补充' : '国内可用'}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><div class="resource-footer"><span>${escapeHtml(item.duration || '')} · ${escapeHtml(item.credential || '系统课程')}</span><a href="${escapeHtml(item.url)}" data-video="${escapeHtml(item.id)}">预览来源 ↗</a></div></div></article>`).join('') || `<div class="empty-history">当前筛选下没有匹配来源。</div>`;
+    $('#resourceGrid').innerHTML = filtered.map((item) => `<article class="resource-card ${item.supplement ? 'supplement' : ''}"><div class="resource-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 1200 675%27%3E%3Crect width=%271200%27 height=%27675%27 fill=%27%23edf2e9%27/%3E%3Ctext x=%27600%27 y=%27340%27 text-anchor=%27middle%27 font-family=%27sans-serif%27 font-size=%2724%27 fill=%27%236f8975%27%3E琴阶 PianoPath%3C/text%3E%3C/svg%3E'"><span class="resource-platform">${escapeHtml(item.platform === 'Bilibili' ? 'B站 · 国内可看' : item.platform)}</span>${item.supplement ? '<span class="resource-badge">补充资源</span>' : ''}</div><div class="resource-body"><div class="resource-author"><strong>${escapeHtml(item.creator)}</strong><span>${item.region === 'global' ? '海外补充' : '国内可用'}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><div class="resource-footer"><span>${escapeHtml(item.duration || '')} · ${escapeHtml(item.credential || '系统课程')}</span><a href="${escapeHtml(item.url)}" data-video="${escapeHtml(item.id)}">预览来源 ↗</a></div></div></article>`).join('') || `<div class="empty-history">当前筛选下没有匹配来源。</div>`;
 
     $('#methodGrid').innerHTML = DATA.resources.methodBooks.map((book) => `<article class="method-card"><div class="method-icon">${book.type.includes('曲谱') ? '♬' : book.type.includes('教材') ? '▤' : '§'}</div><div><strong>${escapeHtml(book.name)}</strong><span>${escapeHtml(book.note)}</span></div><a href="${escapeHtml(book.url)}" target="_blank" rel="noreferrer noopener">查看 ↗</a></article>`).join('');
   }
@@ -8139,7 +8265,42 @@ window.PIANO_DATA = {
     }).join('') : '<div class="empty-history">没有匹配的曲目，换个难度试试。</div>';
   }
 
+  function computeSkillProfile() {
+    const completedLessons = Object.keys(state.completed || {}).length;
+    const masteryValues = Object.values(state.mastery || {});
+    const avgMastery = masteryValues.length ? masteryValues.reduce((sum, item) => sum + (Number(item.best) || 0), 0) / masteryValues.length : 0;
+    const repertoirePhases = Object.values(state.repertoire || {}).reduce((sum, item) => sum + (Number(item.phaseIndex) || 0), 0);
+    const sightEntries = (state.history || []).filter((entry) => Number(entry.sightDone) > 0).length;
+    const gameSessions = (state.gameSessions || []).length;
+    const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.rating <= 2 || entry.notes)).length;
+    const read = Math.min(100, Math.round(sightEntries * 4 + avgMastery * 0.35 + completedLessons * 1.5));
+    const technique = Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45));
+    const repertoire = Math.min(100, Math.round(repertoirePhases * 12 + completedLessons * 2));
+    const ear = Math.min(100, Math.round(gameSessions * 6 + avgMastery * 0.2));
+    const skills = [
+      { key: 'read', label: '读谱', value: read, detail: sightEntries ? `${sightEntries} 次视奏` : '还没开始' },
+      { key: 'technique', label: '技术', value: technique, detail: completedLessons ? `${completedLessons} 课完成` : '建立基线' },
+      { key: 'repertoire', label: '曲目', value: repertoire, detail: repertoirePhases ? `${repertoirePhases} 个阶段` : '选择一首曲子' },
+      { key: 'ear', label: '听觉', value: ear, detail: gameSessions ? `${gameSessions} 次听辨` : '去玩音名游戏' }
+    ];
+    const weakest = [...skills].sort((a, b) => a.value - b.value)[0];
+    return { skills, weakest, avgMastery, completedLessons, reviewEntries };
+  }
+
+  function renderSkillReport() {
+    const grid = document.querySelector('#skillReportGrid');
+    if (!grid) return;
+    const report = computeSkillProfile();
+    document.querySelector('#skillLevel').textContent = `Lv.${window.PIANO_APP.levelForXp(window.PIANO_APP.totalXp()).level}`;
+    document.querySelector('#skillReportNote').textContent = report.avgMastery ? `掌握检查平均 ${Math.round(report.avgMastery)}% · 共 ${report.completedLessons} 课` : '完成练习和掌握检查后，这里会更新。';
+    grid.innerHTML = report.skills.map((skill) => `<div class="skill-meter"><div class="skill-meter-top"><span>${skill.label}</span><strong>${skill.value}%</strong></div><div class="skill-meter-bar"><i style="width:${skill.value}%"></i></div><small>${skill.detail}</small></div>`).join('');
+    const focus = report.weakest.key === 'read' ? '先做一次视奏，建立读谱基线。' : report.weakest.key === 'technique' ? '先完成当前课程的技术闭环。' : report.weakest.key === 'repertoire' ? '从曲目库选一首 0–1 级曲子开始。' : '去玩一次听声音辨音。';
+    document.querySelector('#skillFocusText').textContent = focus;
+    document.querySelector('#skillFocusButton').dataset.skillFocus = report.weakest.key;
+  }
+
   function renderStats() {
+    renderSkillReport();
     const total = totalMinutes();
     const sessions = Object.keys(state.completed).length;
     const sight = state.history.filter((entry) => Number(entry.sightDone || 0) > 0).length;
@@ -8259,6 +8420,9 @@ window.PIANO_DATA = {
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const RATING_LABELS = { 1: '需要帮助', 2: '有点卡', 3: '刚刚好', 4: '很顺' };
+  const MASTERY_PASS_PERCENT = 67;
+  const isNormalLesson = (item) => Boolean(item && !item.quick && !item.repertoireId);
+  const masteryPassed = (sessionId) => Boolean(state.mastery?.[sessionId] && Number(state.mastery[sessionId].best) >= MASTERY_PASS_PERCENT);
   const escapeUi = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const STATIC_HOST = location.protocol === 'file:' || /github\.io$/i.test(location.hostname) || location.hostname.endsWith('.pages.dev') || location.hostname.endsWith('.netlify.app') || location.hostname.endsWith('.vercel.app');
   const SOURCE_URL = 'https://i.ytimg.com/vi/tEtukfFv3Wk/maxresdefault.jpg';
@@ -8418,7 +8582,7 @@ window.PIANO_DATA = {
     document.querySelector('#checkpointDone').classList.remove('hidden');
     const percent = Math.round((checkpointCorrect / checkpointQuestions.length) * 100);
     document.querySelector('#checkpointScore').textContent = `${checkpointCorrect} / ${checkpointQuestions.length}`;
-    const message = percent >= 80 ? '掌握得很稳，可以进入下一步。' : percent >= 60 ? '基本理解，建议把错题对应的动作再练一遍。' : '先别急着加速，回到当前步骤再慢练一轮。';
+    const message = percent >= MASTERY_PASS_PERCENT ? '通过。可以保存本次练习，继续下一课。' : `还差一点：至少答对 2 / 3 才能解锁下一课。回到当前步骤再练一轮。`;
     document.querySelector('#checkpointMessage').textContent = message;
     document.querySelector('#checkpointProgressBar').style.width = '100%';
     if (session) {
@@ -8445,6 +8609,13 @@ window.PIANO_DATA = {
     $('#stepCue').textContent = step.cue;
     const firstSource = session.sources.map((id) => DATA.resources.videos.find((item) => item.id === id)).find(Boolean);
     $('#lessonSource').innerHTML = firstSource ? `对应来源：<a href="${firstSource.url}" target="_blank" rel="noreferrer noopener">${firstSource.creator} · ${firstSource.title}</a>` : '';
+    const checkpoint = APP.state.mastery?.[session.id];
+    const checkpointButton = document.querySelector('#openCheckpoint');
+    if (checkpointButton) {
+      const passed = !isNormalLesson(session) || Number(checkpoint?.best || 0) >= MASTERY_PASS_PERCENT;
+      checkpointButton.textContent = passed ? '✓ 已通过检查' : checkpoint ? `◎ 再测一次 · ${checkpoint.best}%` : '◎ 完成掌握检查';
+      checkpointButton.classList.toggle('passed', passed);
+    }
     $('#timerToggle').classList.remove('paused');
     $('#timerToggle').innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>';
     $$('.lesson-step').forEach((element, index) => {
@@ -8807,17 +8978,24 @@ window.PIANO_DATA = {
   function finishSession() {
     if (!session) return;
     stopMetronome();
+    rememberActiveSession(true);
     clearInterval(intervalId);
     intervalId = null;
     const elapsed = Math.max(1, Math.round((Date.now() - (startedAt || Date.now())) / 60000));
-    completionPreview = { session: { ...session }, elapsed };
+    const mastery = APP.state.mastery?.[session.id];
+    const passed = !isNormalLesson(session) || masteryPassed(session.id);
+    completionPreview = { session: { ...session }, elapsed, masteryPassed: passed };
     $('#lessonModal').classList.add('hidden');
-    const weekData = APP.currentWeekData();
     if (session.repertoireId) {
       $('#completeSummary').textContent = `曲目阶段完成 · ${session.title.replace('曲目训练：','')}`;
     } else if (session.quick) {
       $('#completeSummary').textContent = `5 分钟快练完成 · ${session.title.replace('5 分钟快练：','')}`;
+    } else if (!passed) {
+      $('#completeSummary').textContent = mastery
+        ? `掌握检查 ${mastery.best}% · 达到 ${MASTERY_PASS_PERCENT}% 后解锁下一课`
+        : `还没有完成掌握检查 · 达到 ${MASTERY_PASS_PERCENT}% 后解锁下一课`;
     } else {
+      const weekData = APP.currentWeekData();
       const doneCount = weekData.sessions.filter((item) => APP.isSessionComplete(item.id)).length;
       const remaining = Math.max(0, weekData.sessions.length - doneCount - 1);
       $('#completeSummary').textContent = remaining
@@ -8825,14 +9003,13 @@ window.PIANO_DATA = {
         : `${session.title} 已完成 · 这是本周最后一次练习`;
     }
     $('#completeStreak').textContent = APP.streakCount();
-    $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : '+20';
+    $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : passed ? '+20' : '+0';
     const saveButton = document.querySelector('#saveCompletion');
-    if (saveButton) saveButton.textContent = session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
-    const mastery = APP.state.mastery?.[session.id];
+    if (saveButton) saveButton.textContent = !passed ? '保存练习，继续巩固' : session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
     const masteryEl = document.querySelector('#completeMastery');
     if (masteryEl) masteryEl.textContent = mastery ? `${mastery.best}%` : '未测';
     const completeSessions = document.querySelector('#completeSessionCount');
-    if (completeSessions) completeSessions.textContent = Object.keys(APP.state.completed).length + (session.quick ? 0 : 1);
+    if (completeSessions) completeSessions.textContent = Object.keys(APP.state.completed).length + (passed && !session.quick ? 1 : 0);
     $('#sessionNotes').value = '';
     rating = 3;
     $$('#ratingRow button').forEach((button) => button.classList.toggle('selected', button.dataset.rating === '3'));
@@ -8856,7 +9033,24 @@ window.PIANO_DATA = {
       sightDone: finished.steps.some((step) => step.category === '读谱' || /视奏/.test(step.title)) ? 1 : 0,
       completedAt: now.toISOString()
     };
-    if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt };
+    const isLesson = isNormalLesson(finished);
+    const passed = !isLesson || masteryPassed(finished.id);
+    if (isLesson && !passed) {
+      entry.type = 'lesson-practice';
+      entry.mastery = state.mastery?.[finished.id] || null;
+      state.history = [entry, ...state.history.filter((item) => item.id !== finished.id || item.date !== entry.date)];
+      state.history = state.history.slice(0, 400);
+      APP.persist();
+      APP.renderAll();
+      APP.updateNav('today');
+      $('#completeModal').classList.add('hidden');
+      completionPreview = null;
+      APP.showToast('本次练习已记录。再练一轮，通过掌握检查后解锁下一课。');
+      setTimeout(() => openSession(APP.currentSessionData().id), 450);
+      syncStateToServer();
+      return;
+    }
+    if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt, mastery: state.mastery?.[finished.id] || null };
     if (finished.quick) entry.type = finished.repertoireId ? 'repertoire' : 'quick';
     if (finished.repertoireId) {
       const piece = findRepertoire(finished.repertoireId);
@@ -8878,6 +9072,9 @@ window.PIANO_DATA = {
     $('#completeModal').classList.add('hidden');
     completionPreview = null;
     APP.showToast(finished.repertoireId ? '曲目阶段已保存，继续下一阶段。' : '已保存。下一课已经准备好。');
+    document.querySelector('#routeMain')?.classList.add('done');
+    document.querySelector('#routeCheck')?.classList.add('done');
+    document.querySelector('#routeDone')?.classList.add('active');
     if (finished.repertoireId) {
       APP.updateNav('repertoire');
       setTimeout(() => APP.renderRepertoire(), 180);
@@ -8980,7 +9177,7 @@ window.PIANO_DATA = {
     } else if (bv) {
       frame.innerHTML = `<iframe src="https://player.bilibili.com/player.html?bvid=${bv}&page=1&high_quality=1&danmaku=0" title="${escapeVideoHtml(video.title)}" loading="lazy" allowfullscreen></iframe>`;
     } else {
-      frame.innerHTML = `<div class="video-external-fallback"><img src="${escapeVideoHtml(video.image)}" alt="${escapeVideoHtml(video.title)}" referrerpolicy="no-referrer" onerror="this.src='assets/fallback.svg'"><span>该来源需在平台内观看</span></div>`;
+      frame.innerHTML = `<div class="video-external-fallback"><img src="${escapeVideoHtml(video.image)}" alt="${escapeVideoHtml(video.title)}" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 1200 675%27%3E%3Crect width=%271200%27 height=%27675%27 fill=%27%23edf2e9%27/%3E%3Ctext x=%27600%27 y=%27340%27 text-anchor=%27middle%27 font-family=%27sans-serif%27 font-size=%2724%27 fill=%27%236f8975%27%3E琴阶 PianoPath%3C/text%3E%3C/svg%3E'"><span>该来源需在平台内观看</span></div>`;
     }
     $('#videoTitle').textContent = video.title;
     $('#videoMeta').textContent = `${video.creator} · ${video.followers} · ${video.duration || '课程'} · ${video.credential || '专业课程'}`;
@@ -9357,7 +9554,6 @@ window.PIANO_DATA = {
     document.querySelector('#closeRepertoire')?.addEventListener('click', closeRepertoireModal);
     document.querySelector('#startRepertoirePractice')?.addEventListener('click', startRepertoirePractice);
     document.querySelector('#repertoireSearch')?.addEventListener('input', (event) => APP.renderRepertoire(undefined, event.target.value));
-    document.querySelector('#homeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     document.querySelectorAll('.note-mode').forEach((button) => button.addEventListener('click', () => setNoteGameMode(button.dataset.gameMode)));
     document.querySelector('#noteReplay')?.addEventListener('click', () => playTone(NOTE_FREQ[noteGameCurrent], .38));
     document.querySelector('#closeOnboarding')?.addEventListener('click', closeOnboarding);
@@ -9380,7 +9576,7 @@ window.PIANO_DATA = {
     document.querySelector('#openCheckpoint')?.addEventListener('click', openCheckpoint);
     document.querySelector('#closeCheckpoint')?.addEventListener('click', closeCheckpoint);
     document.querySelector('#checkpointNext')?.addEventListener('click', nextCheckpoint);
-    document.querySelector('#checkpointFinish')?.addEventListener('click', closeCheckpoint);
+    document.querySelector('#checkpointFinish')?.addEventListener('click', () => { closeCheckpoint(); APP.renderAll(); });
     $('#completeStep').addEventListener('click', () => {
       if (stepIndex >= session.steps.length - 1) finishSession();
       else { stepIndex += 1; renderStep(); }
@@ -9400,6 +9596,12 @@ window.PIANO_DATA = {
     });
     $('#openSettings')?.addEventListener('click', openSettings);
     $('#streakButton')?.addEventListener('click', () => APP.updateNav('stats'));
+    document.querySelector('#skillFocusButton')?.addEventListener('click', (event) => {
+      const focus = event.currentTarget.dataset.skillFocus;
+      if (focus === 'read' || focus === 'technique') APP.updateNav('today');
+      else if (focus === 'repertoire') APP.updateNav('repertoire');
+      else APP.updateNav('today');
+    });
     $('#customizeTop')?.addEventListener('click', openSettings);
     $('#closeSettings')?.addEventListener('click', closeSettings);
     $('#planForm')?.addEventListener('submit', generatePlan);

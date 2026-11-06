@@ -1,12 +1,13 @@
 {
   "name": "pianopath",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "private": true,
   "description": "每周 4 小时的钢琴学习工作台，国内资源优先，支持 PWA 与本地后端。",
   "scripts": {
     "start": "python server.py",
     "serve": "python -m http.server 8787",
     "check": "node --check app.js && node --check data.js && python -m py_compile server.py",
+    "build:standalone": "python tools/build-standalone.py",
     "test:e2e": "node tests/e2e-smoke.js",
     "test:api": "python tests/api-integration.py",
     "test": "npm run test:e2e && npm run test:api"

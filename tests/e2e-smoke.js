@@ -43,17 +43,38 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
       await page.waitForTimeout(150);
     }
     assert.equal(await page.locator('#checkpointDone').isVisible(), true, `${name}: mastery result missing`);
-    const masteryScore = await page.locator('#checkpointScore').innerText();
     await page.locator('#checkpointFinish').click();
     await page.waitForTimeout(150);
-    await page.waitForFunction(() => {
-      try { return Object.keys(JSON.parse(localStorage.getItem('pianopath-state-v1')).mastery || {}).length > 0; } catch (error) { return false; }
-    }, null, { timeout: 3000 });
-    const mastery = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).mastery);
-    assert.ok(mastery && Object.keys(mastery).length > 0, `${name}: mastery not persisted`);
+    await page.evaluate(() => window.PIANO_APP.renderAll());
+    const failedMastery = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).mastery);
+    assert.ok(failedMastery && Object.values(failedMastery).some((item) => item.best < 67), `${name}: failed mastery not persisted`);
     await page.locator('#finishSession').click();
     await page.waitForTimeout(300);
-    assert.equal(await page.locator('#completeModal').isVisible(), true, `${name}: completion modal missing`);
+    assert.equal(await page.locator('#completeModal').isVisible(), true, `${name}: failed completion modal missing`);
+    assert.match(await page.locator('#completeSummary').innerText(), /67%/, `${name}: mastery pass threshold not explained`);
+    assert.equal(await page.locator('#completeXp').innerText(), '+0', `${name}: failed mastery awarded lesson XP`);
+    await page.locator('#saveCompletion').click();
+    await page.waitForTimeout(900);
+    assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: failed lesson did not reopen for practice`);
+    assert.equal(await page.locator('#lessonTitle').innerText(), '找到中央 C', `${name}: failed mastery unlocked next lesson`);
+    const completedAfterFail = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).completed || {});
+    assert.equal(Object.keys(completedAfterFail).length, 0, `${name}: failed mastery was marked complete`);
+
+    // Retry with the correct answers: [0, 1, 1]. Passing at least 2/3 unlocks the next lesson.
+    await page.locator('#openCheckpoint').click();
+    await page.waitForTimeout(250);
+    for (const choice of [0, 1, 1]) {
+      await page.locator(`.checkpoint-option[data-checkpoint-option="${choice}"]`).click();
+      await page.waitForTimeout(120);
+      await page.locator('#checkpointNext').click();
+      await page.waitForTimeout(170);
+    }
+    assert.equal(await page.locator('#checkpointScore').innerText(), '3 / 3', `${name}: correct mastery answers not scored`);
+    await page.locator('#checkpointFinish').click();
+    await page.waitForTimeout(150);
+    await page.locator('#finishSession').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('#completeModal').isVisible(), true, `${name}: passing completion modal missing`);
     assert.match(await page.locator('#completeSummary').innerText(), /还剩 3 次|最后一次/, `${name}: wrong completion summary`);
     await page.locator('#saveCompletion').click();
     await page.waitForTimeout(1000);
@@ -65,9 +86,12 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
 
     assert.equal(await page.locator('#homeWeekTrail .week-trail-item').count(), 4, `${name}: week trail incomplete`);
     assert.equal(await page.locator('#homeWeekTrail .week-trail-item.locked').count(), 2, `${name}: sequential locks incorrect`);
-    assert.equal(await page.locator('#homePathTrack .path-stop').count(), 4, `${name}: path stages incomplete`);
-    assert.equal(await page.locator('#homePathTrack .path-stop.current').count(), 1, `${name}: current stage missing`);
-    assert.equal(await page.locator('.home-game').isVisible(), true, `${name}: game card missing`);
+    assert.equal(await page.locator('.home-route span').count(), 3, `${name}: learning route incomplete`);
+    assert.equal(await page.locator('.home-route span.active').count(), 1, `${name}: active route step missing`);
+    assert.equal(await page.locator('.home-route #routeCheck').innerText(), '2\n掌握检查', `${name}: mastery route step changed`);
+    assert.equal(await page.locator('.game-lab-grid .game-tile').count(), 2, `${name}: game lab incomplete`);
+    assert.equal(await page.locator('#startRhythmGame').isVisible(), true, `${name}: note game missing`);
+    assert.equal(await page.locator('#routeWarmup').isVisible(), true, `${name}: rhythm warmup missing`);
     assert.equal(await page.locator('#quickPractice').isVisible(), true, `${name}: quick practice shortcut missing`);
     await page.locator('#quickPractice').click();
     await page.waitForTimeout(300);
@@ -97,7 +121,7 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
       await page.locator('#closeLesson').click();
       await page.waitForTimeout(250);
     }
-    await page.locator('#homeReview').click();
+    if (name === 'mobile') await page.locator('.mobile-nav [data-nav="stats"]').click(); else await page.locator('.sidebar .nav-item[data-nav="stats"]').click();
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#reviewCard').isVisible(), true, `${name}: review card missing`);
     assert.ok(await page.locator('.review-item').count() > 0, `${name}: review item missing`);
@@ -163,6 +187,12 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     assert.equal(await page.locator('#repertoirePage').isVisible(), true, `${name}: did not return to repertoire`);
     const repertoireState = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).repertoire?.['ode-to-joy']);
     assert.equal(repertoireState?.phaseIndex, 1, `${name}: repertoire phase did not advance`);
+
+    // Skill report: four capability meters and a next-step recommendation.
+    if (name === 'mobile') await page.locator('.mobile-nav [data-nav="stats"]').click(); else await page.locator('.sidebar .nav-item[data-nav="stats"]').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('.skill-meter').count(), 4, `${name}: skill meters missing`);
+    assert.ok((await page.locator('#skillFocusText').innerText()).length > 0, `${name}: next skill suggestion missing`);
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.equal(overflow, 0, `${name}: horizontal overflow ${overflow}px`);

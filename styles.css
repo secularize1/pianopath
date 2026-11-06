@@ -20,7 +20,7 @@
   --shadow: 0 7px 0 rgba(32, 49, 38, .06), 0 18px 38px rgba(32, 49, 38, .05);
   --shadow-hover: 0 8px 0 rgba(32, 49, 38, .08), 0 24px 56px rgba(32, 49, 38, .10);
   --radius: 22px;
-  --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "Segoe UI", Arial, sans-serif;
+  --font: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC", "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -764,20 +764,6 @@ body {
 .path-stop small { display: block; margin-top: 3px; font-size: 8px; }
 .path-track-caption { display: flex; justify-content: space-between; gap: 12px; margin-top: 13px; padding-top: 11px; border-top: 1px solid #eef1eb; color: #9aa79f; font-size: 9px; }
 .path-track-caption strong { color: #5b7161; font-weight: 750; }
-.home-game {
-  position: relative; min-height: 152px; overflow: hidden; padding: 19px;
-  border: 1px solid #ecd99c; border-radius: 20px; background: #fff8df; text-align: left; color: #6b5a2d;
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.home-game:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(126,103,41,.12); }
-.home-game-label { display: block; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; color: #ad8d42; }
-.home-game strong { display: block; margin-top: 8px; font-size: 22px; letter-spacing: -.7px; color: #544626; }
-.home-game p { position: relative; z-index: 1; max-width: 250px; margin: 6px 0 15px; color: #9b874e; font-size: 9px; line-height: 1.6; }
-.home-game-meta { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 10px; font-size: 8px; color: #aa955c; }
-.home-game-meta b { color: #7d6625; }
-.home-game-meta em { color: #8c6d20; font-style: normal; font-weight: 800; }
-.home-game-notes { position: absolute; right: 17px; top: 12px; display: flex; flex-direction: column; gap: 3px; color: rgba(166,136,56,.20); font-style: normal; font-size: 24px; transform: rotate(11deg); }
-.home-game-notes i { font-style: normal; }
 /* less clutter on the resource cards */
 .resource-author span { color: #6f9a79; }
 .resource-footer span { max-width: 68%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -802,7 +788,6 @@ body {
   .week-trail { grid-template-columns: 1fr 1fr; gap: 10px; }
   .week-trail::before { display: none; }
   .home-bottom { grid-template-columns: 1fr; }
-  .home-game { min-height: 135px; }
 }
 @media (max-width: 540px) {
   .home-start-copy { padding: 23px 15px 19px; }
@@ -1065,3 +1050,140 @@ body.modal-open { overflow:hidden; }
 .checkpoint-feedback { min-height:18px; margin-top:8px; color:#8a998f; font-size:8px; line-height:1.6; }
 .checkpoint-done { padding:10px 0 2px; text-align:center; }.checkpoint-done strong { display:block; color:#4b8858; font-size:22px; }.checkpoint-done p { margin:7px 0 12px; color:#88988e; font-size:9px; line-height:1.6; }
 @media(max-width:540px){ .timer-actions { flex-wrap:wrap; }.checkpoint-button { flex:1; }.checkpoint-panel { padding:13px; } }
+
+/* Skill profile */
+.skill-report { padding:19px 21px; margin-bottom:15px; background:linear-gradient(145deg,#fbfcf8,#f5f9f0); }
+.skill-report-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.skill-report-head h3 { margin:5px 0 4px; font-size:19px; letter-spacing:-.4px; }.skill-report-head p { margin:0; color:#89988d; font-size:9px; }
+.skill-level { padding:6px 9px; border-radius:8px; background:#e7f5e5; color:#438654; font-size:10px; font-weight:850; }
+.skill-report-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px; }
+.skill-meter { padding:11px 10px; border:1px solid #e9eee4; border-radius:10px; background:#fff; }
+.skill-meter-top { display:flex; align-items:center; justify-content:space-between; font-size:9px; color:#6b806f; }.skill-meter-top strong { color:#516b58; font-size:11px; }
+.skill-meter-bar { height:6px; margin-top:8px; overflow:hidden; border-radius:6px; background:#edf2e9; }.skill-meter-bar i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#a8d8b3,#54af6b); }
+.skill-meter small { display:block; margin-top:6px; color:#9ca79f; font-size:8px; }
+.skill-focus { display:flex; align-items:center; justify-content:space-between; width:100%; gap:12px; margin-top:12px; padding:10px 12px; border:1px solid #dfe9da; border-radius:10px; background:#fff; text-align:left; color:#58705f; }
+.skill-focus small { display:block; margin-bottom:3px; color:#98a59b; font-size:8px; }.skill-focus strong { display:block; font-size:9px; }.skill-focus > span:last-child { color:#4c925e; font-size:9px; font-weight:800; white-space:nowrap; }
+@media(max-width:820px){ .skill-report-grid{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:540px){ .skill-report{padding:15px}.skill-report-head h3{font-size:17px}.skill-report-grid{gap:6px}.skill-meter{padding:9px 8px}.skill-focus{align-items:flex-start}.skill-focus > span:last-child{padding-top:11px} }
+
+
+/* === PianoPath 1.9: calmer type and a single learning route === */
+:root {
+  --font-body: var(--font);
+  --font-display: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+  --font-number: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+}
+body { font-family: var(--font-body); font-size: 14px; line-height: 1.55; }
+button, input, select, textarea { font-family: inherit; }
+.topbar-greeting h1, .home-start h2, .home-section-head h3, .page-intro h2,
+.lesson-stage h2, .complete-card h2, .settings-card h2, .repertoire-modal-card h2,
+.note-game-card h2, .onboarding-card h2 { font-family: var(--font-display); font-weight: 760; }
+.timer-ring span, .home-art-card strong, .stat-card strong, .path-stop strong,
+.home-path-percent, .level-badge, .xp-pill strong, .complete-stats strong { font-family: var(--font-number); font-variant-numeric: tabular-nums; }
+.topbar-greeting p, .home-kicker, .home-label, .eyebrow { letter-spacing: .04em; }
+.home-start h2 { letter-spacing: -.035em; }
+.home-start p { font-size: 14px; line-height: 1.7; }
+.home-main-cta { min-height: 78px; }
+.home-cta-copy strong { font-size: 17px; }
+.home-cta-copy small, .home-cta-duration { font-size: 10px; }
+.home-route { display: flex; align-items: center; gap: 8px; width: min(100%, 475px); margin-top: 18px; color: #8a9a8e; font-size: 11px; font-weight: 700; }
+.home-route span { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.home-route i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,.7); color: #8b9a8e; font-size: 10px; font-style: normal; }
+.home-route span.active { color: #347b48; }
+.home-route span.active i { background: #51aa68; color: #fff; }
+.home-route span.done { color: #5f8770; }
+.home-route span.done i { background: #dcefdc; color: #3e9253; }
+.home-route b { flex: 1; max-width: 46px; height: 1px; background: #ccdccc; }
+.home-secondary { align-items: center; justify-content: flex-start; gap: 7px; font-size: 11px; }
+.home-warm-link { font-size: 11px; }
+.home-week, .home-game-lab { margin-top: 18px; }
+.home-week { padding: 22px 24px 20px; }
+.home-section-head h3 { font-size: 21px; }
+.week-trail-item { padding: 7px 7px 8px; border-radius: 12px; }
+.week-trail-item:hover { background: #f5f9f2; }
+.week-trail-item.locked { opacity: .58; }
+.trail-node { width: 48px; height: 48px; border-radius: 16px; font-size: 12px; }
+.trail-copy small { font-size: 10px; }
+.trail-copy strong { font-size: 12px; }
+.trail-copy em { font-size: 10px; }
+.home-game-lab { padding: 20px 24px 22px; border: 1px solid #e7e4cf; border-radius: 22px; background: #fffdf3; }
+.home-game-lab-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.home-game-lab-head h3 { margin: 5px 0 0; font-family: var(--font-display); font-size: 21px; letter-spacing: -.025em; }
+.home-game-lab-head > span { color: #a29268; font-size: 11px; }
+.game-lab-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 16px; }
+.game-tile { position: relative; display: grid; grid-template-columns: 46px minmax(0,1fr) auto; align-items: center; gap: 12px; min-height: 88px; padding: 14px; border: 1px solid #e9e2ca; border-radius: 16px; text-align: left; color: #5f583f; transition: transform .16s ease, box-shadow .16s ease; }
+.game-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(98, 87, 52, .08); }
+.game-tile:active { transform: translateY(1px); }
+.note-game-tile { background: #edf7ec; border-color: #cfe4cd; }
+.beat-game-tile { background: #fff2db; border-color: #edddba; }
+.game-tile-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,.75); color: #438858; font-size: 23px; }
+.beat-game-tile .game-tile-icon { color: #a87828; }
+.game-tile small { display: block; color: #829488; font-size: 10px; font-weight: 750; }
+.game-tile strong { display: block; margin-top: 4px; color: #385643; font-size: 13px; line-height: 1.45; }
+.beat-game-tile small { color: #9d875d; }
+.beat-game-tile strong { color: #66542f; }
+.game-tile-best { align-self: end; color: #829488; font-size: 10px; white-space: nowrap; }
+.game-tile-best b { color: #3f7650; font-size: 11px; }
+.beat-game-tile .game-tile-best { color: #9a8456; }
+@media (max-width: 820px) {
+  .game-lab-grid { grid-template-columns: 1fr; }
+  .home-game-lab { padding: 17px; }
+}
+@media (max-width: 540px) {
+  .home-start h2 { font-size: 31px; }
+  .home-route { gap: 5px; font-size: 10px; }
+  .home-route b { max-width: 18px; }
+  .home-week { padding: 17px 14px 15px; }
+  .home-section-head h3, .home-game-lab-head h3 { font-size: 18px; }
+  .game-tile { grid-template-columns: 40px minmax(0,1fr); min-height: 82px; padding: 11px; }
+  .game-tile-icon { width: 40px; height: 40px; }
+  .game-tile-best { grid-column: 2; align-self: auto; }
+  .home-game-lab-head > span { display: none; }
+}
+
+
+/* Readability pass: keep compact game-like rhythm, remove micro-print. */
+.sidebar .brand small, .profile-mini small, .sidebar-footer, .streak-day,
+.topbar-greeting p, .eyebrow, .lesson-kicker, .lesson-source, .step-instruction small,
+.lesson-step, .lesson-step strong, .lesson-step small, .lesson-step-num,
+.cue, .home-label, .home-kicker, .home-week-pill, .path-track-caption,
+.resource-body p, .resource-footer, .method-card span, .method-card a,
+.week-day-btn strong, .week-day-btn span, .week-tag, .stat-card > span,
+.stat-card em, .history-item small, .history-item > span:last-child,
+.mobile-nav a, .daily-quests-head, .daily-quests-head strong,
+.daily-quest strong, .daily-quest small, .complete-stats small,
+.rating-label, .notes-field span, .form-row label > span,
+.repertoire-progress-top, .repertoire-progress-top strong,
+.repertoire-actions .btn, .repertoire-actions .text-button,
+.repertoire-note, .repertoire-modal-meta span, .repertoire-phase,
+.repertoire-modal-hint, .checkpoint-progress, .checkpoint-feedback,
+.checkpoint-option, .skill-report-head p, .skill-meter small,
+.skill-focus small, .skill-focus strong, .skill-focus > span:last-child {
+  font-size: max(10px, .625rem);
+}
+.profile-mini strong, .resource-body h3, .resource-footer a, .method-card strong,
+.stat-card strong small, .week-day-btn strong, .daily-quest strong,
+.lesson-step strong, .lesson-source a, .home-warm-link, .home-secondary,
+.game-tile small, .game-tile-best, .mobile-nav a {
+  font-size: max(11px, .6875rem);
+}
+.lesson-step { line-height: 1.55; }
+.lesson-step strong { line-height: 1.45; }
+.lesson-step small { margin-top: 4px; }
+.resource-body p { line-height: 1.7; }
+.daily-quest-list { gap: 9px; }
+.daily-quest { padding: 10px; }
+.home-game-lab-head > span { font-size: 11px; }
+.checkpoint-option { padding: 11px 12px; }
+.checkpoint-feedback { line-height: 1.7; }
+.skill-meter-top { font-size: 11px; }
+.skill-meter-top strong { font-size: 13px; }
+.skill-focus strong { line-height: 1.55; }
+@media (max-width: 540px) {
+  .mobile-nav a { font-size: 10px; }
+  .daily-quest-list { grid-template-columns: 1fr; }
+  .lesson-step small { font-size: 10px; }
+}
+
+.checkpoint-button.passed { border-color:#b9ddc0; background:#eef8ed; color:#3f8551; }
+.checkpoint-button.passed:hover { background:#e5f5e4; }

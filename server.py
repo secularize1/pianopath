@@ -53,7 +53,7 @@ def load_curriculum() -> dict:
 
 
 CURRICULUM = load_curriculum()
-APP_VERSION = str(CURRICULUM.get("meta", {}).get("appVersion", "1.4.0"))
+APP_VERSION = str(CURRICULUM.get("meta", {}).get("appVersion", "1.9.0"))
 
 
 def now_iso() -> str:
@@ -157,7 +157,7 @@ def public_path(path: str) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "PianoPath/1.4"
+    server_version = "PianoPath/1.9"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)

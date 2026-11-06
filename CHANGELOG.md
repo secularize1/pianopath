@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.9.0 — 2026-11-06
+
+- Added a four-skill learning report for sight-reading, technique, repertoire and ear training.
+- Normal lessons now require at least 2/3 on the mastery check before they are marked complete or unlock the next lesson.
+- Failed mastery attempts are saved as practice history without awarding lesson XP.
+- Rebuilt the home screen around one main lesson, a three-step route and two lightweight music games.
+- Improved the native Windows/macOS Chinese font stack and raised the smallest UI text for readability.
+- Removed internal source-rule and verification-date copy from the learner interface.
+
 ## 1.8.0 — 2026-11-06
 
 - Added in-lesson mastery checkpoints with three questions per session.

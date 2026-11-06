@@ -5,6 +5,7 @@
   const STORAGE_KEY = 'pianopath-state-v1';
   const DAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
   const PHASE_COLORS = { '起步': '#5bbd78', '基础 I': '#f3cf66', '基础 II': '#ef8d78', '进阶 I': '#7ab6d9', '进阶 II': '#9d8ad6', '巩固': '#6eb98b', '展示': '#1f2a24' };
+  const MASTERY_PASS_PERCENT = 67;
 
   const defaultState = {
     profile: { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '', startWeek: 1 },
@@ -110,6 +111,15 @@
 
   function isComplete(sessionId) {
     return Boolean(completedEntry(sessionId));
+  }
+
+  function isNormalLesson(session) {
+    return Boolean(session && !session.quick && !session.repertoireId);
+  }
+
+  function masteryPassed(sessionId) {
+    const mastery = state.mastery?.[sessionId];
+    return Boolean(mastery && Number(mastery.best) >= MASTERY_PASS_PERCENT);
   }
 
   function splitMinutes(total, count) {
@@ -291,8 +301,6 @@
     const { week, sessions } = currentWeekData();
     const session = currentSessionData();
     const weekDone = sessions.filter((item) => isComplete(item.id)).length;
-    const lessonsCompleted = Object.keys(state.completed).length;
-    const pathPercent = Math.round((lessonsCompleted / 48) * 100);
     const current = session || sessions[0];
 
     if (current) {
@@ -323,31 +331,10 @@
       }).join('');
     }
 
-    const track = document.querySelector('#homePathTrack');
-    if (track) {
-      const groups = [
-        { label: '起步', range: '1–2 周', start: 0, end: 2 },
-        { label: '基础', range: '3–6 周', start: 2, end: 6 },
-        { label: '进阶', range: '7–10 周', start: 6, end: 10 },
-        { label: '展示', range: '11–12 周', start: 10, end: 12 }
-      ];
-      const currentGroup = Math.max(0, Math.floor((Math.max(1, Number(week.id) || 1) - 1) / 2));
-      track.innerHTML = groups.map((group, groupIndex) => {
-        const completedInGroup = Math.max(0, Math.min(group.end, Math.ceil(lessonsCompleted / 4)) - group.start);
-        const totalInGroup = group.end - group.start;
-        const inCurrentGroup = groupIndex === currentGroup;
-        const stateClass = completedInGroup >= totalInGroup ? 'done' : inCurrentGroup ? 'current' : '';
-        return `<div class="path-stop ${stateClass}"><span class="path-stop-dot">${completedInGroup >= totalInGroup ? '✓' : ''}</span><strong>${group.label}</strong><small>${group.range}</small></div>`;
-      }).join('');
-      document.querySelector('#homePathPercent').textContent = `${pathPercent}%`;
-      document.querySelector('#homePathCurrent').textContent = `第 ${week.id} 周 · ${week.title}`;
-      document.querySelector('#homePathNext').textContent = week.id >= 12 ? '完成阶段后生成下一阶段计划' : `下一站：第 ${week.id + 1} 周`;
-    }
-
     const todayKey = localDateKey(new Date());
     const gameToday = (state.gameSessions || []).filter((item) => item.date === todayKey);
     const todayMinutes = minutesForDate(todayKey);
-    const todayLesson = state.history.some((entry) => entry.date === todayKey && entry.type !== 'game');
+    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice'].includes(entry.type));
     const todayGame = gameToday.length > 0;
     const quests = [
       { done: todayLesson, label: '完成 1 次课程练习', detail: todayLesson ? '已完成' : '开始今日课程' },
@@ -361,10 +348,21 @@
       if (questCount) questCount.textContent = `${quests.filter((quest) => quest.done).length} / 3`;
     }
 
+    const currentId = current?.id;
+    const currentMastery = currentId ? state.mastery?.[currentId] : null;
+    const mainDone = Boolean(todayLesson);
+    const checkDone = Boolean(mainDone && currentMastery && Number(currentMastery.best) >= MASTERY_PASS_PERCENT);
+    const activityDone = todayMinutes > 0 || todayGame;
+    const routeMain = document.querySelector('#routeMain');
+    const routeCheck = document.querySelector('#routeCheck');
+    const routeDone = document.querySelector('#routeDone');
+    if (routeMain) routeMain.className = mainDone ? 'done' : 'active';
+    if (routeCheck) routeCheck.className = checkDone ? 'done' : mainDone ? 'active' : '';
+    if (routeDone) routeDone.className = activityDone ? 'done' : checkDone ? 'active' : '';
+
     const best = localStorage.getItem('pianopath-note-game-best') || localStorage.getItem('pianopath-ear-game-best');
     const gameBest = document.querySelector('#homeGameBest');
     if (gameBest) gameBest.textContent = best ? `${best} 分` : '—';
-    document.querySelector('#homePathNext').textContent = week.id >= 12 ? '准备进入下一阶段' : `下一站 · 第 ${week.id + 1} 周`;
   }
 
   function renderPath() {
@@ -416,7 +414,7 @@
       const haystack = `${item.creator} ${item.title} ${item.description} ${(item.topics || []).join(' ')}`.toLowerCase();
       return matchTopic && (!searchTerm || haystack.includes(searchTerm.toLowerCase()));
     });
-    $('#resourceGrid').innerHTML = filtered.map((item) => `<article class="resource-card ${item.supplement ? 'supplement' : ''}"><div class="resource-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='assets/fallback.svg'"><span class="resource-platform">${escapeHtml(item.platform === 'Bilibili' ? 'B站 · 国内可看' : item.platform)}</span>${item.supplement ? '<span class="resource-badge">补充资源</span>' : ''}</div><div class="resource-body"><div class="resource-author"><strong>${escapeHtml(item.creator)}</strong><span>${item.region === 'global' ? '海外补充' : '国内可用'}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><div class="resource-footer"><span>${escapeHtml(item.duration || '')} · ${escapeHtml(item.credential || '系统课程')}</span><a href="${escapeHtml(item.url)}" data-video="${escapeHtml(item.id)}">预览来源 ↗</a></div></div></article>`).join('') || `<div class="empty-history">当前筛选下没有匹配来源。</div>`;
+    $('#resourceGrid').innerHTML = filtered.map((item) => `<article class="resource-card ${item.supplement ? 'supplement' : ''}"><div class="resource-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 1200 675%27%3E%3Crect width=%271200%27 height=%27675%27 fill=%27%23edf2e9%27/%3E%3Ctext x=%27600%27 y=%27340%27 text-anchor=%27middle%27 font-family=%27sans-serif%27 font-size=%2724%27 fill=%27%236f8975%27%3E琴阶 PianoPath%3C/text%3E%3C/svg%3E'"><span class="resource-platform">${escapeHtml(item.platform === 'Bilibili' ? 'B站 · 国内可看' : item.platform)}</span>${item.supplement ? '<span class="resource-badge">补充资源</span>' : ''}</div><div class="resource-body"><div class="resource-author"><strong>${escapeHtml(item.creator)}</strong><span>${item.region === 'global' ? '海外补充' : '国内可用'}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><div class="resource-footer"><span>${escapeHtml(item.duration || '')} · ${escapeHtml(item.credential || '系统课程')}</span><a href="${escapeHtml(item.url)}" data-video="${escapeHtml(item.id)}">预览来源 ↗</a></div></div></article>`).join('') || `<div class="empty-history">当前筛选下没有匹配来源。</div>`;
 
     $('#methodGrid').innerHTML = DATA.resources.methodBooks.map((book) => `<article class="method-card"><div class="method-icon">${book.type.includes('曲谱') ? '♬' : book.type.includes('教材') ? '▤' : '§'}</div><div><strong>${escapeHtml(book.name)}</strong><span>${escapeHtml(book.note)}</span></div><a href="${escapeHtml(book.url)}" target="_blank" rel="noreferrer noopener">查看 ↗</a></article>`).join('');
   }
@@ -468,7 +466,42 @@
     }).join('') : '<div class="empty-history">没有匹配的曲目，换个难度试试。</div>';
   }
 
+  function computeSkillProfile() {
+    const completedLessons = Object.keys(state.completed || {}).length;
+    const masteryValues = Object.values(state.mastery || {});
+    const avgMastery = masteryValues.length ? masteryValues.reduce((sum, item) => sum + (Number(item.best) || 0), 0) / masteryValues.length : 0;
+    const repertoirePhases = Object.values(state.repertoire || {}).reduce((sum, item) => sum + (Number(item.phaseIndex) || 0), 0);
+    const sightEntries = (state.history || []).filter((entry) => Number(entry.sightDone) > 0).length;
+    const gameSessions = (state.gameSessions || []).length;
+    const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.rating <= 2 || entry.notes)).length;
+    const read = Math.min(100, Math.round(sightEntries * 4 + avgMastery * 0.35 + completedLessons * 1.5));
+    const technique = Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45));
+    const repertoire = Math.min(100, Math.round(repertoirePhases * 12 + completedLessons * 2));
+    const ear = Math.min(100, Math.round(gameSessions * 6 + avgMastery * 0.2));
+    const skills = [
+      { key: 'read', label: '读谱', value: read, detail: sightEntries ? `${sightEntries} 次视奏` : '还没开始' },
+      { key: 'technique', label: '技术', value: technique, detail: completedLessons ? `${completedLessons} 课完成` : '建立基线' },
+      { key: 'repertoire', label: '曲目', value: repertoire, detail: repertoirePhases ? `${repertoirePhases} 个阶段` : '选择一首曲子' },
+      { key: 'ear', label: '听觉', value: ear, detail: gameSessions ? `${gameSessions} 次听辨` : '去玩音名游戏' }
+    ];
+    const weakest = [...skills].sort((a, b) => a.value - b.value)[0];
+    return { skills, weakest, avgMastery, completedLessons, reviewEntries };
+  }
+
+  function renderSkillReport() {
+    const grid = document.querySelector('#skillReportGrid');
+    if (!grid) return;
+    const report = computeSkillProfile();
+    document.querySelector('#skillLevel').textContent = `Lv.${window.PIANO_APP.levelForXp(window.PIANO_APP.totalXp()).level}`;
+    document.querySelector('#skillReportNote').textContent = report.avgMastery ? `掌握检查平均 ${Math.round(report.avgMastery)}% · 共 ${report.completedLessons} 课` : '完成练习和掌握检查后，这里会更新。';
+    grid.innerHTML = report.skills.map((skill) => `<div class="skill-meter"><div class="skill-meter-top"><span>${skill.label}</span><strong>${skill.value}%</strong></div><div class="skill-meter-bar"><i style="width:${skill.value}%"></i></div><small>${skill.detail}</small></div>`).join('');
+    const focus = report.weakest.key === 'read' ? '先做一次视奏，建立读谱基线。' : report.weakest.key === 'technique' ? '先完成当前课程的技术闭环。' : report.weakest.key === 'repertoire' ? '从曲目库选一首 0–1 级曲子开始。' : '去玩一次听声音辨音。';
+    document.querySelector('#skillFocusText').textContent = focus;
+    document.querySelector('#skillFocusButton').dataset.skillFocus = report.weakest.key;
+  }
+
   function renderStats() {
+    renderSkillReport();
     const total = totalMinutes();
     const sessions = Object.keys(state.completed).length;
     const sight = state.history.filter((entry) => Number(entry.sightDone || 0) > 0).length;
@@ -588,6 +621,9 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const RATING_LABELS = { 1: '需要帮助', 2: '有点卡', 3: '刚刚好', 4: '很顺' };
+  const MASTERY_PASS_PERCENT = 67;
+  const isNormalLesson = (item) => Boolean(item && !item.quick && !item.repertoireId);
+  const masteryPassed = (sessionId) => Boolean(state.mastery?.[sessionId] && Number(state.mastery[sessionId].best) >= MASTERY_PASS_PERCENT);
   const escapeUi = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const STATIC_HOST = location.protocol === 'file:' || /github\.io$/i.test(location.hostname) || location.hostname.endsWith('.pages.dev') || location.hostname.endsWith('.netlify.app') || location.hostname.endsWith('.vercel.app');
   const SOURCE_URL = 'https://i.ytimg.com/vi/tEtukfFv3Wk/maxresdefault.jpg';
@@ -747,7 +783,7 @@
     document.querySelector('#checkpointDone').classList.remove('hidden');
     const percent = Math.round((checkpointCorrect / checkpointQuestions.length) * 100);
     document.querySelector('#checkpointScore').textContent = `${checkpointCorrect} / ${checkpointQuestions.length}`;
-    const message = percent >= 80 ? '掌握得很稳，可以进入下一步。' : percent >= 60 ? '基本理解，建议把错题对应的动作再练一遍。' : '先别急着加速，回到当前步骤再慢练一轮。';
+    const message = percent >= MASTERY_PASS_PERCENT ? '通过。可以保存本次练习，继续下一课。' : `还差一点：至少答对 2 / 3 才能解锁下一课。回到当前步骤再练一轮。`;
     document.querySelector('#checkpointMessage').textContent = message;
     document.querySelector('#checkpointProgressBar').style.width = '100%';
     if (session) {
@@ -774,6 +810,13 @@
     $('#stepCue').textContent = step.cue;
     const firstSource = session.sources.map((id) => DATA.resources.videos.find((item) => item.id === id)).find(Boolean);
     $('#lessonSource').innerHTML = firstSource ? `对应来源：<a href="${firstSource.url}" target="_blank" rel="noreferrer noopener">${firstSource.creator} · ${firstSource.title}</a>` : '';
+    const checkpoint = APP.state.mastery?.[session.id];
+    const checkpointButton = document.querySelector('#openCheckpoint');
+    if (checkpointButton) {
+      const passed = !isNormalLesson(session) || Number(checkpoint?.best || 0) >= MASTERY_PASS_PERCENT;
+      checkpointButton.textContent = passed ? '✓ 已通过检查' : checkpoint ? `◎ 再测一次 · ${checkpoint.best}%` : '◎ 完成掌握检查';
+      checkpointButton.classList.toggle('passed', passed);
+    }
     $('#timerToggle').classList.remove('paused');
     $('#timerToggle').innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>';
     $$('.lesson-step').forEach((element, index) => {
@@ -1136,17 +1179,24 @@
   function finishSession() {
     if (!session) return;
     stopMetronome();
+    rememberActiveSession(true);
     clearInterval(intervalId);
     intervalId = null;
     const elapsed = Math.max(1, Math.round((Date.now() - (startedAt || Date.now())) / 60000));
-    completionPreview = { session: { ...session }, elapsed };
+    const mastery = APP.state.mastery?.[session.id];
+    const passed = !isNormalLesson(session) || masteryPassed(session.id);
+    completionPreview = { session: { ...session }, elapsed, masteryPassed: passed };
     $('#lessonModal').classList.add('hidden');
-    const weekData = APP.currentWeekData();
     if (session.repertoireId) {
       $('#completeSummary').textContent = `曲目阶段完成 · ${session.title.replace('曲目训练：','')}`;
     } else if (session.quick) {
       $('#completeSummary').textContent = `5 分钟快练完成 · ${session.title.replace('5 分钟快练：','')}`;
+    } else if (!passed) {
+      $('#completeSummary').textContent = mastery
+        ? `掌握检查 ${mastery.best}% · 达到 ${MASTERY_PASS_PERCENT}% 后解锁下一课`
+        : `还没有完成掌握检查 · 达到 ${MASTERY_PASS_PERCENT}% 后解锁下一课`;
     } else {
+      const weekData = APP.currentWeekData();
       const doneCount = weekData.sessions.filter((item) => APP.isSessionComplete(item.id)).length;
       const remaining = Math.max(0, weekData.sessions.length - doneCount - 1);
       $('#completeSummary').textContent = remaining
@@ -1154,14 +1204,13 @@
         : `${session.title} 已完成 · 这是本周最后一次练习`;
     }
     $('#completeStreak').textContent = APP.streakCount();
-    $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : '+20';
+    $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : passed ? '+20' : '+0';
     const saveButton = document.querySelector('#saveCompletion');
-    if (saveButton) saveButton.textContent = session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
-    const mastery = APP.state.mastery?.[session.id];
+    if (saveButton) saveButton.textContent = !passed ? '保存练习，继续巩固' : session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
     const masteryEl = document.querySelector('#completeMastery');
     if (masteryEl) masteryEl.textContent = mastery ? `${mastery.best}%` : '未测';
     const completeSessions = document.querySelector('#completeSessionCount');
-    if (completeSessions) completeSessions.textContent = Object.keys(APP.state.completed).length + (session.quick ? 0 : 1);
+    if (completeSessions) completeSessions.textContent = Object.keys(APP.state.completed).length + (passed && !session.quick ? 1 : 0);
     $('#sessionNotes').value = '';
     rating = 3;
     $$('#ratingRow button').forEach((button) => button.classList.toggle('selected', button.dataset.rating === '3'));
@@ -1185,7 +1234,24 @@
       sightDone: finished.steps.some((step) => step.category === '读谱' || /视奏/.test(step.title)) ? 1 : 0,
       completedAt: now.toISOString()
     };
-    if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt };
+    const isLesson = isNormalLesson(finished);
+    const passed = !isLesson || masteryPassed(finished.id);
+    if (isLesson && !passed) {
+      entry.type = 'lesson-practice';
+      entry.mastery = state.mastery?.[finished.id] || null;
+      state.history = [entry, ...state.history.filter((item) => item.id !== finished.id || item.date !== entry.date)];
+      state.history = state.history.slice(0, 400);
+      APP.persist();
+      APP.renderAll();
+      APP.updateNav('today');
+      $('#completeModal').classList.add('hidden');
+      completionPreview = null;
+      APP.showToast('本次练习已记录。再练一轮，通过掌握检查后解锁下一课。');
+      setTimeout(() => openSession(APP.currentSessionData().id), 450);
+      syncStateToServer();
+      return;
+    }
+    if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt, mastery: state.mastery?.[finished.id] || null };
     if (finished.quick) entry.type = finished.repertoireId ? 'repertoire' : 'quick';
     if (finished.repertoireId) {
       const piece = findRepertoire(finished.repertoireId);
@@ -1207,6 +1273,9 @@
     $('#completeModal').classList.add('hidden');
     completionPreview = null;
     APP.showToast(finished.repertoireId ? '曲目阶段已保存，继续下一阶段。' : '已保存。下一课已经准备好。');
+    document.querySelector('#routeMain')?.classList.add('done');
+    document.querySelector('#routeCheck')?.classList.add('done');
+    document.querySelector('#routeDone')?.classList.add('active');
     if (finished.repertoireId) {
       APP.updateNav('repertoire');
       setTimeout(() => APP.renderRepertoire(), 180);
@@ -1309,7 +1378,7 @@
     } else if (bv) {
       frame.innerHTML = `<iframe src="https://player.bilibili.com/player.html?bvid=${bv}&page=1&high_quality=1&danmaku=0" title="${escapeVideoHtml(video.title)}" loading="lazy" allowfullscreen></iframe>`;
     } else {
-      frame.innerHTML = `<div class="video-external-fallback"><img src="${escapeVideoHtml(video.image)}" alt="${escapeVideoHtml(video.title)}" referrerpolicy="no-referrer" onerror="this.src='assets/fallback.svg'"><span>该来源需在平台内观看</span></div>`;
+      frame.innerHTML = `<div class="video-external-fallback"><img src="${escapeVideoHtml(video.image)}" alt="${escapeVideoHtml(video.title)}" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 1200 675%27%3E%3Crect width=%271200%27 height=%27675%27 fill=%27%23edf2e9%27/%3E%3Ctext x=%27600%27 y=%27340%27 text-anchor=%27middle%27 font-family=%27sans-serif%27 font-size=%2724%27 fill=%27%236f8975%27%3E琴阶 PianoPath%3C/text%3E%3C/svg%3E'"><span>该来源需在平台内观看</span></div>`;
     }
     $('#videoTitle').textContent = video.title;
     $('#videoMeta').textContent = `${video.creator} · ${video.followers} · ${video.duration || '课程'} · ${video.credential || '专业课程'}`;
@@ -1686,7 +1755,6 @@
     document.querySelector('#closeRepertoire')?.addEventListener('click', closeRepertoireModal);
     document.querySelector('#startRepertoirePractice')?.addEventListener('click', startRepertoirePractice);
     document.querySelector('#repertoireSearch')?.addEventListener('input', (event) => APP.renderRepertoire(undefined, event.target.value));
-    document.querySelector('#homeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     document.querySelectorAll('.note-mode').forEach((button) => button.addEventListener('click', () => setNoteGameMode(button.dataset.gameMode)));
     document.querySelector('#noteReplay')?.addEventListener('click', () => playTone(NOTE_FREQ[noteGameCurrent], .38));
     document.querySelector('#closeOnboarding')?.addEventListener('click', closeOnboarding);
@@ -1709,7 +1777,7 @@
     document.querySelector('#openCheckpoint')?.addEventListener('click', openCheckpoint);
     document.querySelector('#closeCheckpoint')?.addEventListener('click', closeCheckpoint);
     document.querySelector('#checkpointNext')?.addEventListener('click', nextCheckpoint);
-    document.querySelector('#checkpointFinish')?.addEventListener('click', closeCheckpoint);
+    document.querySelector('#checkpointFinish')?.addEventListener('click', () => { closeCheckpoint(); APP.renderAll(); });
     $('#completeStep').addEventListener('click', () => {
       if (stepIndex >= session.steps.length - 1) finishSession();
       else { stepIndex += 1; renderStep(); }
@@ -1729,6 +1797,12 @@
     });
     $('#openSettings')?.addEventListener('click', openSettings);
     $('#streakButton')?.addEventListener('click', () => APP.updateNav('stats'));
+    document.querySelector('#skillFocusButton')?.addEventListener('click', (event) => {
+      const focus = event.currentTarget.dataset.skillFocus;
+      if (focus === 'read' || focus === 'technique') APP.updateNav('today');
+      else if (focus === 'repertoire') APP.updateNav('repertoire');
+      else APP.updateNav('today');
+    });
     $('#customizeTop')?.addEventListener('click', openSettings);
     $('#closeSettings')?.addEventListener('click', closeSettings);
     $('#planForm')?.addEventListener('submit', generatePlan);

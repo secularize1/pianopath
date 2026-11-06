@@ -100,7 +100,12 @@
         <section class="home-start">
           <div class="home-start-copy">
             <div class="home-kicker"><span class="home-kicker-dot"></span><span id="homeStage">第 1 周 · 起步</span><span class="home-week-pill" id="homeWeekProgress">0 / 4</span></div>
-            <h2>开始今天的钢琴练习</h2>
+            <div class="home-route" aria-label="今日学习路线">
+              <span id="routeMain" class="active"><i>1</i>主课</span><b aria-hidden="true"></b>
+              <span id="routeCheck"><i>2</i>掌握检查</span><b aria-hidden="true"></b>
+              <span id="routeDone"><i>3</i>今日完成</span>
+            </div>
+            <h2>今天，练好这一课</h2>
             <p id="homeLessonGoal">身体对位，手指编号不混乱</p>
             <button class="home-main-cta" id="startToday" type="button">
               <span class="home-cta-play">▶</span>
@@ -108,9 +113,8 @@
               <span class="home-cta-duration" id="homeLessonDuration">60 分钟</span>
             </button>
             <div class="home-secondary">
-              <button class="home-warm-link" id="routeWarmup" type="button">♩ 先做 3 分钟节拍热身</button>
-              <button class="home-warm-link quick-link" id="quickPractice" type="button">只有 5 分钟？快练一下 →</button>
-              <button class="home-warm-link" id="homeReview" type="button">复习弱点 →</button>
+              <span>主课没时间？</span>
+              <button class="home-warm-link quick-link" id="quickPractice" type="button">换成 5 分钟快练 →</button>
             </div>
           </div>
           <div class="home-start-art" aria-hidden="true">
@@ -123,32 +127,33 @@
 
         <section class="home-week card">
           <div class="home-section-head">
-            <div><span class="home-label">本周路线</span><h3>跟着四次练习走完这一周</h3></div>
-            <button class="text-button" data-nav="path">查看完整 12 周 →</button>
+            <div><span class="home-label">本周路线</span><h3>四次练习，走完这一周</h3></div>
+            <button class="text-button" data-nav="path">查看 12 周路径 →</button>
           </div>
           <div class="week-trail" id="homeWeekTrail"></div>
           <div class="daily-quests">
-            <div class="daily-quests-head"><span>今日任务</span><strong id="dailyQuestCount">0 / 3</strong></div>
+            <div class="daily-quests-head"><span>今日小目标</span><strong id="dailyQuestCount">0 / 3</strong></div>
             <div class="daily-quest-list" id="dailyQuestList"></div>
           </div>
         </section>
 
-        <section class="home-bottom">
-          <article class="home-path-preview card">
-            <div class="home-section-head">
-              <div><span class="home-label">12 周路径</span><h3>从第一颗音到完整演奏</h3></div>
-              <span class="home-path-percent" id="homePathPercent">0%</span>
-            </div>
-            <div class="path-track" id="homePathTrack"></div>
-            <div class="path-track-caption"><strong id="homePathCurrent">起步 · 第 1 周</strong><span id="homePathNext">下一站：第 2 周</span></div>
-          </article>
-          <button class="home-game" id="startRhythmGame" type="button">
-            <span class="home-game-label">每日小游戏</span>
-            <strong>节拍热身</strong>
-            <p>跟着四个音拍点一下，看看你能命中几拍。</p>
-            <span class="home-game-meta"><span>最佳 <b id="homeGameBest">—</b></span><em>开始挑战 →</em></span>
-            <span class="home-game-notes" aria-hidden="true"><i>♪</i><i>♫</i><i>♩</i></span>
-          </button>
+        <section class="home-game-lab">
+          <div class="home-game-lab-head">
+            <div><span class="home-label">边玩边练</span><h3>换一种方式练耳和拍子</h3></div>
+            <span>每局 2–3 分钟</span>
+          </div>
+          <div class="game-lab-grid">
+            <button class="game-tile note-game-tile" id="startRhythmGame" type="button">
+              <span class="game-tile-icon">♪</span>
+              <span><small>音名闪现</small><strong>看键或听音，连对 10 题</strong></span>
+              <span class="game-tile-best">最佳 <b id="homeGameBest">—</b></span>
+            </button>
+            <button class="game-tile beat-game-tile" id="routeWarmup" type="button">
+              <span class="game-tile-icon">♩</span>
+              <span><small>节拍热身</small><strong>跟上拍点，把节奏弹稳</strong></span>
+              <span class="game-tile-best">3 分钟</span>
+            </button>
+          </div>
         </section>
       </div>
 
@@ -157,7 +162,7 @@
           <div>
             <span class="eyebrow">12-WEEK PATH</span>
             <h2>每周 4 小时，走成一条能力线</h2>
-            <p>不是 48 小时堆满练习，而是每周解决一个明确问题。完成一周，才进入下一周。</p>
+            <p>每课先完成练习，再通过 2 / 3 掌握检查，才会进入下一次。</p>
           </div>
           <button class="btn btn-primary" id="customizeTop" type="button">个性化我的计划</button>
         </section>
@@ -180,8 +185,8 @@
         <section class="page-intro library-intro">
           <div>
             <span class="eyebrow">CURATED LIBRARY</span>
-            <h2>少而准的教学来源</h2>
-            <p>默认只显示国内可访问的 B 站公开课与官方资料；YouTube 仅作为可切换的海外补充。视频在新窗口/内嵌播放器打开，素材本地缓存。</p>
+            <h2>跟一位老师，练一小段</h2>
+            <p>优先使用国内可直接打开的老师与官方课程。每节课都能回到对应示范。</p>
           </div>
         </section>
         <div class="library-toolbar">
@@ -220,6 +225,14 @@
             <p>看趋势，不追完美连续。练习记录比“感觉练过”更可靠。</p>
           </div>
           <button class="btn btn-secondary" id="exportData" type="button">导出我的记录</button>
+        </section>
+        <section class="skill-report card">
+          <div class="skill-report-head">
+            <div><span class="eyebrow">SKILL PROFILE</span><h3>你的四项能力</h3><p id="skillReportNote">完成练习和掌握检查后，这里会更新。</p></div>
+            <span class="skill-level" id="skillLevel">Lv.1</span>
+          </div>
+          <div class="skill-report-grid" id="skillReportGrid"></div>
+          <button class="skill-focus" id="skillFocusButton" type="button"><span><small>下一步建议</small><strong id="skillFocusText">先完成第一课，建立能力基线。</strong></span><span>去练习 →</span></button>
         </section>
         <section class="stats-top-grid">
           <article class="stat-card accent-green"><span>总练习</span><strong id="statMinutes">0 <small>分钟</small></strong><em id="statMinutesHint">从今天开始</em></article>
@@ -435,7 +448,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.8 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.9 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -508,7 +521,20 @@
   <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      let refreshing = false;
+      const hadController = Boolean(navigator.serviceWorker.controller);
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController || refreshing) return;
+        refreshing = true;
+        location.reload();
+      });
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((registration) => {
+        const checkForUpdate = () => registration.update().catch(() => {});
+        setInterval(checkForUpdate, 60 * 60 * 1000);
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') checkForUpdate();
+        });
+      }).catch(() => {});
     }
   </script>
 </body>

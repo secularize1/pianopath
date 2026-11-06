@@ -40,6 +40,10 @@
           <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v18H6.5A2.5 2.5 0 0 0 4 23z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v18h4.5A2.5 2.5 0 0 1 20 23z"/></svg></span>
           <span>教学库</span>
         </a>
+        <a href="#repertoire" data-nav="repertoire" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></span>
+          <span>曲目库</span>
+        </a>
         <a href="#stats" data-nav="stats" class="nav-item">
           <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span>
           <span>学习记录</span>
@@ -191,6 +195,23 @@
         </section>
       </div>
 
+      <div class="page hidden" id="repertoirePage">
+        <section class="page-intro repertoire-intro">
+          <div>
+            <span class="eyebrow">REPERTOIRE</span>
+            <h2>练一首真正想弹的曲子</h2>
+            <p>按难度和风格挑选曲目，从认谱到完整演奏分阶段推进。曲谱优先链接公共领域或官方来源。</p>
+          </div>
+          <div class="repertoire-count"><strong id="repertoireCount">10</strong><span>首分级曲目</span></div>
+        </section>
+        <div class="repertoire-toolbar">
+          <div class="filter-row" id="repertoireFilters"></div>
+          <div class="search-field"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="repertoireSearch" type="search" placeholder="搜索曲名或作曲家"></div>
+        </div>
+        <section class="repertoire-grid" id="repertoireGrid"></section>
+        <section class="repertoire-note"><strong>版权说明</strong><span>本项目不托管受版权保护的曲谱；曲目卡只提供公共领域或官方曲谱链接与练习计划。</span></section>
+      </div>
+
       <div class="page hidden" id="statsPage">
         <section class="page-intro">
           <div>
@@ -232,6 +253,7 @@
       <a href="#today" data-nav="today" class="active"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5V20H4z"/></svg><span>今天</span></a>
       <a href="#path" data-nav="path"><svg viewBox="0 0 24 24"><path d="M7 4v7a4 4 0 0 0 4 4h2a4 4 0 0 1 4 4v1"/><circle cx="7" cy="4" r="2"/><circle cx="17" cy="20" r="2"/></svg><span>路径</span></a>
       <a href="#library" data-nav="library"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v18H6.5A2.5 2.5 0 0 0 4 23z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v18h4.5A2.5 2.5 0 0 1 20 23z"/></svg><span>教学</span></a>
+      <a href="#repertoire" data-nav="repertoire"><svg viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg><span>曲目</span></a>
       <a href="#stats" data-nav="stats"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>记录</span></a>
     </nav>
   </div>
@@ -403,7 +425,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.6 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.7 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -456,6 +478,19 @@
       <div class="video-frame" id="videoFrame"></div>
       <p id="videoMeta"></p>
       <a class="btn btn-primary full-width" id="videoOpen" href="#" target="_blank" rel="noreferrer noopener">在原平台打开</a>
+    </div>
+  </div>
+  <div class="modal-backdrop hidden" id="repertoireModal" role="dialog" aria-modal="true" aria-labelledby="repertoireModalTitle">
+    <div class="repertoire-modal-card">
+      <button class="icon-button modal-close" id="closeRepertoire" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <span class="eyebrow">REPERTOIRE PRACTICE</span>
+      <h2 id="repertoireModalTitle">曲目</h2>
+      <p class="composer" id="repertoireModalComposer"></p>
+      <div class="repertoire-modal-meta" id="repertoireModalMeta"></div>
+      <p class="repertoire-desc" id="repertoireModalDesc"></p>
+      <div class="repertoire-phases" id="repertoireModalPhases"></div>
+      <div class="repertoire-modal-actions"><button class="btn btn-primary" id="startRepertoirePractice" type="button">开始本阶段</button><a class="btn btn-soft" id="repertoireScoreLink" href="#" target="_blank" rel="noreferrer noopener">打开曲谱</a></div>
+      <div class="repertoire-modal-hint">完成 1 次 25 分钟阶段练习，进度前进一格。曲谱来自公共领域或官方来源。</div>
     </div>
   </div>
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>

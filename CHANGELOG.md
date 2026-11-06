@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.0 — 2026-11-06
+
+- Added a 10-piece graded repertoire library with public/official score links.
+- Added five-stage repertoire practice sessions and saved phase progress.
+- Added keyboard-level filters, search and completed repertoire view.
+- Added repertoire XP and independent repertoire practice history.
+
+
 ## 1.6.0 — 2026-11-06
 
 - Added smart review cards from low ratings and practice notes.

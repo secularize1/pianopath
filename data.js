@@ -12,8 +12,9 @@ window.PIANO_DATA = {
       "播放量不作为唯一权威依据；粉丝量也不等于教学质量，仍以课程结构、专业资历和适用性二次筛选。"
     ],
     "localePolicy": "默认隐藏需翻墙的资源；教学库可切换“国内可用/全部来源”。",
-    "appVersion": "1.6.0",
-    "resourceMode": "国内优先"
+    "appVersion": "1.7.0",
+    "resourceMode": "国内优先",
+    "repertoireCount": 10
   },
   "weeks": [
     {
@@ -5826,5 +5827,267 @@ window.PIANO_DATA = {
       ]
     }
   ],
-  "masteryNote": "“到精通”按业余高级标准定义。每周 4 小时约 208 小时/年；专业演奏级通常需要每周 15–25 小时，不在本计划承诺范围内。"
+  "masteryNote": "“到精通”按业余高级标准定义。每周 4 小时约 208 小时/年；专业演奏级通常需要每周 15–25 小时，不在本计划承诺范围内。",
+  "repertoire": [
+    {
+      "id": "ode-to-joy",
+      "title": "欢乐颂",
+      "composer": "贝多芬",
+      "level": "入门",
+      "grade": "0–1 级",
+      "minutes": 20,
+      "color": "mint",
+      "skills": [
+        "右手旋律",
+        "句法",
+        "双手根音"
+      ],
+      "description": "用熟悉的旋律练分句、节奏和双手协调；先求完整，再求速度。",
+      "goal": "8–16 小节完整演奏，句尾不抢拍",
+      "score": "https://imslp.org/wiki/Symphony_No.9,_Op.125_(Beethoven,_Ludwig_van)",
+      "listen": "https://search.bilibili.com/all?keyword=%E6%AC%A2%E4%B9%90%E9%A2%82%20%E9%92%A2%E7%90%B4%20%E6%95%99%E5%AD%A6",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "minuet-g",
+      "title": "G 大调小步舞曲",
+      "composer": "佩措尔德 / 巴赫笔记本",
+      "level": "入门–初级",
+      "grade": "1–2 级",
+      "minutes": 20,
+      "color": "sun",
+      "skills": [
+        "三拍子",
+        "右手旋律",
+        "左手低音"
+      ],
+      "description": "三拍子的呼吸与舞曲感，是进入古典曲目和简单复调的入口。",
+      "goal": "A 段完整弹奏，重拍清楚、句尾有收束",
+      "score": "https://imslp.org/wiki/Notebook_for_Anna_Magdalena_Bach,_BWV_Anh.113-132_(Bach,_Johann_Sebastian)",
+      "listen": "https://search.bilibili.com/all?keyword=G%E5%A4%A7%E8%B0%83%E5%B0%8F%E6%AD%A5%E8%88%9E%E6%9B%B2%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "clementi-36-1",
+      "title": "C 大调小奏鸣曲 Op.36 No.1",
+      "composer": "克莱门蒂",
+      "level": "初级",
+      "grade": "2–3 级",
+      "minutes": 25,
+      "color": "coral",
+      "skills": [
+        "奏鸣曲式",
+        "音阶跑动",
+        "双手配合"
+      ],
+      "description": "第一首完整古典小奏鸣曲候选。先完成第一乐章呈示部，再逐步合并。",
+      "goal": "第一乐章呈示部连贯，主题对比清晰",
+      "score": "https://imslp.org/wiki/Piano_Sonatina_in_C_major,_Op.36_No.1_(Clementi,_Muzio)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%85%8B%E8%8E%B1%E9%97%A8%E8%92%82%20Op36%20No1%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "burgmuller-arabesque",
+      "title": "阿拉伯风格曲 Op.100 No.2",
+      "composer": "布格缪勒",
+      "level": "初级–中级",
+      "grade": "3 级",
+      "minutes": 25,
+      "color": "sky",
+      "skills": [
+        "快速触键",
+        "左右手交替",
+        "节奏"
+      ],
+      "description": "短小、有画面感，适合练习均匀的十六分音符和轻巧触键。",
+      "goal": "中速完整演奏，音量层次不塌",
+      "score": "https://imslp.org/wiki/25_%C3%89tudes_faciles,_Op.100_(Burgm%C3%BCller,_Friedrich)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%B8%83%E6%A0%BC%E7%A9%86%E5%8B%92%20%E9%98%BF%E6%8B%89%E4%BC%AF%E9%A3%8E%E6%A0%BC%E6%9B%B2%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "bach-prelude-c",
+      "title": "C 大调前奏曲 BWV 846",
+      "composer": "巴赫",
+      "level": "中级",
+      "grade": "4–5 级",
+      "minutes": 25,
+      "color": "violet",
+      "skills": [
+        "分解和弦",
+        "和声听辨",
+        "踏板"
+      ],
+      "description": "用持续流动的音型训练和声听觉、手腕重心与踏板控制。",
+      "goal": "完整演奏，和声干净且速度稳定",
+      "score": "https://imslp.org/wiki/Prelude_and_Fugue_in_C_major,_BWV_846_(Bach,_Johann_Sebastian)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%B7%B4%E8%B5%AB%20C%E5%A4%A7%E8%B0%83%E5%89%8D%E5%A5%8F%E6%9B%B2%20BWV846",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "fur-elise",
+      "title": "致爱丽丝 WoO 59",
+      "composer": "贝多芬",
+      "level": "中级",
+      "grade": "4–5 级",
+      "minutes": 30,
+      "color": "rose",
+      "skills": [
+        "装饰音",
+        "主题变奏",
+        "踏板"
+      ],
+      "description": "熟悉的主题适合练习轻响控制与乐句；不必一开始就练完整首。",
+      "goal": "A 段主题完整、弱奏清楚、踏板不糊",
+      "score": "https://imslp.org/wiki/F%C3%BCr_Elise,_WoO_59_(Beethoven,_Ludwig_van)",
+      "listen": "https://search.bilibili.com/all?keyword=%E8%B4%9D%E5%A4%9A%E8%8A%AC%20%E8%87%B4%E7%88%B1%E4%B8%BD%E4%B8%9D%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "schumann-wild-rider",
+      "title": "狂野的骑士 Op.68 No.8",
+      "composer": "舒曼",
+      "level": "中级",
+      "grade": "4 级",
+      "minutes": 25,
+      "color": "orange",
+      "skills": [
+        "和弦",
+        "节奏动力",
+        "双手跳跃"
+      ],
+      "description": "训练和弦落键、节奏冲劲与低音方向，适合作为表现力曲目。",
+      "goal": "完整演奏，节奏有推进但不赶",
+      "score": "https://imslp.org/wiki/Album_f%C3%BCr_die_Jugend,_Op.68_(Schumann,_Robert)",
+      "listen": "https://search.bilibili.com/all?keyword=%E8%88%92%E6%9B%BC%20%E7%8B%82%E9%87%8E%E7%9A%84%E9%AA%91%E5%A3%AB%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "bach-invention-1",
+      "title": "二部创意曲 No.1 BWV 772",
+      "composer": "巴赫",
+      "level": "中高级",
+      "grade": "5–6 级",
+      "minutes": 30,
+      "color": "teal",
+      "skills": [
+        "复调",
+        "声部平衡",
+        "主题模仿"
+      ],
+      "description": "两个声部互相追逐。核心不是速度，而是每个声部都能独立被听见。",
+      "goal": "完整演奏，主题进入清楚、声部不断",
+      "score": "https://imslp.org/wiki/Inventions_and_Sinfonias,_BWV_772-801_(Bach,_Johann_Sebastian)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%B7%B4%E8%B5%AB%20%E4%BA%8C%E9%83%A8%E5%88%9B%E6%84%8F%E6%9B%B2%20%E7%AC%AC%E4%B8%80%E9%A6%96",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "chopin-prelude-4",
+      "title": "E 小调前奏曲 Op.28 No.4",
+      "composer": "肖邦",
+      "level": "高级",
+      "grade": "6–7 级",
+      "minutes": 30,
+      "color": "slate",
+      "skills": [
+        "旋律歌唱",
+        "和声张力",
+        "自由速度"
+      ],
+      "description": "短小但极考验声音层次与呼吸。慢速不是拖，而是让和声说话。",
+      "goal": "完整演奏，旋律线连贯、和声转折清楚",
+      "score": "https://imslp.org/wiki/Preludes,_Op.28_(Chopin,_Fr%C3%A9d%C3%A9ric)",
+      "listen": "https://search.bilibili.com/all?keyword=%E8%82%96%E9%82%A6%20E%E5%B0%8F%E8%B0%83%E5%89%8D%E5%A5%8F%E6%9B%B2%20Op28%20No4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "debussy-clair",
+      "title": "月光 Clair de Lune",
+      "composer": "德彪西",
+      "level": "高级",
+      "grade": "7–8 级",
+      "minutes": 30,
+      "color": "indigo",
+      "skills": [
+        "音色",
+        "层次",
+        "Rubato"
+      ],
+      "description": "以音色和氛围为核心的高级曲目。先练和声与旋律平衡，再处理速度弹性。",
+      "goal": "完整演奏，弱奏有方向、高潮不砸",
+      "score": "https://imslp.org/wiki/Suite_bergamasque_(Debussy,_Claude)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%BE%B7%E5%BD%AA%E8%A5%BF%20%E6%9C%88%E5%85%89%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    }
+  ]
 };

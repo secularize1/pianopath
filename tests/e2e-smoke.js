@@ -123,6 +123,28 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     assert.equal(await page.locator('#noteReplay').isVisible(), true, `${name}: ear replay missing`);
     await page.locator('#closeNoteGame').click();
 
+    // Repertoire: cards, modal, phase training, progress advance.
+    if (name === 'mobile') await page.locator('.mobile-nav [data-nav="repertoire"]').click(); else await page.locator('.sidebar .nav-item[data-nav="repertoire"]').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('.repertoire-card').count(), 10, `${name}: repertoire cards missing`);
+    assert.ok(await page.locator('#repertoireFilters .filter-chip').count() >= 6, `${name}: repertoire filters missing`);
+    await page.locator('[data-repertoire-open="ode-to-joy"]').click();
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('#repertoireModal').isVisible(), true, `${name}: repertoire modal missing`);
+    assert.equal(await page.locator('.repertoire-phase').count(), 5, `${name}: repertoire phases missing`);
+    await page.locator('#startRepertoirePractice').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('#lessonTitle').innerText(), '曲目训练：欢乐颂', `${name}: repertoire session title wrong`);
+    assert.equal(await page.locator('#lessonSteps .lesson-step').count(), 5, `${name}: repertoire session steps wrong`);
+    await page.locator('#finishSession').click();
+    await page.waitForTimeout(250);
+    assert.match(await page.locator('#completeSummary').innerText(), /曲目阶段完成/, `${name}: repertoire completion missing`);
+    await page.locator('#saveCompletion').click();
+    await page.waitForTimeout(500);
+    assert.equal(await page.locator('#repertoirePage').isVisible(), true, `${name}: did not return to repertoire`);
+    const repertoireState = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).repertoire?.['ode-to-joy']);
+    assert.equal(repertoireState?.phaseIndex, 1, `${name}: repertoire phase did not advance`);
+
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.equal(overflow, 0, `${name}: horizontal overflow ${overflow}px`);
     results.push({ viewport: name, errors, xp: await page.locator('#xpValue').innerText(), overflow });

@@ -1034,6 +1034,43 @@ body.modal-open { overflow:hidden; }
 .review-item > span:nth-child(2) { flex:1; min-width:0; }.review-item strong { display:block; font-size:10px; }.review-item small { display:block; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#9ba79e; font-size:8px; }.review-item em { font-style:normal; color:#4d965f; font-size:8px; font-weight:800; }
 .review-empty { padding:12px 2px; color:#9ba79e; font-size:9px; }
 
+/* Repertoire library */
+.repertoire-intro { align-items:center; }
+.repertoire-count { min-width:118px; padding:12px 16px; border-radius:14px; background:#f7f0d6; color:#7f6b2f; text-align:center; }
+.repertoire-count strong { display:block; font-size:27px; color:#5e4c1b; letter-spacing:-.8px; }
+.repertoire-count span { display:block; margin-top:2px; font-size:8px; }
+.repertoire-toolbar { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:16px; }
+.repertoire-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+.repertoire-card { --repertoire-color:#7fb985; position:relative; overflow:hidden; border:1px solid #e3e8df; border-radius:17px; background:#fff; box-shadow:0 4px 0 rgba(51,75,57,.035); transition:.18s ease; }
+.repertoire-card:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(45,72,51,.09); }
+.repertoire-card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--repertoire-color); }
+.repertoire-card-main { padding:17px 17px 13px 21px; }
+.repertoire-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+.repertoire-head h3 { margin:0 0 3px; font-size:16px; letter-spacing:-.4px; }
+.repertoire-head p { margin:0; color:#94a098; font-size:9px; }
+.repertoire-grade { flex:0 0 auto; padding:5px 7px; border-radius:6px; background:#f1f5ed; color:#64836c; font-size:8px; font-weight:800; }
+.repertoire-desc { min-height:35px; margin:11px 0 0; color:#839087; font-size:9px; line-height:1.7; }
+.repertoire-skills { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
+.repertoire-skills span { padding:4px 6px; border-radius:5px; background:#f8f9f5; color:#7e8f82; font-size:8px; }
+.repertoire-progress { margin-top:12px; }
+.repertoire-progress-top { display:flex; justify-content:space-between; align-items:center; color:#8c9b90; font-size:8px; }.repertoire-progress-top strong { color:#5c8365; font-size:9px; }
+.repertoire-progress-bar { height:5px; margin-top:6px; overflow:hidden; border-radius:6px; background:#edf1e9; }.repertoire-progress-bar i { display:block; width:0; height:100%; border-radius:inherit; background:var(--repertoire-color); }
+.repertoire-actions { display:flex; align-items:center; gap:8px; padding:10px 17px 12px 21px; border-top:1px solid #f0f3ed; background:#fbfcf9; }
+.repertoire-actions .btn { padding:7px 9px; font-size:8px; }.repertoire-actions .text-button { font-size:8px; color:#71927a; margin-left:auto; }
+.repertoire-note { display:flex; gap:8px; align-items:flex-start; margin-top:18px; padding:11px 13px; border:1px dashed #e4e5d9; border-radius:9px; color:#9aa49b; font-size:8px; line-height:1.6; }.repertoire-note strong { flex:0 0 auto; color:#8e997f; }
+.repertoire-card.completed { border-color:#c5e1ca; }.repertoire-card.completed::before { background:#5bbd78; }
+.repertoire-modal-card { width:min(680px,100%); max-height:calc(100vh - 30px); overflow:auto; padding:24px; border-radius:22px; background:#fff; position:relative; box-shadow:0 30px 100px rgba(24,39,29,.24); }
+.repertoire-modal-card h2 { margin:8px 0 4px; font-size:24px; letter-spacing:-.8px; }.repertoire-modal-card .composer { margin:0; color:#89978d; font-size:10px; }
+.repertoire-modal-meta { display:flex; gap:6px; flex-wrap:wrap; margin:13px 0; }.repertoire-modal-meta span { padding:5px 7px; background:#f2f6ef; border-radius:5px; color:#6b836f; font-size:8px; }
+.repertoire-phases { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin:16px 0; }.repertoire-phase { padding:9px 5px; border:1px solid #e7ece3; border-radius:7px; text-align:center; color:#9aa69e; font-size:8px; }.repertoire-phase.done { background:#ebf7ea; border-color:#c4e2c8; color:#4b8558; }.repertoire-phase.current { background:#fff9e6; border-color:#ecd994; color:#9a7b2c; }
+.repertoire-modal-actions { display:flex; gap:7px; margin-top:16px; }.repertoire-modal-actions .btn { flex:1; }
+@media(max-width:820px){ .repertoire-grid{grid-template-columns:1fr}.repertoire-toolbar{align-items:flex-start;flex-direction:column}.repertoire-toolbar .search-field{width:100%} }
+@media(max-width:540px){ .repertoire-card-main{padding:15px 13px 11px 18px}.repertoire-actions{padding:9px 13px 10px 18px}.repertoire-modal-card{padding:19px 15px}.repertoire-phases{grid-template-columns:repeat(2,1fr)}.repertoire-modal-actions{flex-direction:column} }
+/* repertoire modal additions */
+.repertoire-modal-card .repertoire-desc { min-height:0; }
+.repertoire-modal-hint { margin-top:11px; padding-top:10px; border-top:1px solid #f0f2ed; color:#9ba69e; font-size:8px; line-height:1.6; }
+.repertoire-phase.current { box-shadow:inset 0 0 0 1px #f0dda0; }
+
 </style>
 </head>
 <body>
@@ -1059,6 +1096,10 @@ body.modal-open { overflow:hidden; }
         <a href="#library" data-nav="library" class="nav-item">
           <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v18H6.5A2.5 2.5 0 0 0 4 23z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v18h4.5A2.5 2.5 0 0 1 20 23z"/></svg></span>
           <span>教学库</span>
+        </a>
+        <a href="#repertoire" data-nav="repertoire" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></span>
+          <span>曲目库</span>
         </a>
         <a href="#stats" data-nav="stats" class="nav-item">
           <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span>
@@ -1211,6 +1252,23 @@ body.modal-open { overflow:hidden; }
         </section>
       </div>
 
+      <div class="page hidden" id="repertoirePage">
+        <section class="page-intro repertoire-intro">
+          <div>
+            <span class="eyebrow">REPERTOIRE</span>
+            <h2>练一首真正想弹的曲子</h2>
+            <p>按难度和风格挑选曲目，从认谱到完整演奏分阶段推进。曲谱优先链接公共领域或官方来源。</p>
+          </div>
+          <div class="repertoire-count"><strong id="repertoireCount">10</strong><span>首分级曲目</span></div>
+        </section>
+        <div class="repertoire-toolbar">
+          <div class="filter-row" id="repertoireFilters"></div>
+          <div class="search-field"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="repertoireSearch" type="search" placeholder="搜索曲名或作曲家"></div>
+        </div>
+        <section class="repertoire-grid" id="repertoireGrid"></section>
+        <section class="repertoire-note"><strong>版权说明</strong><span>本项目不托管受版权保护的曲谱；曲目卡只提供公共领域或官方曲谱链接与练习计划。</span></section>
+      </div>
+
       <div class="page hidden" id="statsPage">
         <section class="page-intro">
           <div>
@@ -1252,6 +1310,7 @@ body.modal-open { overflow:hidden; }
       <a href="#today" data-nav="today" class="active"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5V20H4z"/></svg><span>今天</span></a>
       <a href="#path" data-nav="path"><svg viewBox="0 0 24 24"><path d="M7 4v7a4 4 0 0 0 4 4h2a4 4 0 0 1 4 4v1"/><circle cx="7" cy="4" r="2"/><circle cx="17" cy="20" r="2"/></svg><span>路径</span></a>
       <a href="#library" data-nav="library"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v18H6.5A2.5 2.5 0 0 0 4 23z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v18h4.5A2.5 2.5 0 0 1 20 23z"/></svg><span>教学</span></a>
+      <a href="#repertoire" data-nav="repertoire"><svg viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg><span>曲目</span></a>
       <a href="#stats" data-nav="stats"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>记录</span></a>
     </nav>
   </div>
@@ -1423,7 +1482,7 @@ body.modal-open { overflow:hidden; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.6 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.7 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -1478,6 +1537,19 @@ body.modal-open { overflow:hidden; }
       <a class="btn btn-primary full-width" id="videoOpen" href="#" target="_blank" rel="noreferrer noopener">在原平台打开</a>
     </div>
   </div>
+  <div class="modal-backdrop hidden" id="repertoireModal" role="dialog" aria-modal="true" aria-labelledby="repertoireModalTitle">
+    <div class="repertoire-modal-card">
+      <button class="icon-button modal-close" id="closeRepertoire" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <span class="eyebrow">REPERTOIRE PRACTICE</span>
+      <h2 id="repertoireModalTitle">曲目</h2>
+      <p class="composer" id="repertoireModalComposer"></p>
+      <div class="repertoire-modal-meta" id="repertoireModalMeta"></div>
+      <p class="repertoire-desc" id="repertoireModalDesc"></p>
+      <div class="repertoire-phases" id="repertoireModalPhases"></div>
+      <div class="repertoire-modal-actions"><button class="btn btn-primary" id="startRepertoirePractice" type="button">开始本阶段</button><a class="btn btn-soft" id="repertoireScoreLink" href="#" target="_blank" rel="noreferrer noopener">打开曲谱</a></div>
+      <div class="repertoire-modal-hint">完成 1 次 25 分钟阶段练习，进度前进一格。曲谱来自公共领域或官方来源。</div>
+    </div>
+  </div>
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
   <script>
 window.PIANO_DATA = {
@@ -1494,8 +1566,9 @@ window.PIANO_DATA = {
       "播放量不作为唯一权威依据；粉丝量也不等于教学质量，仍以课程结构、专业资历和适用性二次筛选。"
     ],
     "localePolicy": "默认隐藏需翻墙的资源；教学库可切换“国内可用/全部来源”。",
-    "appVersion": "1.6.0",
-    "resourceMode": "国内优先"
+    "appVersion": "1.7.0",
+    "resourceMode": "国内优先",
+    "repertoireCount": 10
   },
   "weeks": [
     {
@@ -7308,7 +7381,269 @@ window.PIANO_DATA = {
       ]
     }
   ],
-  "masteryNote": "“到精通”按业余高级标准定义。每周 4 小时约 208 小时/年；专业演奏级通常需要每周 15–25 小时，不在本计划承诺范围内。"
+  "masteryNote": "“到精通”按业余高级标准定义。每周 4 小时约 208 小时/年；专业演奏级通常需要每周 15–25 小时，不在本计划承诺范围内。",
+  "repertoire": [
+    {
+      "id": "ode-to-joy",
+      "title": "欢乐颂",
+      "composer": "贝多芬",
+      "level": "入门",
+      "grade": "0–1 级",
+      "minutes": 20,
+      "color": "mint",
+      "skills": [
+        "右手旋律",
+        "句法",
+        "双手根音"
+      ],
+      "description": "用熟悉的旋律练分句、节奏和双手协调；先求完整，再求速度。",
+      "goal": "8–16 小节完整演奏，句尾不抢拍",
+      "score": "https://imslp.org/wiki/Symphony_No.9,_Op.125_(Beethoven,_Ludwig_van)",
+      "listen": "https://search.bilibili.com/all?keyword=%E6%AC%A2%E4%B9%90%E9%A2%82%20%E9%92%A2%E7%90%B4%20%E6%95%99%E5%AD%A6",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "minuet-g",
+      "title": "G 大调小步舞曲",
+      "composer": "佩措尔德 / 巴赫笔记本",
+      "level": "入门–初级",
+      "grade": "1–2 级",
+      "minutes": 20,
+      "color": "sun",
+      "skills": [
+        "三拍子",
+        "右手旋律",
+        "左手低音"
+      ],
+      "description": "三拍子的呼吸与舞曲感，是进入古典曲目和简单复调的入口。",
+      "goal": "A 段完整弹奏，重拍清楚、句尾有收束",
+      "score": "https://imslp.org/wiki/Notebook_for_Anna_Magdalena_Bach,_BWV_Anh.113-132_(Bach,_Johann_Sebastian)",
+      "listen": "https://search.bilibili.com/all?keyword=G%E5%A4%A7%E8%B0%83%E5%B0%8F%E6%AD%A5%E8%88%9E%E6%9B%B2%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "clementi-36-1",
+      "title": "C 大调小奏鸣曲 Op.36 No.1",
+      "composer": "克莱门蒂",
+      "level": "初级",
+      "grade": "2–3 级",
+      "minutes": 25,
+      "color": "coral",
+      "skills": [
+        "奏鸣曲式",
+        "音阶跑动",
+        "双手配合"
+      ],
+      "description": "第一首完整古典小奏鸣曲候选。先完成第一乐章呈示部，再逐步合并。",
+      "goal": "第一乐章呈示部连贯，主题对比清晰",
+      "score": "https://imslp.org/wiki/Piano_Sonatina_in_C_major,_Op.36_No.1_(Clementi,_Muzio)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%85%8B%E8%8E%B1%E9%97%A8%E8%92%82%20Op36%20No1%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "burgmuller-arabesque",
+      "title": "阿拉伯风格曲 Op.100 No.2",
+      "composer": "布格缪勒",
+      "level": "初级–中级",
+      "grade": "3 级",
+      "minutes": 25,
+      "color": "sky",
+      "skills": [
+        "快速触键",
+        "左右手交替",
+        "节奏"
+      ],
+      "description": "短小、有画面感，适合练习均匀的十六分音符和轻巧触键。",
+      "goal": "中速完整演奏，音量层次不塌",
+      "score": "https://imslp.org/wiki/25_%C3%89tudes_faciles,_Op.100_(Burgm%C3%BCller,_Friedrich)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%B8%83%E6%A0%BC%E7%A9%86%E5%8B%92%20%E9%98%BF%E6%8B%89%E4%BC%AF%E9%A3%8E%E6%A0%BC%E6%9B%B2%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "bach-prelude-c",
+      "title": "C 大调前奏曲 BWV 846",
+      "composer": "巴赫",
+      "level": "中级",
+      "grade": "4–5 级",
+      "minutes": 25,
+      "color": "violet",
+      "skills": [
+        "分解和弦",
+        "和声听辨",
+        "踏板"
+      ],
+      "description": "用持续流动的音型训练和声听觉、手腕重心与踏板控制。",
+      "goal": "完整演奏，和声干净且速度稳定",
+      "score": "https://imslp.org/wiki/Prelude_and_Fugue_in_C_major,_BWV_846_(Bach,_Johann_Sebastian)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%B7%B4%E8%B5%AB%20C%E5%A4%A7%E8%B0%83%E5%89%8D%E5%A5%8F%E6%9B%B2%20BWV846",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "fur-elise",
+      "title": "致爱丽丝 WoO 59",
+      "composer": "贝多芬",
+      "level": "中级",
+      "grade": "4–5 级",
+      "minutes": 30,
+      "color": "rose",
+      "skills": [
+        "装饰音",
+        "主题变奏",
+        "踏板"
+      ],
+      "description": "熟悉的主题适合练习轻响控制与乐句；不必一开始就练完整首。",
+      "goal": "A 段主题完整、弱奏清楚、踏板不糊",
+      "score": "https://imslp.org/wiki/F%C3%BCr_Elise,_WoO_59_(Beethoven,_Ludwig_van)",
+      "listen": "https://search.bilibili.com/all?keyword=%E8%B4%9D%E5%A4%9A%E8%8A%AC%20%E8%87%B4%E7%88%B1%E4%B8%BD%E4%B8%9D%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "schumann-wild-rider",
+      "title": "狂野的骑士 Op.68 No.8",
+      "composer": "舒曼",
+      "level": "中级",
+      "grade": "4 级",
+      "minutes": 25,
+      "color": "orange",
+      "skills": [
+        "和弦",
+        "节奏动力",
+        "双手跳跃"
+      ],
+      "description": "训练和弦落键、节奏冲劲与低音方向，适合作为表现力曲目。",
+      "goal": "完整演奏，节奏有推进但不赶",
+      "score": "https://imslp.org/wiki/Album_f%C3%BCr_die_Jugend,_Op.68_(Schumann,_Robert)",
+      "listen": "https://search.bilibili.com/all?keyword=%E8%88%92%E6%9B%BC%20%E7%8B%82%E9%87%8E%E7%9A%84%E9%AA%91%E5%A3%AB%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "bach-invention-1",
+      "title": "二部创意曲 No.1 BWV 772",
+      "composer": "巴赫",
+      "level": "中高级",
+      "grade": "5–6 级",
+      "minutes": 30,
+      "color": "teal",
+      "skills": [
+        "复调",
+        "声部平衡",
+        "主题模仿"
+      ],
+      "description": "两个声部互相追逐。核心不是速度，而是每个声部都能独立被听见。",
+      "goal": "完整演奏，主题进入清楚、声部不断",
+      "score": "https://imslp.org/wiki/Inventions_and_Sinfonias,_BWV_772-801_(Bach,_Johann_Sebastian)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%B7%B4%E8%B5%AB%20%E4%BA%8C%E9%83%A8%E5%88%9B%E6%84%8F%E6%9B%B2%20%E7%AC%AC%E4%B8%80%E9%A6%96",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "chopin-prelude-4",
+      "title": "E 小调前奏曲 Op.28 No.4",
+      "composer": "肖邦",
+      "level": "高级",
+      "grade": "6–7 级",
+      "minutes": 30,
+      "color": "slate",
+      "skills": [
+        "旋律歌唱",
+        "和声张力",
+        "自由速度"
+      ],
+      "description": "短小但极考验声音层次与呼吸。慢速不是拖，而是让和声说话。",
+      "goal": "完整演奏，旋律线连贯、和声转折清楚",
+      "score": "https://imslp.org/wiki/Preludes,_Op.28_(Chopin,_Fr%C3%A9d%C3%A9ric)",
+      "listen": "https://search.bilibili.com/all?keyword=%E8%82%96%E9%82%A6%20E%E5%B0%8F%E8%B0%83%E5%89%8D%E5%A5%8F%E6%9B%B2%20Op28%20No4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    },
+    {
+      "id": "debussy-clair",
+      "title": "月光 Clair de Lune",
+      "composer": "德彪西",
+      "level": "高级",
+      "grade": "7–8 级",
+      "minutes": 30,
+      "color": "indigo",
+      "skills": [
+        "音色",
+        "层次",
+        "Rubato"
+      ],
+      "description": "以音色和氛围为核心的高级曲目。先练和声与旋律平衡，再处理速度弹性。",
+      "goal": "完整演奏，弱奏有方向、高潮不砸",
+      "score": "https://imslp.org/wiki/Suite_bergamasque_(Debussy,_Claude)",
+      "listen": "https://search.bilibili.com/all?keyword=%E5%BE%B7%E5%BD%AA%E8%A5%BF%20%E6%9C%88%E5%85%89%20%E9%92%A2%E7%90%B4",
+      "phases": [
+        "分段认谱",
+        "分手慢练",
+        "慢速合手",
+        "流畅连接",
+        "完整演奏"
+      ],
+      "publicDomain": true
+    }
+  ]
 };
 
 </script>
@@ -7327,6 +7662,7 @@ window.PIANO_DATA = {
     history: [],
     activeSession: null,
     gameSessions: [],
+    repertoire: {},
     placement: null,
     quickPractice: null,
     serverPlan: null,
@@ -7353,6 +7689,8 @@ window.PIANO_DATA = {
   let activePage = 'today';
   let currentPhase = '全部';
   let currentTopic = '国内可用';
+  let repertoireFilter = '全部';
+  let repertoireSearch = '';
   let searchTerm = '';
   let lessonSession = null;
   let lessonStepIndex = 0;
@@ -7557,8 +7895,9 @@ window.PIANO_DATA = {
 
   function totalXp() {
     const completedLessons = Object.keys(state.completed).length;
+    const repertoirePhases = Object.values(state.repertoire || {}).reduce((sum, item) => sum + (Number(item.phaseIndex) || 0), 0);
     const practiceXp = Math.floor(totalMinutes() / 5);
-    return completedLessons * 20 + practiceXp;
+    return completedLessons * 20 + repertoirePhases * 15 + practiceXp;
   }
 
   function levelForXp(xp) {
@@ -7731,6 +8070,53 @@ window.PIANO_DATA = {
     $('#methodGrid').innerHTML = DATA.resources.methodBooks.map((book) => `<article class="method-card"><div class="method-icon">${book.type.includes('曲谱') ? '♬' : book.type.includes('教材') ? '▤' : '§'}</div><div><strong>${escapeHtml(book.name)}</strong><span>${escapeHtml(book.note)}</span></div><a href="${escapeHtml(book.url)}" target="_blank" rel="noreferrer noopener">查看 ↗</a></article>`).join('');
   }
 
+  function repertoireProgress(piece) {
+    const progress = state.repertoire?.[piece.id] || null;
+    const phases = piece.phases || [];
+    const phaseIndex = Math.min(phases.length, Math.max(0, Number(progress?.phaseIndex) || 0));
+    return {
+      progress,
+      phases,
+      phaseIndex,
+      completed: phaseIndex >= phases.length,
+      percent: phases.length ? Math.round((phaseIndex / phases.length) * 100) : 0
+    };
+  }
+
+  function renderRepertoire(nextFilter, nextSearch) {
+    if (nextFilter !== undefined) repertoireFilter = nextFilter;
+    if (nextSearch !== undefined) repertoireSearch = nextSearch;
+    const grid = document.querySelector('#repertoireGrid');
+    if (!grid) return;
+    const groups = ['全部', '入门', '初级', '中级', '高级', '已完成'];
+    const filterContainer = document.querySelector('#repertoireFilters');
+    if (filterContainer) {
+      filterContainer.innerHTML = groups.map((group) => `<button type="button" class="filter-chip ${group === repertoireFilter ? 'active' : ''}" data-repertoire-filter="${escapeHtml(group)}">${escapeHtml(group)}</button>`).join('');
+    }
+    const pieces = (DATA.repertoire || []).filter((piece) => {
+      const progress = repertoireProgress(piece);
+      if (repertoireFilter === '已完成' && !progress.completed) return false;
+      if (repertoireFilter !== '全部' && repertoireFilter !== '已完成' && !piece.level.includes(repertoireFilter)) return false;
+      const haystack = `${piece.title} ${piece.composer} ${piece.level} ${piece.grade} ${(piece.skills || []).join(' ')}`.toLowerCase();
+      return !repertoireSearch || haystack.includes(repertoireSearch.toLowerCase());
+    });
+    const count = document.querySelector('#repertoireCount');
+    if (count) count.textContent = String(pieces.length);
+    grid.innerHTML = pieces.length ? pieces.map((piece) => {
+      const progress = repertoireProgress(piece);
+      const phaseText = progress.completed ? '已完成全部阶段' : progress.phaseIndex > 0 ? `正在练：${progress.phases[progress.phaseIndex]}` : '准备开始';
+      return `<article class="repertoire-card ${progress.completed ? 'completed' : ''}" style="--repertoire-color:${({mint:'#5bbd78',sun:'#d6ad2f',coral:'#e6806a',sky:'#67acd1',violet:'#9581ce',rose:'#d68691',orange:'#d9914f',teal:'#5baaa0',slate:'#7b8c9e',indigo:'#6f7fc2'}[piece.color] || '#5bbd78')}">
+        <div class="repertoire-card-main">
+          <div class="repertoire-head"><div><h3>${escapeHtml(piece.title)}</h3><p>${escapeHtml(piece.composer)}</p></div><span class="repertoire-grade">${escapeHtml(piece.grade)}</span></div>
+          <p class="repertoire-desc">${escapeHtml(piece.description)}</p>
+          <div class="repertoire-skills">${(piece.skills || []).map((skill) => `<span>${escapeHtml(skill)}</span>`).join('')}</div>
+          <div class="repertoire-progress"><div class="repertoire-progress-top"><span>${escapeHtml(phaseText)}</span><strong>${progress.percent}%</strong></div><div class="repertoire-progress-bar"><i style="width:${progress.percent}%"></i></div></div>
+        </div>
+        <div class="repertoire-actions"><button type="button" class="btn btn-soft" data-repertoire-open="${escapeHtml(piece.id)}">${progress.completed ? '复盘曲目' : progress.phaseIndex > 0 ? '继续曲目' : '开始曲目'}</button><a class="text-button" href="${escapeHtml(piece.score)}" target="_blank" rel="noreferrer noopener">公共曲谱 ↗</a></div>
+      </article>`;
+    }).join('') : '<div class="empty-history">没有匹配的曲目，换个难度试试。</div>';
+  }
+
   function renderStats() {
     const total = totalMinutes();
     const sessions = Object.keys(state.completed).length;
@@ -7760,10 +8146,12 @@ window.PIANO_DATA = {
         const entry = unique[Number(button.dataset.reviewIndex)];
         const sourceId = entry.sourceId || entry.id.replace(/-quick$/, '').replace(/-review-.*$/, '');
         const found = window.PIANO_APP.findSession(sourceId);
-        if (found) {
-          const reviewSession = { ...found, id: `${found.id}-review-${Date.now()}`, sourceId: found.id, title: `复习：${found.title}`, duration: 10, quick: true, steps: [
+        const piece = (window.PIANO_APP.DATA.repertoire || []).find((item) => item.id === sourceId);
+        const source = found || piece;
+        if (source) {
+          const reviewSession = { ...source, id: `${source.id}-review-${Date.now()}`, sourceId: source.id, title: `复习：${source.title}`, duration: 10, quick: true, steps: [
             { start: 0, end: 2, minutes: 2, title: '旧问题定位', category: '复习', detail: entry.notes || '先找到上次最不稳的两小节。', cue: '不从头弹' },
-            { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: found.steps[2]?.detail || found.goal, cue: '分手、慢速、连续三次正确' },
+            { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: found?.steps?.[2]?.detail || source.goal, cue: '分手、慢速、连续三次正确' },
             { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
             { start: 9, end: 10, minutes: 1, title: '记录新状态', category: '反馈', detail: '再听/再弹一次，写下现在的感受。', cue: '只记一个变化' }
           ] };
@@ -7803,12 +8191,13 @@ window.PIANO_DATA = {
     renderDashboard();
     renderPath();
     renderLibrary();
+    renderRepertoire();
     renderStats();
   }
 
   function updateNav(page) {
     activePage = page;
-    ['today', 'path', 'library', 'stats'].forEach((name) => {
+    ['today', 'path', 'library', 'repertoire', 'stats'].forEach((name) => {
       $(`#${name}Page`).classList.toggle('hidden', name !== page);
       $$(`[data-nav="${name}"]`).forEach((link) => { link.classList.toggle('active', name === page); if (name === page) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
     });
@@ -7817,6 +8206,7 @@ window.PIANO_DATA = {
     if (page === 'today') renderDashboard();
     if (page === 'path') renderPath();
     if (page === 'library') renderLibrary();
+    if (page === 'repertoire') renderRepertoire();
     if (page === 'stats') renderStats();
   }
 
@@ -7831,7 +8221,7 @@ window.PIANO_DATA = {
   window.PIANO_APP = {
     state, DATA, persist, renderAll, updateNav, showToast, findSession,
     sessionsForWeek, currentWeekData, currentSessionData, streakCount,
-    renderLibrary, isSessionComplete: isComplete, totalXp, levelForXp,
+    renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
       Object.assign(state, structuredClone(defaultState), nextState || {});
@@ -7873,6 +8263,7 @@ window.PIANO_DATA = {
   let noteGameLocked = false;
   let onboardingChoices = { level: 'zero', weeklyMinutes: 240, style: 'mixed' };
   let noteGameMode = 'note';
+  let activeRepertoirePiece = null;
 
   function formatClock(seconds) {
     const safe = Math.max(0, Math.round(seconds));
@@ -8127,6 +8518,64 @@ window.PIANO_DATA = {
     openSession(brief);
   }
 
+  function findRepertoire(id) {
+    return (APP.DATA.repertoire || []).find((piece) => piece.id === id) || null;
+  }
+
+  function openRepertoirePiece(id) {
+    const piece = findRepertoire(id);
+    if (!piece) return;
+    activeRepertoirePiece = piece;
+    const progress = APP.repertoireProgress(piece);
+    document.querySelector('#repertoireModalTitle').textContent = piece.title;
+    document.querySelector('#repertoireModalComposer').textContent = piece.composer;
+    document.querySelector('#repertoireModalMeta').innerHTML = `<span>${escapeUi(piece.level)}</span><span>${escapeUi(piece.grade)}</span><span>${piece.minutes} 分钟 / 阶段</span><span>${escapeUi((piece.skills || []).join(' · '))}</span>`;
+    document.querySelector('#repertoireModalDesc').textContent = piece.description;
+    document.querySelector('#repertoireModalPhases').innerHTML = progress.phases.map((phase, index) => `<div class="repertoire-phase ${index < progress.phaseIndex ? 'done' : index === progress.phaseIndex ? 'current' : ''}">${index < progress.phaseIndex ? '✓ ' : ''}${index === progress.phaseIndex ? '● ' : ''}${escapeUi(phase)}</div>`).join('');
+    document.querySelector('#repertoireModalTitle').dataset.pieceId = piece.id;
+    document.querySelector('#repertoireScoreLink').href = piece.score;
+    const start = document.querySelector('#startRepertoirePractice');
+    start.textContent = progress.completed ? '复盘完整曲目' : `开始：${progress.phases[progress.phaseIndex]}`;
+    document.querySelector('#repertoireModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeRepertoireModal() {
+    document.querySelector('#repertoireModal').classList.add('hidden');
+    document.body.style.overflow = '';
+    activeRepertoirePiece = null;
+  }
+
+  function startRepertoirePractice() {
+    const piece = activeRepertoirePiece;
+    if (!piece) return;
+    const progress = APP.repertoireProgress(piece);
+    const phaseIndex = progress.phaseIndex;
+    const phaseName = progress.completed ? '完整复盘' : progress.phases[phaseIndex];
+    const phaseSteps = [
+      { start: 0, end: 3, minutes: 3, title: '曲目地图', category: '定向', detail: `找到 ${piece.title} 的调号、拍号、反复记号与最难的两个位置。`, cue: '先看全局，不急着弹' },
+      { start: 3, end: 10, minutes: 7, title: phaseName, category: '阶段', detail: progress.completed ? '从曲首完整走一遍，只标记失去方向的位置。' : `本阶段目标：${phaseName}。只处理与这个阶段直接相关的小段。`, cue: '一次只解决一个层级' },
+      { start: 10, end: 18, minutes: 8, title: '分手/慢速闭环', category: '技术', detail: '每 2–4 小节一段，单手连续 3 次正确，再半速合手。', cue: '连续三次正确才算通过' },
+      { start: 18, end: 24, minutes: 6, title: '连接与表达', category: '曲目', detail: '把刚练的段落接到前一小节和后一小节，完成一次带起句的演奏。', cue: '连接比单点更重要' },
+      { start: 24, end: 25, minutes: 1, title: '阶段记录', category: '反馈', detail: '录下 10–20 秒，只记录一个下次要修的连接。', cue: '一次只记一个问题' }
+    ];
+    const repertoireSession = {
+      id: `${piece.id}-practice-${Date.now()}`,
+      sourceId: piece.id,
+      repertoireId: piece.id,
+      title: `曲目训练：${piece.title}`,
+      week: 0,
+      day: 1,
+      duration: 25,
+      quick: true,
+      goal: progress.completed ? piece.goal : `${phaseName}：${piece.goal}`,
+      steps: phaseSteps,
+      sources: []
+    };
+    closeRepertoireModal();
+    openSession(repertoireSession);
+  }
+
   function openOnboarding(force = false) {
     if (!force && localStorage.getItem('pianopath-onboarded') === '1') return false;
     const profile = APP.state.profile;
@@ -8194,7 +8643,7 @@ window.PIANO_DATA = {
     $('#lessonTitle').textContent = session.title;
     $('#lessonGoal').textContent = session.goal;
     const planLength = document.querySelector('#lessonPlanLength');
-    if (planLength) planLength.textContent = session.quick ? '5 分钟快练' : `今天的 ${session.duration} 分钟`;
+    if (planLength) planLength.textContent = session.repertoireId ? `曲目训练 · ${session.duration} 分钟` : session.quick ? '5 分钟快练' : `今天的 ${session.duration} 分钟`;
     $('#lessonSteps').innerHTML = session.steps.map((step, index) => `<div class="lesson-step" data-step="${index}"><span class="lesson-step-num">${String(index + 1).padStart(2, '0')}</span><span><strong>${step.title}</strong><small>${step.start}–${step.end} 分 · ${step.minutes} 分钟</small></span></div>`).join('');
     $('#lessonModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -8226,18 +8675,21 @@ window.PIANO_DATA = {
     completionPreview = { session: { ...session }, elapsed };
     $('#lessonModal').classList.add('hidden');
     const weekData = APP.currentWeekData();
-    if (session.quick) {
+    if (session.repertoireId) {
+      $('#completeSummary').textContent = `曲目阶段完成 · ${session.title.replace('曲目训练：','')}`;
+    } else if (session.quick) {
       $('#completeSummary').textContent = `5 分钟快练完成 · ${session.title.replace('5 分钟快练：','')}`;
-    }
-    const doneCount = weekData.sessions.filter((item) => APP.isSessionComplete(item.id)).length;
-    const remaining = Math.max(0, weekData.sessions.length - doneCount - 1);
-    if (!session.quick) {
+    } else {
+      const doneCount = weekData.sessions.filter((item) => APP.isSessionComplete(item.id)).length;
+      const remaining = Math.max(0, weekData.sessions.length - doneCount - 1);
       $('#completeSummary').textContent = remaining
         ? `${session.title} 已完成 · 完成后本周还剩 ${remaining} 次练习`
         : `${session.title} 已完成 · 这是本周最后一次练习`;
     }
     $('#completeStreak').textContent = APP.streakCount();
-    $('#completeXp').textContent = session.quick ? '+5' : '+20';
+    $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : '+20';
+    const saveButton = document.querySelector('#saveCompletion');
+    if (saveButton) saveButton.textContent = session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
     const completeSessions = document.querySelector('#completeSessionCount');
     if (completeSessions) completeSessions.textContent = Object.keys(APP.state.completed).length + (session.quick ? 0 : 1);
     $('#sessionNotes').value = '';
@@ -8264,7 +8716,18 @@ window.PIANO_DATA = {
       completedAt: now.toISOString()
     };
     if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt };
-    if (finished.quick) entry.type = 'quick';
+    if (finished.quick) entry.type = finished.repertoireId ? 'repertoire' : 'quick';
+    if (finished.repertoireId) {
+      const piece = findRepertoire(finished.repertoireId);
+      if (piece) {
+        const old = state.repertoire?.[piece.id] || { phaseIndex: 0 };
+        const phases = piece.phases || [];
+        const nextPhase = Math.min(phases.length, (Number(old.phaseIndex) || 0) + 1);
+        state.repertoire = { ...(state.repertoire || {}), [piece.id]: { phaseIndex: nextPhase, lastPracticedAt: now.toISOString(), lastRating: rating, notes: entry.notes } };
+        entry.repertoireId = piece.id;
+        entry.phaseAdvancedTo = nextPhase;
+      }
+    }
     state.activeSession = null;
     state.history = [entry, ...state.history.filter((item) => item.id !== finished.id || item.date !== entry.date)];
     state.history = state.history.slice(0, 400);
@@ -8273,9 +8736,14 @@ window.PIANO_DATA = {
     updateProgressDisplay();
     $('#completeModal').classList.add('hidden');
     completionPreview = null;
-    APP.showToast('已保存。下一课已经准备好。');
-    APP.updateNav('today');
-    setTimeout(() => openSession(APP.currentSessionData().id), 500);
+    APP.showToast(finished.repertoireId ? '曲目阶段已保存，继续下一阶段。' : '已保存。下一课已经准备好。');
+    if (finished.repertoireId) {
+      APP.updateNav('repertoire');
+      setTimeout(() => APP.renderRepertoire(), 180);
+    } else {
+      APP.updateNav('today');
+      setTimeout(() => openSession(APP.currentSessionData().id), 500);
+    }
     syncStateToServer();
   }
 
@@ -8712,6 +9180,17 @@ window.PIANO_DATA = {
         openVideo(video.dataset.video);
         return;
       }
+      const repertoireOpen = event.target.closest('[data-repertoire-open]');
+      if (repertoireOpen) {
+        event.preventDefault();
+        openRepertoirePiece(repertoireOpen.dataset.repertoireOpen);
+        return;
+      }
+      const repertoireFilterButton = event.target.closest('[data-repertoire-filter]');
+      if (repertoireFilterButton) {
+        APP.renderRepertoire(repertoireFilterButton.dataset.repertoireFilter);
+        return;
+      }
     });
 
     $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
@@ -8734,6 +9213,9 @@ window.PIANO_DATA = {
     document.querySelector('#closePlacement')?.addEventListener('click', closePlacement);
     document.querySelector('#usePlacement')?.addEventListener('click', usePlacement);
     document.querySelector('#quickPractice')?.addEventListener('click', openQuickPractice);
+    document.querySelector('#closeRepertoire')?.addEventListener('click', closeRepertoireModal);
+    document.querySelector('#startRepertoirePractice')?.addEventListener('click', startRepertoirePractice);
+    document.querySelector('#repertoireSearch')?.addEventListener('input', (event) => APP.renderRepertoire(undefined, event.target.value));
     document.querySelector('#homeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     document.querySelectorAll('.note-mode').forEach((button) => button.addEventListener('click', () => setNoteGameMode(button.dataset.gameMode)));
     document.querySelector('#noteReplay')?.addEventListener('click', () => playTone(NOTE_FREQ[noteGameCurrent], .38));
@@ -8865,6 +9347,8 @@ window.PIANO_DATA = {
   APP.openPlacement = openPlacement;
   APP.usePlacement = usePlacement;
   APP.openQuickPractice = openQuickPractice;
+  APP.openRepertoirePiece = openRepertoirePiece;
+  APP.startRepertoirePractice = startRepertoirePractice;
   APP.getAccountState = () => ({ ...accountState });
   APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;
@@ -9169,7 +9653,7 @@ window.PIANO_DATA = {
       updateProgressDisplay();
       if (localStorage.getItem('pianopath-onboarded') !== '1') setTimeout(() => openOnboarding(), 350);
       const page = (location.hash || '#today').replace('#', '');
-      if (['today', 'path', 'library', 'stats'].includes(page)) APP.updateNav(page);
+      if (['today', 'path', 'library', 'repertoire', 'stats'].includes(page)) APP.updateNav(page);
       return;
     }
 
@@ -9185,7 +9669,7 @@ window.PIANO_DATA = {
     updateProgressDisplay();
     if (localStorage.getItem('pianopath-onboarded') !== '1') setTimeout(() => openOnboarding(), 350);
     const page = (location.hash || '#today').replace('#', '');
-    if (['today', 'path', 'library', 'stats'].includes(page)) APP.updateNav(page);
+    if (['today', 'path', 'library', 'repertoire', 'stats'].includes(page)) APP.updateNav(page);
 
     if (window.PIANO_BACKEND_AVAILABLE) {
       await refresh();

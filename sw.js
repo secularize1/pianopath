@@ -1,5 +1,5 @@
 /* PianoPath service worker - offline-first app shell */
-const CACHE = 'pianopath-v1.6.0';
+const CACHE = 'pianopath-v1.7.0';
 const APP_SHELL = [
   './',
   './index.html',

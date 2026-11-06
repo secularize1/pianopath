@@ -56,7 +56,6 @@
       </button>
 
       <button class="install-button hidden" id="installApp" type="button"><span>▣</span> 安装到桌面</button>
-      <div class="sidebar-footer">资料来源核验于 <span id="verifiedDate">2026.11.06</span></div>
     </aside>
 
     <main class="main">
@@ -82,137 +81,53 @@
       </header>
 
       <div class="page" id="todayPage">
-        <section class="onboarding-strip" id="onboardingStrip">
-          <div class="onboarding-icon">♪</div>
-          <div><strong>第一次来？先用 3 分钟找到坐姿和拍子。</strong><p>不用先买琴或学完乐理。今天完成一小段，就会自动保存进度。</p></div>
-          <button class="btn btn-soft" id="onboardingStart" type="button">先热身</button>
-          <button class="icon-button" id="onboardingClose" aria-label="关闭新手提示"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-        </section>
-
-        <section class="hero-grid">
-          <article class="hero-card">
-            <div class="hero-copy">
-              <div class="eyebrow"><span class="live-dot"></span> 第 1 周 · 起步</div>
-              <h2>从第一个音，<br>弹到一首完整的歌。</h2>
-              <p>每次 60 分钟，按身体、技术、曲目、视奏、听觉拆开练习。今天只完成一个清楚的小目标。</p>
-              <div class="hero-actions">
-                <button class="btn btn-primary btn-big" id="startToday" type="button">
-                  开始今日练习
-                  <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                </button>
-                <button class="btn btn-ghost" id="previewPlan" type="button">看完整路线</button>
-              </div>
-              <div class="hero-meta">
-                <span><strong>60</strong> 分钟</span>
-                <span><strong>4</strong> 次 / 周</span>
-                <span><strong>12</strong> 周路径</span>
-              </div>
+        <section class="home-start">
+          <div class="home-start-copy">
+            <div class="home-kicker"><span class="home-kicker-dot"></span><span id="homeStage">第 1 周 · 起步</span><span class="home-week-pill" id="homeWeekProgress">0 / 4</span></div>
+            <h2>开始今天的钢琴练习</h2>
+            <p id="homeLessonGoal">身体对位，手指编号不混乱</p>
+            <button class="home-main-cta" id="startToday" type="button">
+              <span class="home-cta-play">▶</span>
+              <span class="home-cta-copy"><small id="homeLessonIndex">第 1 周 · 第 1 次</small><strong id="homeLessonTitle">找到中央 C</strong></span>
+              <span class="home-cta-duration" id="homeLessonDuration">60 分钟</span>
+            </button>
+            <div class="home-secondary">
+              <button class="home-warm-link" id="routeWarmup" type="button">♩ 先做 3 分钟节拍热身</button>
+              <span>完成一小段就会自动保存</span>
             </div>
-            <div class="hero-visual" aria-hidden="true">
-              <div class="hero-orbit orbit-one"></div>
-              <div class="hero-orbit orbit-two"></div>
-              <div class="hero-note note-a">♪</div>
-              <div class="hero-note note-b">♫</div>
-              <div class="hero-photo-wrap">
-                <img src="assets/hero-piano.jpg" alt="" loading="eager">
-                <div class="photo-overlay"></div>
-                <div class="floating-progress">
-                  <div class="progress-ring" style="--p:0"><span>0%</span></div>
-                  <div><small>本周目标</small><strong>0 / 4 次</strong></div>
-                </div>
-              </div>
-              <div class="key-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            </div>
-          </article>
-
-          <aside class="today-aside">
-            <article class="card week-card">
-              <div class="card-heading">
-                <div><span class="eyebrow">THIS WEEK</span><h3>本周节奏</h3></div>
-                <span class="tiny-pill" id="weeklyPercent">0%</span>
-              </div>
-              <div class="week-strip" id="weekStrip"></div>
-              <div class="weekly-bar"><span id="weeklyProgressBar"></span></div>
-              <div class="weekly-stats"><span><strong id="weeklyDone">0</strong> / 4 完成</span><span id="weeklyMinutes">0 分钟</span></div>
-            </article>
-
-            <article class="card coach-card">
-              <div class="coach-head">
-                <span class="coach-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></span>
-                <span><small>今天的一句话</small><strong>慢，是为了看见动作。</strong></span>
-              </div>
-              <p>把最难的两小节拆开，先分手、再半速。能连续三次正确，才算这一小段通过。</p>
-            </article>
-          </aside>
-        </section>
-
-        <section class="activity-strip" aria-label="学习状态">
-          <div class="activity-intro"><span class="eyebrow">LEARNING HUB</span><strong>今天先做哪一件事？</strong></div>
-          <button class="activity-card" id="activityWarmup" type="button"><span class="activity-icon warm">◆</span><span><small>3 分钟</small><strong>坐下，先松肩</strong></span><em>开始 →</em></button>
-          <button class="activity-card" id="activitySight" type="button"><span class="activity-icon read">♬</span><span><small>8 分钟</small><strong>陌生谱视奏</strong></span><em>挑战 →</em></button>
-          <button class="activity-card" id="activityRecord" type="button"><span class="activity-icon record">◉</span><span><small>每周一次</small><strong>完整录音</strong></span><em>记录 →</em></button>
-          <button class="activity-card" id="activityCourse" type="button"><span class="activity-icon course">▤</span><span><small>国内可看</small><strong>今天看什么</strong></span><em>教学库 →</em></button>
-        </section>
-
-        <section class="dashboard-grid">
-          <div class="dashboard-main">
-            <article class="card daily-card">
-              <div class="section-heading">
-                <div>
-                  <span class="eyebrow">TODAY'S SESSION</span>
-                  <h2 id="todaySessionTitle">找到中央 C</h2>
-                  <p id="todaySessionGoal">身体对位，手指编号不混乱</p>
-                </div>
-                <button class="circle-start" id="startSessionCircle" aria-label="开始今日练习">
-                  <svg viewBox="0 0 24 24"><path d="m9 6 9 6-9 6z"/></svg>
-                </button>
-              </div>
-              <div class="minute-plan" id="minutePlanPreview"></div>
-              <button class="btn btn-soft full-width" id="openTodayDetail" type="button">查看今天 60 分钟怎么练</button>
-            </article>
-
-            <article class="card path-preview-card">
-              <div class="section-heading compact">
-                <div><span class="eyebrow">YOUR PATH</span><h2>一步一步，练到能演奏</h2></div>
-                <button class="text-button" data-nav="path">完整路径 <span>→</span></button>
-              </div>
-              <div class="mini-path" id="miniPath"></div>
-            </article>
           </div>
+          <div class="home-start-art" aria-hidden="true">
+            <div class="home-art-disc"></div>
+            <img src="assets/hero-piano.jpg" alt="">
+            <div class="home-art-card"><span>本周完成</span><strong id="homeArtWeek">0 / 4</strong><small>次练习</small></div>
+            <div class="home-art-note">♪</div>
+          </div>
+        </section>
 
-          <aside class="dashboard-side">
-            <article class="card goal-card">
-              <div class="section-heading compact">
-                <div><span class="eyebrow">GOAL</span><h3>本周目标</h3></div>
-                <span class="target-icon">◎</span>
-              </div>
-              <div class="goal-list">
-                <label class="goal-item"><span class="check-dot"></span><span><strong>完成 4 次 60 分钟</strong><small>3 次新内容 + 1 次复盘</small></span></label>
-                <label class="goal-item"><span class="check-dot"></span><span><strong>录一次完整演奏</strong><small>只记录，不评价</small></span></label>
-                <label class="goal-item"><span class="check-dot"></span><span><strong>碰一次陌生谱</strong><small>连续弹完，不中途改错</small></span></label>
-              </div>
-            </article>
+        <section class="home-week card">
+          <div class="home-section-head">
+            <div><span class="home-label">本周路线</span><h3>跟着四次练习走完这一周</h3></div>
+            <button class="text-button" data-nav="path">查看完整 12 周 →</button>
+          </div>
+          <div class="week-trail" id="homeWeekTrail"></div>
+        </section>
 
-            <article class="card skills-card">
-              <div class="section-heading compact"><div><span class="eyebrow">SKILLS</span><h3>四项能力</h3></div><a href="#stats" class="text-button" data-nav="stats">记录</a></div>
-              <div class="skill-row"><span>读谱</span><div><i style="width:18%"></i></div><em>起步</em></div>
-              <div class="skill-row"><span>技术</span><div><i style="width:12%"></i></div><em>起步</em></div>
-              <div class="skill-row"><span>曲目</span><div><i style="width:8%"></i></div><em>起步</em></div>
-              <div class="skill-row"><span>听觉</span><div><i style="width:14%"></i></div><em>起步</em></div>
-              <button class="btn btn-soft full-width" id="openDailyChallenge" type="button">今天的 3 分钟热身</button>
-            </article>
-
-            <article class="card source-teaser">
-              <div class="section-heading compact">
-                <div><span class="eyebrow">CURATED</span><h3>今天看什么</h3></div>
-                <a href="#library" class="text-button" data-nav="library">全部</a>
-              </div>
-              <a class="resource-mini" id="sourceTeaser" href="#library">
-                <img src="https://i.ytimg.com/vi/tEtukfFv3Wk/maxresdefault.jpg" alt="">
-                <span><small>Pianote</small><strong>How To Play Piano</strong><em>258 万订阅 · 来源已核验</em></span>
-              </a>
-            </article>
-          </aside>
+        <section class="home-bottom">
+          <article class="home-path-preview card">
+            <div class="home-section-head">
+              <div><span class="home-label">12 周路径</span><h3>从第一颗音到完整演奏</h3></div>
+              <span class="home-path-percent" id="homePathPercent">0%</span>
+            </div>
+            <div class="path-track" id="homePathTrack"></div>
+            <div class="path-track-caption"><strong id="homePathCurrent">起步 · 第 1 周</strong><span id="homePathNext">下一站：第 2 周</span></div>
+          </article>
+          <button class="home-game" id="startRhythmGame" type="button">
+            <span class="home-game-label">每日小游戏</span>
+            <strong>节拍热身</strong>
+            <p>跟着四个音拍点一下，看看你能命中几拍。</p>
+            <span class="home-game-meta"><span>最佳 <b id="homeGameBest">0%</b></span><em>开始挑战 →</em></span>
+            <span class="home-game-notes" aria-hidden="true"><i>♪</i><i>♫</i><i>♩</i></span>
+          </button>
         </section>
       </div>
 
@@ -247,12 +162,6 @@
             <h2>少而准的教学来源</h2>
             <p>默认只显示国内可访问的 B 站公开课与官方资料；YouTube 仅作为可切换的海外补充。视频在新窗口/内嵌播放器打开，素材本地缓存。</p>
           </div>
-          <div class="verification-seal"><span>国内优先</span><strong>B 站 + 官方资料</strong><small>2026.11.06 核验</small></div>
-        </section>
-        <section class="source-rules card">
-          <div class="rule-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v6c0 4.5 3.4 7.5 8 8 4.6-.5 8-3.5 8-8V7z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg></div>
-          <div><strong>内容筛选规则</strong><p>B 站创作者 ≥ 25 万粉丝，官方教材与机构不受门槛限制。粉丝量是准入门槛，课程结构、教师资历与练习目标仍需二次匹配。</p></div>
-          <button class="text-button" id="showExcluded" type="button">查看被排除来源 →</button>
         </section>
         <div class="library-toolbar">
           <div class="filter-row" id="topicFilters"></div>
@@ -350,7 +259,7 @@
       <div class="rating-label">今天练得怎么样？</div>
       <div class="rating-row" id="ratingRow"><button data-rating="1">需要帮助</button><button data-rating="2">有点卡</button><button data-rating="3">刚刚好</button><button data-rating="4">很顺</button></div>
       <label class="notes-field"><span>留一句给下次的自己</span><textarea id="sessionNotes" placeholder="例如：F→G 换和弦提前半拍看左手。"></textarea></label>
-      <button class="btn btn-primary full-width" id="saveCompletion" type="button">保存并回到路径</button>
+      <button class="btn btn-primary full-width" id="saveCompletion" type="button">保存并查看下一步</button>
     </div>
   </div>
 
@@ -378,24 +287,38 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="excludedModal" role="dialog" aria-modal="true">
-    <div class="excluded-card">
-      <button class="icon-button modal-close" id="closeExcluded" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-      <span class="eyebrow">FILTER LOG</span><h2>未进入主课程的来源</h2><p>这不是对教学质量的否定，只是严格执行你设定的粉丝门槛。</p>
-      <div id="excludedList"></div>
+  <div class="modal-backdrop hidden" id="noteGameModal" role="dialog" aria-modal="true" aria-labelledby="noteGameTitle">
+    <div class="note-game-card">
+      <button class="icon-button modal-close" id="closeNoteGame" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="note-game-top"><span class="eyebrow">FIND THE KEY</span><span class="note-game-progress" id="noteGameProgress">1 / 10</span></div>
+      <h2 id="noteGameTitle">找出这个音</h2>
+      <div class="note-game-question" id="noteGameQuestion">C</div>
+      <p id="noteGameHint">点击下方正确的白键</p>
+      <div class="note-piano" id="notePiano">
+        <button data-note="C" class="note-key"><span>C</span></button>
+        <button data-note="D" class="note-key"><span>D</span></button>
+        <button data-note="E" class="note-key"><span>E</span></button>
+        <button data-note="F" class="note-key"><span>F</span></button>
+        <button data-note="G" class="note-key"><span>G</span></button>
+        <button data-note="A" class="note-key"><span>A</span></button>
+        <button data-note="B" class="note-key"><span>B</span></button>
+      </div>
+      <div class="note-game-feedback" id="noteGameFeedback">准备好就开始</div>
+      <div class="note-game-stats"><span>连对 <b id="noteGameCombo">0</b></span><span>得分 <b id="noteGameScore">0</b></span><span>最佳 <b id="noteGameBest">—</b></span></div>
+      <button class="btn btn-primary full-width" id="noteGameRestart" type="button">重新挑战</button>
     </div>
   </div>
-
-
 
   <div class="modal-backdrop hidden" id="warmupModal" role="dialog" aria-modal="true" aria-labelledby="warmupTitle">
     <div class="warmup-card">
       <button class="icon-button modal-close" id="closeWarmup" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-      <span class="eyebrow">RHYTHM WARM-UP</span>
-      <h2 id="warmupTitle">三分钟，把拍子找回来</h2>
-      <p>跟着节拍数 1–2–3–4。先拍手，再把同样的节奏落到琴键。</p>
+      <span class="eyebrow">RHYTHM GAME</span>
+      <h2 id="warmupTitle">跟着节拍，拍中它</h2>
+      <p>点开始，听到第一拍后点击数字。命中越准，分数越高。</p>
+      <div class="rhythm-score"><span>命中率</span><strong id="warmupScore">0%</strong></div>
       <div class="beat-visual" id="beatVisual"><span>1</span><span>2</span><span>3</span><span>4</span></div>
       <div class="warmup-controls"><strong id="warmupBpm">60 BPM</strong><button class="btn btn-primary" id="warmupToggle" type="button">开始</button></div>
+      <div class="beat-tap-hint">跟着亮起的拍点点击数字</div>
       <div class="warmup-options"><button data-bpm="50">50</button><button data-bpm="60" class="active">60</button><button data-bpm="72">72</button><button data-bpm="88">88</button></div>
       <div class="warmup-tip">先听两拍，再从第 3 拍进入。错拍不要停，下一拍接着数。</div>
     </div>
@@ -420,3 +343,6 @@
   </script>
 </body>
 </html>
+
+
+

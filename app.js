@@ -32,9 +32,7 @@
     document.documentElement.dataset.theme = 'dark';
   }
   if (localStorage.getItem('pianopath-onboarded') === '1') {
-    const onboarding = document.getElementById('onboardingStrip');
-    if (onboarding) onboarding.classList.add('hidden');
-  }
+    }
   let activePage = 'today';
   let currentPhase = '全部';
   let currentTopic = '国内可用';
@@ -171,11 +169,13 @@
   }
 
   function currentWeekData() {
-    for (const week of DATA.weeks) {
+    for (const rawWeek of DATA.weeks) {
+      const week = { ...rawWeek, id: rawWeek.id ?? rawWeek.n };
       const sessions = sessionsForWeek(week);
       if (sessions.some((session) => !isComplete(session.id))) return { week, sessions };
     }
-    const week = DATA.weeks[DATA.weeks.length - 1];
+    const rawWeek = DATA.weeks[DATA.weeks.length - 1];
+    const week = { ...rawWeek, id: rawWeek.id ?? rawWeek.n };
     return { week, sessions: sessionsForWeek(week) };
   }
 
@@ -234,21 +234,25 @@
 
   function renderSidebar() {
     const streak = streakCount();
-    $('#sideStreak').textContent = streak;
-    $('#topStreak').textContent = streak;
-    $('#verifiedDate').textContent = DATA.meta.verifiedAt.replaceAll('-', '.');
+    const topStreak = document.querySelector('#topStreak');
+    const sideStreak = document.querySelector('#sideStreak');
+    if (topStreak) topStreak.textContent = streak;
+    if (sideStreak) sideStreak.textContent = streak;
     const today = new Date();
     const monday = new Date(today);
     monday.setHours(12, 0, 0, 0);
     monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
     const practiced = new Set(state.history.map((entry) => entry.date));
-    $('#sideWeekDots').innerHTML = DAY_LABELS.map((label, index) => {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + index);
-      const done = practiced.has(localDateKey(date));
-      const isToday = localDateKey(date) === localDateKey(today);
-      return `<span class="streak-day ${done ? 'done' : ''}" title="${label}"><i>${done ? '✓' : isToday ? '•' : ''}</i>${label}</span>`;
-    }).join('');
+    const dots = document.querySelector('#sideWeekDots');
+    if (dots) {
+      dots.innerHTML = DAY_LABELS.map((label, index) => {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + index);
+        const done = practiced.has(localDateKey(date));
+        const isToday = localDateKey(date) === localDateKey(today);
+        return `<span class="streak-day ${done ? 'done' : ''}" title="${label}"><i>${done ? '✓' : isToday ? '•' : ''}</i>${label}</span>`;
+      }).join('');
+    }
   }
 
   function renderHeader() {
@@ -260,46 +264,62 @@
   function renderDashboard() {
     const { week, sessions } = currentWeekData();
     const session = currentSessionData();
-    const plan = getPlanProfile();
-    const weekEntries = completedThisWeek();
-    const weekDone = Math.min(sessions.filter((item) => isComplete(item.id)).length, sessions.length);
-    const percent = Math.round((weekDone / Math.max(1, sessions.length)) * 100);
-    const minutes = weekEntries.reduce((sum, entry) => sum + Number(entry.minutes || 0), 0);
+    const weekDone = sessions.filter((item) => isComplete(item.id)).length;
+    const lessonsCompleted = Object.keys(state.completed).length;
+    const pathPercent = Math.round((lessonsCompleted / 48) * 100);
+    const current = session || sessions[0];
 
-    const weekStrip = $('#weekStrip');
-    const today = new Date();
-    weekStrip.innerHTML = Array.from({ length: 7 }, (_, index) => {
-      const date = dateFromOffset(index - ((today.getDay() + 6) % 7));
-      const done = state.history.some((entry) => entry.date === localDateKey(date));
-      const isToday = localDateKey(date) === localDateKey(today);
-      return `<span class="week-day ${done ? 'done' : ''} ${isToday ? 'today' : ''}"><i>${done ? '✓' : index + 1}</i>${DAY_LABELS[index]}</span>`;
-    }).join('');
-    $('#weeklyDone').textContent = weekDone;
-    $('#weeklyMinutes').textContent = `${minutes} 分钟`;
-    $('#weeklyPercent').textContent = `${percent}%`;
-    $('#weeklyProgressBar').style.width = `${percent}%`;
-    $('.floating-progress .progress-ring').style.setProperty('--p', percent);
-    $('.floating-progress .progress-ring span').textContent = `${percent}%`;
-    $('.floating-progress strong').textContent = `${weekDone} / ${sessions.length} 次`;
+    if (current) {
+      const setText = (selector, value) => { const element = document.querySelector(selector); if (element) element.textContent = value; };
+      setText('#homeStage', `第 ${current.week} 周 · ${week.phase}`);
+      setText('#homeLessonIndex', `第 ${current.week} 周 · 第 ${current.day} 次`);
+      setText('#homeLessonTitle', current.title);
+      setText('#homeLessonGoal', current.goal);
+      setText('#homeLessonDuration', `${current.duration} 分钟`);
+      setText('#homeWeekProgress', `${weekDone} / ${sessions.length}`);
+      setText('#homeArtWeek', `${weekDone} / ${sessions.length}`);
 
-    if (session) {
-      $('#todaySessionTitle').textContent = session.title;
-      $('#todaySessionGoal').textContent = session.goal;
-      $('#minutePlanPreview').innerHTML = session.steps.map((step) => `<div class="minute-block"><small>${String(step.start).padStart(2, '0')}–${String(step.end).padStart(2, '0')} 分</small><strong>${escapeHtml(step.title)}</strong><span>${escapeHtml(step.category)} · ${step.minutes} 分钟</span></div>`).join('');
-      const firstSource = session.sources.map(resourceById).find((item) => item && item.region !== 'global') || session.sources.map(resourceById).find(Boolean);
-      if (firstSource) {
-        $('#sourceTeaser').href = firstSource.url;
-        $('#sourceTeaser').target = '_blank';
-        $('#sourceTeaser').rel = 'noreferrer noopener';
-        $('#sourceTeaser').innerHTML = `<img src="${escapeHtml(firstSource.image)}" alt="${escapeHtml(firstSource.title)}" referrerpolicy="no-referrer" onerror="this.src='assets/fallback.svg'"><span><small>${escapeHtml(firstSource.creator)}</small><strong>${escapeHtml(firstSource.title)}</strong><em>${escapeHtml(firstSource.followers)} · 来源已核验</em></span>`;
-      }
     }
 
-    const heroMeta = $('.hero-meta');
-    if (heroMeta) heroMeta.innerHTML = `<span><strong>${plan.sessionMinutes}</strong> 分钟</span><span><strong>${plan.daysPerWeek}</strong> 次 / 周</span><span><strong>${Number((plan.weeklyMinutes / 60).toFixed(1))}</strong> 小时 / 周</span>`;
+    const trail = document.querySelector('#homeWeekTrail');
+    if (trail) {
+      trail.innerHTML = sessions.map((item, index) => {
+        const done = isComplete(item.id);
+        const isCurrent = current && item.id === current.id;
+        const stepLabel = ['学', '练', '合', '录'][index % 4] || String(index + 1);
+        return `<button class="week-trail-item ${done ? 'done' : ''} ${isCurrent ? 'current' : ''}" data-session="${escapeHtml(item.id)}" type="button">
+          <span class="trail-node">${done ? '✓' : stepLabel}</span>
+          <span class="trail-copy"><small>第 ${item.day} 次 · ${item.duration} 分钟</small><strong>${escapeHtml(item.title)}</strong><em>${escapeHtml(item.goal)}</em></span>
+          ${isCurrent ? '<span class="trail-now">现在</span>' : ''}
+        </button>`;
+      }).join('');
+    }
 
-    const phaseStarts = [0, 2, 4, 6, 8, 10];
-    $('#miniPath').innerHTML = DATA.phases.map((phase, index) => `<div class="mini-stop ${index < Math.floor((week.id - 1) / 2) ? 'done' : ''} ${phase === week.phase ? 'current' : ''}"><span>${escapeHtml(phase)}</span><span>${week.id <= 2 ? 'W1–2' : `W${phaseStarts[index] + 1}`}</span></div>`).join('');
+    const track = document.querySelector('#homePathTrack');
+    if (track) {
+      const groups = [
+        { label: '起步', range: '1–2 周', start: 0, end: 2 },
+        { label: '基础', range: '3–6 周', start: 2, end: 6 },
+        { label: '进阶', range: '7–10 周', start: 6, end: 10 },
+        { label: '展示', range: '11–12 周', start: 10, end: 12 }
+      ];
+      const currentGroup = Math.max(0, Math.floor((Math.max(1, Number(week.id) || 1) - 1) / 2));
+      track.innerHTML = groups.map((group, groupIndex) => {
+        const completedInGroup = Math.max(0, Math.min(group.end, Math.ceil(lessonsCompleted / 4)) - group.start);
+        const totalInGroup = group.end - group.start;
+        const inCurrentGroup = groupIndex === currentGroup;
+        const stateClass = completedInGroup >= totalInGroup ? 'done' : inCurrentGroup ? 'current' : '';
+        return `<div class="path-stop ${stateClass}"><span class="path-stop-dot">${completedInGroup >= totalInGroup ? '✓' : ''}</span><strong>${group.label}</strong><small>${group.range}</small></div>`;
+      }).join('');
+      document.querySelector('#homePathPercent').textContent = `${pathPercent}%`;
+      document.querySelector('#homePathCurrent').textContent = `第 ${week.id} 周 · ${week.title}`;
+      document.querySelector('#homePathNext').textContent = week.id >= 12 ? '完成阶段后生成下一阶段计划' : `下一站：第 ${week.id + 1} 周`;
+    }
+
+    const best = localStorage.getItem('pianopath-note-game-best');
+    const gameBest = document.querySelector('#homeGameBest');
+    if (gameBest) gameBest.textContent = best ? `${best} 分` : '—';
+    document.querySelector('#homePathNext').textContent = week.id >= 12 ? '准备进入下一阶段' : `下一站 · 第 ${week.id + 1} 周`;
   }
 
   function renderPath() {
@@ -307,13 +327,14 @@
     $('#phaseTabs').innerHTML = ['全部', ...DATA.phases].map((phase) => `<button class="phase-tab ${currentPhase === phase ? 'active' : ''}" data-phase="${escapeHtml(phase)}">${escapeHtml(phase)}</button>`).join('');
     const filtered = DATA.weeks.filter((week) => currentPhase === '全部' || week.phase === currentPhase);
     $('#journey').innerHTML = filtered.map((week) => {
-      const sessions = sessionsForWeek(week);
+      const weekNumber = week.id ?? week.n;
+      const sessions = sessionsForWeek({ ...week, id: weekNumber });
       const done = sessions.filter((session) => isComplete(session.id)).length;
-      const locked = week.id > current;
-      const nodeClass = done === sessions.length ? 'done' : week.id === current ? 'current' : '';
+      const locked = weekNumber > current;
+      const nodeClass = done === sessions.length ? 'done' : weekNumber === current ? 'current' : '';
       const tags = [week.technique, week.sight].slice(0, 2).map((tag) => `<span class="week-tag">${escapeHtml(tag.split('；')[0])}</span>`).join('');
       const dayButtons = sessions.map((session) => `<button class="week-day-btn ${isComplete(session.id) ? 'done' : ''} ${locked ? 'locked' : ''}" data-session="${escapeHtml(session.id)}"><strong>${isComplete(session.id) ? '✓ ' : ''}${escapeHtml(session.title)}</strong><span>${session.duration} 分钟 · ${escapeHtml(session.goal)}</span></button>`).join('');
-      return `<div class="week-row"><div class="week-node ${nodeClass}">${done === sessions.length ? '✓' : String(week.id).padStart(2, '0')}</div><article class="week-panel ${locked ? 'locked' : ''}"><div class="week-panel-head"><div><span class="eyebrow">${escapeHtml(week.phase)}</span><h3>${escapeHtml(week.title)}</h3><p>${escapeHtml(week.goal)}</p><div class="week-tags">${tags}</div></div><div class="week-meta"><strong>${done} / ${sessions.length}</strong>完成</div></div><div class="week-days">${dayButtons}</div></article></div>`;
+      return `<div class="week-row"><div class="week-node ${nodeClass}">${done === sessions.length ? '✓' : String(weekNumber).padStart(2, '0')}</div><article class="week-panel ${locked ? 'locked' : ''}"><div class="week-panel-head"><div><span class="eyebrow">${escapeHtml(week.phase)}</span><h3>${escapeHtml(week.title)}</h3><p>${escapeHtml(week.goal)}</p><div class="week-tags">${tags}</div></div><div class="week-meta"><strong>${done} / ${sessions.length}</strong>完成</div></div><div class="week-days">${dayButtons}</div></article></div>`;
     }).join('');
     renderStages();
   }
@@ -346,7 +367,7 @@
       const haystack = `${item.creator} ${item.title} ${item.description} ${(item.topics || []).join(' ')}`.toLowerCase();
       return matchTopic && (!searchTerm || haystack.includes(searchTerm.toLowerCase()));
     });
-    $('#resourceGrid').innerHTML = filtered.map((item) => `<article class="resource-card ${item.supplement ? 'supplement' : ''}"><div class="resource-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='assets/fallback.svg'"><span class="resource-platform">${escapeHtml(item.platform === 'Bilibili' ? 'B站 · 国内可看' : item.platform)}</span>${item.supplement ? '<span class="resource-badge">补充资源</span>' : ''}</div><div class="resource-body"><div class="resource-author"><strong>${escapeHtml(item.creator)}</strong><span>${item.region === 'global' ? '海外可选' : '✓ ' + escapeHtml(item.followers)}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><div class="resource-footer"><span>${escapeHtml(item.duration || '')} · ${escapeHtml(item.credential || '来源已核验')}</span><a href="${escapeHtml(item.url)}" data-video="${escapeHtml(item.id)}">预览来源 ↗</a></div></div></article>`).join('') || `<div class="empty-history">当前筛选下没有匹配来源。</div>`;
+    $('#resourceGrid').innerHTML = filtered.map((item) => `<article class="resource-card ${item.supplement ? 'supplement' : ''}"><div class="resource-image"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='assets/fallback.svg'"><span class="resource-platform">${escapeHtml(item.platform === 'Bilibili' ? 'B站 · 国内可看' : item.platform)}</span>${item.supplement ? '<span class="resource-badge">补充资源</span>' : ''}</div><div class="resource-body"><div class="resource-author"><strong>${escapeHtml(item.creator)}</strong><span>${item.region === 'global' ? '海外补充' : '国内可用'}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><div class="resource-footer"><span>${escapeHtml(item.duration || '')} · ${escapeHtml(item.credential || '系统课程')}</span><a href="${escapeHtml(item.url)}" data-video="${escapeHtml(item.id)}">预览来源 ↗</a></div></div></article>`).join('') || `<div class="empty-history">当前筛选下没有匹配来源。</div>`;
 
     $('#methodGrid').innerHTML = DATA.resources.methodBooks.map((book) => `<article class="method-card"><div class="method-icon">${book.type.includes('曲谱') ? '♬' : book.type.includes('教材') ? '▤' : '§'}</div><div><strong>${escapeHtml(book.name)}</strong><span>${escapeHtml(book.note)}</span></div><a href="${escapeHtml(book.url)}" target="_blank" rel="noreferrer noopener">查看 ↗</a></article>`).join('');
   }
@@ -387,10 +408,6 @@
     }
   }
 
-  function renderExcluded() {
-    $('#excludedList').innerHTML = DATA.resources.excluded.map((item) => `<div class="excluded-item"><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.platform)} · ${escapeHtml(item.followers)}</span><p>${escapeHtml(item.reason)}</p></div>`).join('');
-  }
-
   function renderAll() {
     renderHeader();
     renderSidebar();
@@ -422,7 +439,7 @@
     setTimeout(() => toast.remove(), 2800);
   }
 
-  window.PIANO_APP = { state, DATA, persist, renderAll, updateNav, showToast, findSession, sessionsForWeek, currentWeekData, currentSessionData, streakCount, renderLibrary };
+  window.PIANO_APP = { state, DATA, persist, renderAll, updateNav, showToast, findSession, sessionsForWeek, currentWeekData, currentSessionData, streakCount, renderLibrary, isSessionComplete: isComplete };
 })();
 
 (() => {
@@ -443,6 +460,12 @@
   let rating = 3;
   let completionPreview = null;
   let deferredInstallPrompt = null;
+  const NOTE_FREQ = { C: 261.63, D: 293.66, E: 329.63, F: 349.23, G: 392, A: 440, B: 493.88 };
+  let noteGameIndex = 0;
+  let noteGameScore = 0;
+  let noteGameCombo = 0;
+  let noteGameCurrent = 'C';
+  let noteGameLocked = false;
 
   function formatClock(seconds) {
     const safe = Math.max(0, Math.round(seconds));
@@ -552,7 +575,12 @@
     const elapsed = Math.max(1, Math.round((Date.now() - (startedAt || Date.now())) / 60000));
     completionPreview = { session: { ...session }, elapsed };
     $('#lessonModal').classList.add('hidden');
-    $('#completeSummary').textContent = `${session.duration} 分钟 · ${session.steps.length} 个练习段落 · ${session.title}`;
+    const weekData = APP.currentWeekData();
+    const doneCount = weekData.sessions.filter((item) => APP.isSessionComplete(item.id)).length;
+    const remaining = Math.max(0, weekData.sessions.length - doneCount - 1);
+    $('#completeSummary').textContent = remaining
+      ? `${session.title} 已完成 · 完成后本周还剩 ${remaining} 次练习`
+      : `${session.title} 已完成 · 这是本周最后一次练习`;
     $('#completeStreak').textContent = APP.streakCount();
     $('#sessionNotes').value = '';
     rating = 3;
@@ -659,16 +687,6 @@
     }
   }
 
-  function openExcluded() {
-    $('#excludedModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeExcluded() {
-    $('#excludedModal').classList.add('hidden');
-    document.body.style.overflow = '';
-  }
-
   function youtubeId(url) {
     const match = String(url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/);
     return match ? match[1] : '';
@@ -692,7 +710,7 @@
       frame.innerHTML = `<div class="video-external-fallback"><img src="${escapeVideoHtml(video.image)}" alt="${escapeVideoHtml(video.title)}" referrerpolicy="no-referrer" onerror="this.src='assets/fallback.svg'"><span>该来源需在平台内观看</span></div>`;
     }
     $('#videoTitle').textContent = video.title;
-    $('#videoMeta').textContent = `${video.creator} · ${video.followers} · ${video.duration || '课程'} · ${video.credential || '来源已核验'}`;
+    $('#videoMeta').textContent = `${video.creator} · ${video.followers} · ${video.duration || '课程'} · ${video.credential || '专业课程'}`;
     $('#videoOpen').href = video.url;
     $('#videoModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -708,6 +726,9 @@
   let warmupBpm = 60;
   let warmupBeat = -1;
   let warmupPlaying = false;
+  let rhythmGameHits = 0;
+  let rhythmGameTotal = 0;
+  let rhythmGameLastBeatAt = 0;
 
   function stopWarmup() {
     clearInterval(warmupTimer);
@@ -721,8 +742,25 @@
 
   function openWarmup() {
     stopWarmup();
+    rhythmGameHits = 0;
+    rhythmGameTotal = 0;
     $('#warmupModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    updateRhythmScore();
+  }
+
+  function updateRhythmScore() {
+    const score = rhythmGameTotal ? Math.round((rhythmGameHits / rhythmGameTotal) * 100) : 0;
+    const scoreEl = $('#warmupScore');
+    if (scoreEl) scoreEl.textContent = `${score}%`;
+  }
+
+  function tapRhythm() {
+    if (!warmupPlaying) return;
+    const now = performance.now();
+    rhythmGameTotal += 1;
+    if (rhythmGameLastBeatAt && Math.abs(now - rhythmGameLastBeatAt) < 260) rhythmGameHits += 1;
+    updateRhythmScore();
   }
 
   function closeWarmup() {
@@ -743,7 +781,9 @@
     const tick = () => {
       warmupBeat = (warmupBeat + 1) % 4;
       $$('#beatVisual span').forEach((beat, index) => beat.classList.toggle('active', index === warmupBeat));
+      rhythmGameLastBeatAt = performance.now();
       if (warmupBeat === 0) {
+        rhythmGameLastBeatAt = performance.now();
         try {
           const AudioCtx = window.AudioContext || window.webkitAudioContext;
           if (AudioCtx) {
@@ -788,6 +828,94 @@
     $$('.install-button').forEach((button) => button.classList.add('hidden'));
   }
 
+  function playTone(freq=440) {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(.07, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .24);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + .25);
+      osc.onended = () => ctx.close();
+    } catch (error) {}
+  }
+
+  function updateNoteGame() {
+    document.querySelector('#noteGameProgress').textContent = `${Math.min(noteGameIndex + 1, 10)} / 10`;
+    document.querySelector('#noteGameScore').textContent = noteGameScore;
+    document.querySelector('#noteGameCombo').textContent = noteGameCombo;
+  }
+
+  function newNoteQuestion() {
+    const notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const pool = notes.filter((note) => note !== noteGameCurrent);
+    noteGameCurrent = pool[Math.floor(Math.random() * pool.length)];
+    noteGameLocked = false;
+    document.querySelector('#noteGameQuestion').textContent = noteGameCurrent;
+    document.querySelector('#noteGameFeedback').textContent = '点击下方正确的白键';
+    document.querySelectorAll('.note-key').forEach((key) => key.classList.remove('correct', 'wrong'));
+    updateNoteGame();
+  }
+
+  function openNoteGame() {
+    noteGameIndex = 0;
+    noteGameScore = 0;
+    noteGameCombo = 0;
+    noteGameCurrent = 'C';
+    newNoteQuestion();
+    const best = localStorage.getItem('pianopath-note-game-best');
+    document.querySelector('#noteGameBest').textContent = best || '—';
+    document.querySelector('#noteGameModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeNoteGame() {
+    document.querySelector('#noteGameModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function chooseNote(note, keyElement) {
+    if (noteGameLocked) return;
+    if (note === noteGameCurrent) {
+      noteGameLocked = true;
+      noteGameCombo += 1;
+      noteGameScore += 10 + (noteGameCombo - 1) * 2;
+      keyElement.classList.add('correct');
+      playTone(NOTE_FREQ[note]);
+      document.querySelector('#noteGameFeedback').textContent = noteGameCombo >= 3 ? `连对 ${noteGameCombo} 题，漂亮！` : '答对了，继续！';
+      noteGameIndex += 1;
+      updateNoteGame();
+      if (noteGameIndex >= 10) {
+        setTimeout(finishNoteGame, 550);
+      } else {
+        setTimeout(newNoteQuestion, 620);
+      }
+    } else {
+      noteGameCombo = 0;
+      keyElement.classList.add('wrong');
+      document.querySelector('#noteGameFeedback').textContent = `这是 ${note}，再找找 ${noteGameCurrent}`;
+      updateNoteGame();
+      setTimeout(() => keyElement.classList.remove('wrong'), 300);
+    }
+  }
+
+  function finishNoteGame() {
+    const best = Number(localStorage.getItem('pianopath-note-game-best') || 0);
+    if (noteGameScore > best) {
+      localStorage.setItem('pianopath-note-game-best', String(noteGameScore));
+      document.querySelector('#noteGameBest').textContent = noteGameScore;
+    }
+    document.querySelector('#noteGameFeedback').textContent = `完成 10 题，得分 ${noteGameScore}。${noteGameScore >= 120 ? '节奏感很棒！' : '再来一局会更准。'}`;
+    document.querySelector('#noteGameQuestion').textContent = '✓';
+    document.querySelector('#noteGameProgress').textContent = '完成';
+  }
+
   function bindEvents() {
     document.addEventListener('click', (event) => {
       const nav = event.target.closest('[data-nav]');
@@ -827,33 +955,21 @@
     });
 
     $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
-    $('#startSessionCircle').addEventListener('click', () => openSession(APP.currentSessionData().id));
-    $('#openTodayDetail').addEventListener('click', () => openSession(APP.currentSessionData().id));
-    $('#previewPlan').addEventListener('click', () => APP.updateNav('path'));
-    $('#searchButton').addEventListener('click', () => {
+    $('#routeWarmup')?.addEventListener('click', openWarmup);
+    $('#routeReview')?.addEventListener('click', () => APP.updateNav('stats'));
+    $('#startRhythmGame')?.addEventListener('click', openNoteGame);
+    $('#openTodayDetail')?.addEventListener('click', () => APP.updateNav('path'));
+    $('#searchButton')?.addEventListener('click', () => {
       APP.updateNav('library');
       setTimeout(() => { $('#librarySearch')?.focus(); }, 160);
     });
-    $('#themeToggle').addEventListener('click', () => {
+    $('#themeToggle')?.addEventListener('click', () => {
       const dark = document.documentElement.dataset.theme !== 'dark';
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       localStorage.setItem('pianopath-theme', dark ? 'dark' : 'light');
       document.documentElement.classList.add('theme-transition');
       setTimeout(() => document.documentElement.classList.remove('theme-transition'), 320);
     });
-    $('#onboardingStart').addEventListener('click', () => {
-      localStorage.setItem('pianopath-onboarded', '1');
-      openWarmup();
-    });
-    $('#onboardingClose').addEventListener('click', () => {
-      localStorage.setItem('pianopath-onboarded', '1');
-      $('#onboardingStrip').classList.add('hidden');
-    });
-    $('#activityWarmup').addEventListener('click', openWarmup);
-    $('#openDailyChallenge').addEventListener('click', openWarmup);
-    $('#activitySight').addEventListener('click', () => openSession(APP.currentSessionData().id));
-    $('#activityRecord').addEventListener('click', () => openSession(APP.currentSessionData().id));
-    $('#activityCourse').addEventListener('click', () => APP.updateNav('library'));
     $('#closeLesson').addEventListener('click', closeSession);
     $('#completeStep').addEventListener('click', () => {
       if (stepIndex >= session.steps.length - 1) finishSession();
@@ -872,29 +988,31 @@
       rating = Number(button.dataset.rating);
       $$('#ratingRow button').forEach((item) => item.classList.toggle('selected', item === button));
     });
-    $('#openSettings').addEventListener('click', openSettings);
-    $('#profileButton').addEventListener('click', openSettings);
-    $('#streakButton').addEventListener('click', () => APP.updateNav('stats'));
-    $('#customizeTop').addEventListener('click', openSettings);
-    $('#closeSettings').addEventListener('click', closeSettings);
-    $('#planForm').addEventListener('submit', generatePlan);
+    $('#openSettings')?.addEventListener('click', openSettings);
+    $('#profileButton')?.addEventListener('click', openSettings);
+    $('#streakButton')?.addEventListener('click', () => APP.updateNav('stats'));
+    $('#customizeTop')?.addEventListener('click', openSettings);
+    $('#closeSettings')?.addEventListener('click', closeSettings);
+    $('#planForm')?.addEventListener('submit', generatePlan);
     $$('select[name="weeklyMinutes"], select[name="daysPerWeek"]').forEach((select) => {
       select.addEventListener('change', updateDerivedMinutes);
     });
-    $('#resetPlan').addEventListener('click', () => {
+    $('#resetPlan')?.addEventListener('click', () => {
       state.profile = { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '' };
       APP.persist();
       APP.renderAll();
       closeSettings();
       APP.showToast('已恢复默认：每周 4 小时，4 次 × 60 分钟。');
     });
-    $('#showExcluded').addEventListener('click', openExcluded);
-    $('#closeExcluded').addEventListener('click', closeExcluded);
-    $('#closeVideo').addEventListener('click', closeVideo);
-    $('#closeWarmup').addEventListener('click', closeWarmup);
+    $('#closeVideo')?.addEventListener('click', closeVideo);
+    $('#closeWarmup')?.addEventListener('click', closeWarmup);
     $('#installApp')?.addEventListener('click', installApp);
     $('#installAppModal')?.addEventListener('click', installApp);
-    $('#warmupToggle').addEventListener('click', toggleWarmup);
+    $('#noteGameRestart')?.addEventListener('click', openNoteGame);
+    $('#closeNoteGame')?.addEventListener('click', closeNoteGame);
+    $$('.note-key').forEach((key) => key.addEventListener('click', () => chooseNote(key.dataset.note, key)));
+    $$('#beatVisual span').forEach((beat) => beat.addEventListener('click', tapRhythm));
+    $('#warmupToggle')?.addEventListener('click', toggleWarmup);
     $$('.warmup-options button').forEach((button) => {
       button.addEventListener('click', () => {
         warmupBpm = Number(button.dataset.bpm);
@@ -903,10 +1021,10 @@
         if (warmupPlaying) { stopWarmup(); toggleWarmup(); }
       });
     });
-    $('#librarySearch').addEventListener('input', (event) => {
+    $('#librarySearch')?.addEventListener('input', (event) => {
       APP.renderLibrary(undefined, event.target.value);
     });
-    $('#clearHistory').addEventListener('click', () => {
+    $('#clearHistory')?.addEventListener('click', () => {
       if (!confirm('只清除本浏览器中的练习记录，确认吗？')) return;
       state.completed = {};
       state.history = [];
@@ -914,7 +1032,7 @@
       APP.renderAll();
       APP.showToast('本地练习记录已清除。');
     });
-    $('#exportData').addEventListener('click', () => {
+    $('#exportData')?.addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -927,17 +1045,17 @@
       backdrop.addEventListener('click', (event) => {
         if (event.target !== backdrop) return;
         if (backdrop.id === 'settingsModal') closeSettings();
-        else if (backdrop.id === 'excludedModal') closeExcluded();
         else if (backdrop.id === 'warmupModal') closeWarmup();
+        else if (backdrop.id === 'noteGameModal') closeNoteGame();
         else if (backdrop.id === 'videoModal') closeVideo();
       });
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         if (!$('#settingsModal').classList.contains('hidden')) closeSettings();
-        else if (!$('#excludedModal').classList.contains('hidden')) closeExcluded();
         else if (!$('#videoModal').classList.contains('hidden')) closeVideo();
         else if (!$('#warmupModal').classList.contains('hidden')) closeWarmup();
+        else if (!$('#noteGameModal').classList.contains('hidden')) closeNoteGame();
       }
     });
   }

@@ -236,6 +236,13 @@
       <button class="icon-button modal-close" id="closeAccount" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="account-brand"><span class="account-logo">♪</span><div><span class="eyebrow">PIANOPATH ACCOUNT</span><h2 id="accountTitle">保存你的学习进度</h2></div></div>
       <p class="account-intro" id="accountIntro">登录后，课程、XP 和每日任务会在设备间同步。游客模式也可以继续使用。</p>
+      <div class="local-only-panel hidden" id="localOnlyPanel">
+        <div class="local-only-icon">⌂</div>
+        <strong>当前是在线体验版</strong>
+        <p>课程、XP、每日任务和最佳成绩会保存在这台设备的浏览器中。跨设备登录同步需要启用 PianoPath 服务端。</p>
+        <div class="local-only-checklist"><span>✓ 课程完整可用</span><span>✓ 离线可打开</span><span>✓ 本机自动保存</span></div>
+        <button type="button" class="btn btn-primary full-width" id="continueLocal">继续今日练习</button>
+      </div>
       <div class="account-tabs" id="accountTabs">
         <button type="button" class="account-tab active" data-account-mode="login">登录</button>
         <button type="button" class="account-tab" data-account-mode="register">创建账户</button>

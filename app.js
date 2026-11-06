@@ -1215,6 +1215,7 @@
     document.querySelector('#accountForm')?.addEventListener('submit', submitAccount);
     document.querySelector('#closeAccount')?.addEventListener('click', closeAccount);
     document.querySelector('#continueGuest')?.addEventListener('click', closeAccount);
+    document.querySelector('#continueLocal')?.addEventListener('click', closeAccount);
     document.querySelector('#accountSyncNow')?.addEventListener('click', () => syncNow({ force: true }));
     document.querySelector('#accountLogout')?.addEventListener('click', logoutAccount);
     window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
@@ -1399,7 +1400,22 @@
     const logged = document.querySelector('#accountLoggedIn');
     const intro = document.querySelector('#accountIntro');
     const note = document.querySelector('.account-note');
+    const localOnly = document.querySelector('#localOnlyPanel');
     if (!form) return;
+    if (STATIC_HOST) {
+      form.classList.add('hidden');
+      tabs?.classList.add('hidden');
+      divider?.classList.add('hidden');
+      guest?.classList.add('hidden');
+      note?.classList.add('hidden');
+      logged?.classList.add('hidden');
+      localOnly?.classList.remove('hidden');
+      if (intro) intro.textContent = '在线体验版无需注册。你的学习进度会自动保存在当前浏览器。';
+      document.querySelector('#sideUserName').textContent = '练琴人';
+      document.querySelector('#sideAvatar').textContent = 'C';
+      return;
+    }
+    localOnly?.classList.add('hidden');
     form.classList.toggle('hidden', accountState.loggedIn);
     tabs?.classList.toggle('hidden', accountState.loggedIn);
     divider?.classList.toggle('hidden', accountState.loggedIn);
@@ -1436,7 +1452,7 @@
       accountState.user = data.user || null;
       showAccountView();
       setSyncStatus(accountState.loggedIn ? '账户已连接' : '本地保存', accountState.loggedIn ? 'synced' : '');
-      if (accountState.loggedIn) setSyncStatus('账户已连接', 'synced');
+      if (accountState.loggedIn) await syncNow({ pull: true });
     } catch (error) {
       accountState.loggedIn = false;
       accountState.user = null;
@@ -1555,7 +1571,18 @@
             setSyncStatus('已恢复云端进度', 'synced');
             return result;
           }
-          accountState.syncRevision = result.revision;
+          const latest = await fetch('/api/sync', { cache: 'no-store', credentials: 'same-origin' }).then((r) => r.json()).catch(() => null);
+          accountState.syncRevision = latest?.revision ?? result.revision;
+          const latestHistory = latest?.state?.history?.length || 0;
+          if (latest?.state && latestHistory > localHistory) {
+            try { localStorage.setItem(`pianopath-conflict-backup-${new Date().toISOString().slice(0, 10)}`, JSON.stringify(APP.state)); } catch (error) {}
+            APP.replaceState(latest.state);
+            APP.persist({ sync: false });
+            APP.renderAll();
+            updateProgressDisplay();
+            setSyncStatus('已恢复云端进度', 'synced');
+            return latest;
+          }
           return syncNow();
         }
         if (response.status === 401) {

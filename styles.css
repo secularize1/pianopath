@@ -979,3 +979,11 @@ body.modal-open { overflow:hidden; }
 .sync-status-bar { display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; margin-top:8px; border-radius:7px; background:#f4f7f1; color:#98a49b; font-size:8px; }
 .sync-status-bar .sync-dot { width:5px; height:5px; background:#b6c1b7; }.sync-status-bar.synced .sync-dot { background:#5eb473; }.sync-status-bar.error .sync-dot { background:#d28771; }
 @media(max-width:540px){ .account-card{padding:21px 16px 17px}.account-brand h2{font-size:19px}.account-logo{width:40px;height:40px;font-size:22px}.account-actions{flex-wrap:wrap}.account-actions .btn{flex:1}.account-actions .text-button{width:100%;text-align:center} }
+
+/* Static deployment: make local-only mode explicit instead of showing an unusable login. */
+.local-only-panel { padding:15px; border:1px solid #dce8d8; border-radius:13px; background:#f7fbf4; margin:16px 0 2px; }
+.local-only-icon { width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:#e6f4e1; color:#498b59; font-size:17px; margin-bottom:9px; }
+.local-only-panel strong { display:block; color:#385841; font-size:12px; }
+.local-only-panel p { margin:6px 0 11px; color:#829187; font-size:9px; line-height:1.7; }
+.local-only-checklist { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:13px; }
+.local-only-checklist span { padding:4px 6px; border-radius:5px; background:#eaf4e7; color:#63916d; font-size:8px; }

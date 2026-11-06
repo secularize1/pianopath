@@ -1026,6 +1026,13 @@ body.modal-open { overflow:hidden; }
 .placement-result-panel strong { display:block; margin-top:6px; color:#3f7e4e; font-size:25px; letter-spacing:-.6px; }
 .placement-result-panel p { margin:7px 0 15px; color:#8c998f; font-size:9px; line-height:1.7; }
 @media(max-width:540px){ .placement-card{padding:21px 16px}.placement-card h2{font-size:22px}.placement-question{font-size:12px}.placement-option{font-size:9px} }
+.review-card { margin-top:15px; padding:18px; }
+.review-list { display:grid; gap:7px; }
+.review-item { display:flex; align-items:center; gap:9px; padding:10px; border:1px solid #edf0ea; border-radius:10px; background:#fbfcf9; text-align:left; color:#67796c; }
+.review-item:hover { border-color:#bcd8c1; background:#f5fbf4; }
+.review-number { display:grid; place-items:center; width:23px; height:23px; flex:0 0 auto; border-radius:7px; background:#f8eeca; color:#aa8730; font-size:9px; font-weight:800; }
+.review-item > span:nth-child(2) { flex:1; min-width:0; }.review-item strong { display:block; font-size:10px; }.review-item small { display:block; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#9ba79e; font-size:8px; }.review-item em { font-style:normal; color:#4d965f; font-size:8px; font-weight:800; }
+.review-empty { padding:12px 2px; color:#9ba79e; font-size:9px; }
 
 </style>
 </head>
@@ -1119,6 +1126,7 @@ body.modal-open { overflow:hidden; }
             <div class="home-secondary">
               <button class="home-warm-link" id="routeWarmup" type="button">♩ 先做 3 分钟节拍热身</button>
               <button class="home-warm-link quick-link" id="quickPractice" type="button">只有 5 分钟？快练一下 →</button>
+              <button class="home-warm-link" id="homeReview" type="button">复习弱点 →</button>
             </div>
           </div>
           <div class="home-start-art" aria-hidden="true">
@@ -1228,6 +1236,10 @@ body.modal-open { overflow:hidden; }
             <div class="section-heading compact"><div><span class="eyebrow">WEEKLY</span><h3>最近 6 周</h3></div></div>
             <div class="bar-chart" id="barChart"></div>
           </article>
+        </section>
+        <section class="card review-card" id="reviewCard">
+          <div class="section-heading compact"><div><span class="eyebrow">SMART REVIEW</span><h3>今天该复习什么</h3></div><span class="tiny-pill" id="reviewCount">0 项</span></div>
+          <div class="review-list" id="reviewList"></div>
         </section>
         <section class="card history-card">
           <div class="section-heading compact"><div><span class="eyebrow">HISTORY</span><h3>最近练习</h3></div><button class="text-button" id="clearHistory" type="button">清除本地记录</button></div>
@@ -1411,7 +1423,7 @@ body.modal-open { overflow:hidden; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.5 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.6 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -1482,7 +1494,7 @@ window.PIANO_DATA = {
       "播放量不作为唯一权威依据；粉丝量也不等于教学质量，仍以课程结构、专业资历和适用性二次筛选。"
     ],
     "localePolicy": "默认隐藏需翻墙的资源；教学库可切换“国内可用/全部来源”。",
-    "appVersion": "1.5.0",
+    "appVersion": "1.6.0",
     "resourceMode": "国内优先"
   },
   "weeks": [
@@ -7730,6 +7742,36 @@ window.PIANO_DATA = {
     $('#statSessionsHint').textContent = sessions ? `完成率 ${Math.round((sessions / 48) * 100)}%` : '第一周还在等你';
     $('#statSight').innerHTML = `${sight} <small>次</small>`;
 
+    const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.rating <= 2 || entry.notes));
+    const reviewList = document.querySelector('#reviewList');
+    if (reviewList) {
+      const unique = [];
+      const seen = new Set();
+      for (const entry of reviewEntries) {
+        const key = entry.id;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        unique.push(entry);
+        if (unique.length >= 4) break;
+      }
+      reviewList.innerHTML = unique.length ? unique.map((entry, index) => `<button type="button" class="review-item" data-review-index="${index}"><span class="review-number">${index + 1}</span><span><strong>${escapeHtml(entry.title.replace('5 分钟快练：',''))}</strong><small>${entry.rating <= 2 ? '上次感觉有点卡 · ' : ''}${escapeHtml(entry.notes || '重练最不稳的两小节')}</small></span><em>复习 →</em></button>`).join('') : '<div class="review-empty">完成一次课程后，这里会出现需要回练的内容。</div>';
+      document.querySelector('#reviewCount').textContent = `${unique.length} 项`;
+      reviewList.querySelectorAll('[data-review-index]').forEach((button) => button.addEventListener('click', () => {
+        const entry = unique[Number(button.dataset.reviewIndex)];
+        const sourceId = entry.sourceId || entry.id.replace(/-quick$/, '').replace(/-review-.*$/, '');
+        const found = window.PIANO_APP.findSession(sourceId);
+        if (found) {
+          const reviewSession = { ...found, id: `${found.id}-review-${Date.now()}`, sourceId: found.id, title: `复习：${found.title}`, duration: 10, quick: true, steps: [
+            { start: 0, end: 2, minutes: 2, title: '旧问题定位', category: '复习', detail: entry.notes || '先找到上次最不稳的两小节。', cue: '不从头弹' },
+            { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: found.steps[2]?.detail || found.goal, cue: '分手、慢速、连续三次正确' },
+            { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
+            { start: 9, end: 10, minutes: 1, title: '记录新状态', category: '反馈', detail: '再听/再弹一次，写下现在的感受。', cue: '只记一个变化' }
+          ] };
+          window.PIANO_OPEN_SESSION?.(reviewSession);
+        }
+      }));
+    }
+
     const heatmap = $('#heatmap');
     heatmap.innerHTML = Array.from({ length: 84 }, (_, index) => {
       const date = dateFromOffset(index - 83);
@@ -8210,6 +8252,7 @@ window.PIANO_DATA = {
     const now = new Date();
     const entry = {
       id: finished.id,
+      sourceId: finished.sourceId || finished.id.replace(/-quick$/, ''),
       title: finished.title,
       week: finished.week,
       date: finished.date || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,
@@ -8691,6 +8734,7 @@ window.PIANO_DATA = {
     document.querySelector('#closePlacement')?.addEventListener('click', closePlacement);
     document.querySelector('#usePlacement')?.addEventListener('click', usePlacement);
     document.querySelector('#quickPractice')?.addEventListener('click', openQuickPractice);
+    document.querySelector('#homeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     document.querySelectorAll('.note-mode').forEach((button) => button.addEventListener('click', () => setNoteGameMode(button.dataset.gameMode)));
     document.querySelector('#noteReplay')?.addEventListener('click', () => playTone(NOTE_FREQ[noteGameCurrent], .38));
     document.querySelector('#closeOnboarding')?.addEventListener('click', closeOnboarding);
@@ -8815,6 +8859,7 @@ window.PIANO_DATA = {
   }
 
   APP.openSession = openSession;
+  window.PIANO_OPEN_SESSION = openSession;
   APP.openSettings = openSettings;
   APP.openOnboarding = () => openOnboarding(true);
   APP.openPlacement = openPlacement;

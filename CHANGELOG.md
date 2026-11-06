@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.0 — 2026-11-06
+
+- Added smart review cards from low ratings and practice notes.
+- Added 10-minute targeted review sessions that do not overwrite lesson completion.
+- Added home entry for reviewing weak spots.
+- Fixed review session source lookup and preserved source lesson IDs.
+
 ## 1.5.0 — 2026-11-06
 
 - Added a five-question placement assessment with week 1/3/5/7/9 starting points.

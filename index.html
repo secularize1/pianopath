@@ -106,6 +106,7 @@
             <div class="home-secondary">
               <button class="home-warm-link" id="routeWarmup" type="button">♩ 先做 3 分钟节拍热身</button>
               <button class="home-warm-link quick-link" id="quickPractice" type="button">只有 5 分钟？快练一下 →</button>
+              <button class="home-warm-link" id="homeReview" type="button">复习弱点 →</button>
             </div>
           </div>
           <div class="home-start-art" aria-hidden="true">
@@ -215,6 +216,10 @@
             <div class="section-heading compact"><div><span class="eyebrow">WEEKLY</span><h3>最近 6 周</h3></div></div>
             <div class="bar-chart" id="barChart"></div>
           </article>
+        </section>
+        <section class="card review-card" id="reviewCard">
+          <div class="section-heading compact"><div><span class="eyebrow">SMART REVIEW</span><h3>今天该复习什么</h3></div><span class="tiny-pill" id="reviewCount">0 项</span></div>
+          <div class="review-list" id="reviewList"></div>
         </section>
         <section class="card history-card">
           <div class="section-heading compact"><div><span class="eyebrow">HISTORY</span><h3>最近练习</h3></div><button class="text-button" id="clearHistory" type="button">清除本地记录</button></div>
@@ -398,7 +403,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.5 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.6 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

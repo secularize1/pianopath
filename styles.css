@@ -1010,3 +1010,10 @@ body.modal-open { overflow:hidden; }
 .placement-result-panel strong { display:block; margin-top:6px; color:#3f7e4e; font-size:25px; letter-spacing:-.6px; }
 .placement-result-panel p { margin:7px 0 15px; color:#8c998f; font-size:9px; line-height:1.7; }
 @media(max-width:540px){ .placement-card{padding:21px 16px}.placement-card h2{font-size:22px}.placement-question{font-size:12px}.placement-option{font-size:9px} }
+.review-card { margin-top:15px; padding:18px; }
+.review-list { display:grid; gap:7px; }
+.review-item { display:flex; align-items:center; gap:9px; padding:10px; border:1px solid #edf0ea; border-radius:10px; background:#fbfcf9; text-align:left; color:#67796c; }
+.review-item:hover { border-color:#bcd8c1; background:#f5fbf4; }
+.review-number { display:grid; place-items:center; width:23px; height:23px; flex:0 0 auto; border-radius:7px; background:#f8eeca; color:#aa8730; font-size:9px; font-weight:800; }
+.review-item > span:nth-child(2) { flex:1; min-width:0; }.review-item strong { display:block; font-size:10px; }.review-item small { display:block; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#9ba79e; font-size:8px; }.review-item em { font-style:normal; color:#4d965f; font-size:8px; font-weight:800; }
+.review-empty { padding:12px 2px; color:#9ba79e; font-size:9px; }

@@ -60,6 +60,36 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     await page.waitForTimeout(500);
     assert.equal(await page.locator('#homeWeekTrail .week-trail-item.done').count(), 1, `${name}: quick practice should preserve completed lesson only`);
 
+    // Weakness review: create a low-rated lesson record with a concrete note,
+    // then verify that the review card can open a 10-minute targeted session.
+    if (await page.locator('#lessonModal').isVisible().catch(() => false)) {
+      await page.locator('#closeLesson').click();
+      await page.waitForTimeout(200);
+    }
+    await page.locator('#startToday').click();
+    await page.waitForTimeout(250);
+    await page.locator('#finishSession').click();
+    await page.waitForTimeout(250);
+    await page.locator('[data-rating="2"]').click();
+    await page.locator('#sessionNotes').fill('右手第 4 小节换和弦不稳');
+    await page.locator('#saveCompletion').click();
+    await page.waitForTimeout(500);
+    if (await page.locator('#lessonModal').isVisible().catch(() => false)) {
+      await page.locator('#closeLesson').click();
+      await page.waitForTimeout(250);
+    }
+    await page.locator('#homeReview').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('#reviewCard').isVisible(), true, `${name}: review card missing`);
+    assert.ok(await page.locator('.review-item').count() > 0, `${name}: review item missing`);
+    await page.locator('.review-item').first().click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: review session did not open`);
+    assert.equal(await page.locator('#lessonSteps .lesson-step').count(), 4, `${name}: review session should have 4 steps`);
+    assert.match(await page.locator('#lessonTitle').innerText(), /^复习：/, `${name}: wrong review title`);
+    await page.locator('#closeLesson').click();
+    await page.waitForTimeout(200);
+
     // Placement runs during first-run onboarding, before onboarding is completed.
     // This smoke test has already passed onboarding, so exercise the exposed entry point directly.
     if (await page.locator('#lessonModal').isVisible().catch(() => false)) {
@@ -78,6 +108,8 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     await page.locator('#usePlacement').click();
     await page.waitForTimeout(300);
 
+    if (name === 'mobile') await page.locator('.mobile-nav [data-nav="today"]').click(); else await page.locator('.sidebar .nav-item[data-nav="today"]').click();
+    await page.waitForTimeout(250);
     await page.locator('#startRhythmGame').click();
     await page.waitForTimeout(350);
     assert.equal(await page.locator('#noteGameModal').isVisible(), true, `${name}: game modal missing`);

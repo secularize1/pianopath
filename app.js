@@ -427,6 +427,36 @@
     $('#statSessionsHint').textContent = sessions ? `完成率 ${Math.round((sessions / 48) * 100)}%` : '第一周还在等你';
     $('#statSight').innerHTML = `${sight} <small>次</small>`;
 
+    const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.rating <= 2 || entry.notes));
+    const reviewList = document.querySelector('#reviewList');
+    if (reviewList) {
+      const unique = [];
+      const seen = new Set();
+      for (const entry of reviewEntries) {
+        const key = entry.id;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        unique.push(entry);
+        if (unique.length >= 4) break;
+      }
+      reviewList.innerHTML = unique.length ? unique.map((entry, index) => `<button type="button" class="review-item" data-review-index="${index}"><span class="review-number">${index + 1}</span><span><strong>${escapeHtml(entry.title.replace('5 分钟快练：',''))}</strong><small>${entry.rating <= 2 ? '上次感觉有点卡 · ' : ''}${escapeHtml(entry.notes || '重练最不稳的两小节')}</small></span><em>复习 →</em></button>`).join('') : '<div class="review-empty">完成一次课程后，这里会出现需要回练的内容。</div>';
+      document.querySelector('#reviewCount').textContent = `${unique.length} 项`;
+      reviewList.querySelectorAll('[data-review-index]').forEach((button) => button.addEventListener('click', () => {
+        const entry = unique[Number(button.dataset.reviewIndex)];
+        const sourceId = entry.sourceId || entry.id.replace(/-quick$/, '').replace(/-review-.*$/, '');
+        const found = window.PIANO_APP.findSession(sourceId);
+        if (found) {
+          const reviewSession = { ...found, id: `${found.id}-review-${Date.now()}`, sourceId: found.id, title: `复习：${found.title}`, duration: 10, quick: true, steps: [
+            { start: 0, end: 2, minutes: 2, title: '旧问题定位', category: '复习', detail: entry.notes || '先找到上次最不稳的两小节。', cue: '不从头弹' },
+            { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: found.steps[2]?.detail || found.goal, cue: '分手、慢速、连续三次正确' },
+            { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
+            { start: 9, end: 10, minutes: 1, title: '记录新状态', category: '反馈', detail: '再听/再弹一次，写下现在的感受。', cue: '只记一个变化' }
+          ] };
+          window.PIANO_OPEN_SESSION?.(reviewSession);
+        }
+      }));
+    }
+
     const heatmap = $('#heatmap');
     heatmap.innerHTML = Array.from({ length: 84 }, (_, index) => {
       const date = dateFromOffset(index - 83);
@@ -907,6 +937,7 @@
     const now = new Date();
     const entry = {
       id: finished.id,
+      sourceId: finished.sourceId || finished.id.replace(/-quick$/, ''),
       title: finished.title,
       week: finished.week,
       date: finished.date || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,
@@ -1388,6 +1419,7 @@
     document.querySelector('#closePlacement')?.addEventListener('click', closePlacement);
     document.querySelector('#usePlacement')?.addEventListener('click', usePlacement);
     document.querySelector('#quickPractice')?.addEventListener('click', openQuickPractice);
+    document.querySelector('#homeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     document.querySelectorAll('.note-mode').forEach((button) => button.addEventListener('click', () => setNoteGameMode(button.dataset.gameMode)));
     document.querySelector('#noteReplay')?.addEventListener('click', () => playTone(NOTE_FREQ[noteGameCurrent], .38));
     document.querySelector('#closeOnboarding')?.addEventListener('click', closeOnboarding);
@@ -1512,6 +1544,7 @@
   }
 
   APP.openSession = openSession;
+  window.PIANO_OPEN_SESSION = openSession;
   APP.openSettings = openSettings;
   APP.openOnboarding = () => openOnboarding(true);
   APP.openPlacement = openPlacement;

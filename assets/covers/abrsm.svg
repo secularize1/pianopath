@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#e5f0e1"/><stop offset="1" stop-color="#f6edcc"/></linearGradient></defs>
+  <rect width="1200" height="675" fill="url(#g)"/>
+  <circle cx="1010" cy="90" r="220" fill="none" stroke="#4e765b" opacity=".12"/>
+  <circle cx="1010" cy="90" r="145" fill="none" stroke="#4e765b" opacity=".12"/>
+  <text x="90" y="195" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="5" fill="#68806e">ABRSM</text>
+  <text x="90" y="310" font-family="Arial, sans-serif" font-size="64" font-weight="700" fill="#2e4a38">Piano Syllabus</text>
+  <text x="90" y="365" font-family="Arial, sans-serif" font-size="21" fill="#6d8473">Assessment · Repertoire · Progression</text>
+  <g fill="#3a5b45" opacity=".35">
+    <ellipse cx="870" cy="405" rx="18" ry="12" transform="rotate(-20 870 405)"/><path d="M885 321v84" stroke-width="4"/>
+    <ellipse cx="978" cy="335" rx="18" ry="12" transform="rotate(-20 978 335)"/><path d="M993 251v84" stroke-width="4"/>
+    <ellipse cx="1080" cy="400" rx="18" ry="12" transform="rotate(-20 1080 400)"/><path d="M1095 316v84" stroke-width="4"/>
+  </g>
+</svg>

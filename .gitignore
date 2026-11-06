@@ -1,0 +1,9 @@
+node_modules/
+__pycache__/
+*.pyc
+data/state.json
+data/backups/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

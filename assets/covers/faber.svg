@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#e6efe1"/><stop offset="1" stop-color="#f5d9ca"/></linearGradient></defs>
+  <rect width="1200" height="675" fill="url(#g)"/>
+  <rect x="85" y="90" width="12" height="470" rx="6" fill="#4f785a" opacity=".45"/>
+  <text x="135" y="200" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="4" fill="#6d7a69">FABER PIANO ADVENTURES</text>
+  <text x="135" y="310" font-family="Arial, sans-serif" font-size="61" font-weight="700" fill="#354b3a">Adult Piano</text>
+  <text x="135" y="370" font-family="Arial, sans-serif" font-size="21" fill="#728073">Technique · Theory · Sightreading · Repertoire</text>
+  <g transform="translate(905 175)" opacity=".42">
+    <rect x="0" y="0" width="185" height="265" rx="10" fill="#fff" stroke="#526b58" stroke-width="4"/>
+    <path d="M38 0v156M88 0v156M138 0v156" stroke="#526b58" stroke-width="5"/>
+    <path d="M48 0v74h30V0M98 0v74h30V0" fill="#526b58"/>
+    <circle cx="68" cy="195" r="15" fill="#526b58"/><path d="M82 135v60" stroke="#526b58" stroke-width="4"/>
+  </g>
+</svg>

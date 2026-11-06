@@ -1,0 +1,17 @@
+{
+  "name": "琴阶 PianoPath",
+  "short_name": "琴阶",
+  "description": "每周 4 小时钢琴学习路径：逐分钟练习、国内教学资源、打卡与个性化计划。",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f7f2",
+  "theme_color": "#3c9d5b",
+  "categories": ["education", "music"],
+  "icons": [
+    {"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

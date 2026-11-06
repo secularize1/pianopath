@@ -372,6 +372,7 @@
             <div class="timer-actions">
               <button class="timer-control" id="timerToggle" aria-label="暂停计时"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
               <button class="metronome-button" id="metronomeToggle" type="button" aria-label="开启节拍器" aria-pressed="false"><span class="metro-icon">♩</span><span id="metronomeLabel">节拍</span></button>
+              <button class="checkpoint-button" id="openCheckpoint" type="button">◎ 掌握检查</button>
               <button class="btn btn-primary" id="completeStep" type="button">完成这一段</button>
             </div>
           </div>
@@ -380,6 +381,15 @@
             <div><small>现在做</small><h3 id="stepTitle">身体校准</h3><p id="stepDetail"></p><div class="cue" id="stepCue"></div></div>
           </article>
           <div class="lesson-source" id="lessonSource"></div>
+          <section class="checkpoint-panel hidden" id="checkpointPanel">
+            <div class="checkpoint-head"><span class="eyebrow">MASTERY CHECK</span><button type="button" class="text-button" id="closeCheckpoint">返回练习</button></div>
+            <div class="checkpoint-progress"><span id="checkpointProgress">1 / 3</span><div><i id="checkpointProgressBar"></i></div></div>
+            <h3 id="checkpointQuestion">本周技术重点是什么？</h3>
+            <div class="checkpoint-options" id="checkpointOptions"></div>
+            <div class="checkpoint-feedback" id="checkpointFeedback"></div>
+            <button class="btn btn-primary full-width hidden" id="checkpointNext" type="button">下一题</button>
+            <div class="checkpoint-done hidden" id="checkpointDone"><strong id="checkpointScore">2 / 3</strong><p id="checkpointMessage"></p><button class="btn btn-soft full-width" id="checkpointFinish" type="button">回到练习</button></div>
+          </section>
         </section>
         <aside class="lesson-plan">
           <div class="lesson-plan-head"><strong id="lessonPlanLength">今天的 60 分钟</strong><span id="lessonClock">剩余 60:00</span></div>
@@ -396,7 +406,7 @@
       <span class="eyebrow">SESSION COMPLETE</span>
       <h2>今天的声音，已经留下。</h2>
       <p id="completeSummary">60 分钟 · 7 个练习段落</p>
-      <div class="complete-stats"><span><strong id="completeXp">+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong id="completeSessionCount">1</strong><small>完成课次</small></span></div>
+      <div class="complete-stats"><span><strong id="completeXp">+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong id="completeSessionCount">1</strong><small>完成课次</small></span><span><strong id="completeMastery">—</strong><small>掌握检查</small></span></div>
       <div class="rating-label">今天练得怎么样？</div>
       <div class="rating-row" id="ratingRow"><button data-rating="1">需要帮助</button><button data-rating="2">有点卡</button><button data-rating="3">刚刚好</button><button data-rating="4">很顺</button></div>
       <label class="notes-field"><span>留一句给下次的自己</span><textarea id="sessionNotes" placeholder="例如：F→G 换和弦提前半拍看左手。"></textarea></label>
@@ -425,7 +435,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.7 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.8 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

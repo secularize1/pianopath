@@ -15,6 +15,7 @@
     repertoire: {},
     placement: null,
     quickPractice: null,
+    mastery: {},
     serverPlan: null,
     settingsSource: 'local'
   };
@@ -642,6 +643,121 @@
     });
   }
 
+  let checkpointQuestions = [];
+  let checkpointIndex = 0;
+  let checkpointCorrect = 0;
+  let checkpointAnswered = false;
+
+  function checkpointQuestionSet(step) {
+    const base = [
+      {
+        q: `这一步最关键的动作或听感检查是什么？`,
+        options: [`${step.title}：先慢速，确认均匀与放松`, '直接加速到目标速度', '只看手，不看谱和拍子'],
+        answer: 0,
+        explain: '练习先保证动作与声音可控，再逐步加速。'
+      },
+      {
+        q: '遇到连续两次相同错误时，最合理的处理是？',
+        options: ['从头再弹一遍完整曲目', '把问题缩到 2–4 小节，分手慢练', '继续原速直到碰对'],
+        answer: 1,
+        explain: '缩小问题范围，降低速度并分手，才能建立稳定反馈。'
+      },
+      {
+        q: '本步骤的时间结构更接近哪一种？',
+        options: ['一次练到累为止', '短段、多次、带暂停和复盘', '只练最熟悉的开头'],
+        answer: 1,
+        explain: '高质量练习需要短段、反馈和间歇，而不是无脑重复。'
+      }
+    ];
+    const template = String(step.detail || '').split(/[。；]/).filter(Boolean).slice(0, 2).join('；');
+    if (/视奏|陌生谱/.test(step.title + step.detail)) {
+      base[0] = { q: '视奏时遇到错音，正确的第一反应是？', options: ['停下来逐音纠正', '保持节拍继续，弹完再复盘', '从头重来'], answer: 1, explain: '视奏训练的是连续读谱与预判，错误留到弹完再处理。' };
+    } else if (/技术|音阶|哈农|琶音/.test(step.title + step.detail)) {
+      base[0] = { q: '技术练习中最重要的即时指标是？', options: ['速度越快越好', '均匀、放松、声音稳定', '每个音都用力'], answer: 1, explain: '技术练习的质量来自均匀、放松和可控的声音，而不是盲目加速。' };
+    }
+    return base;
+  }
+
+  function openCheckpoint() {
+    if (!session) return;
+    const step = session.steps[stepIndex] || session.steps[0];
+    checkpointQuestions = checkpointQuestionSet(step);
+    checkpointIndex = 0;
+    checkpointCorrect = 0;
+    checkpointAnswered = false;
+    document.querySelector('#checkpointPanel').classList.remove('hidden');
+    document.querySelector('#checkpointDone').classList.add('hidden');
+    document.querySelector('#checkpointOptions').classList.remove('hidden');
+    document.querySelector('#checkpointQuestion').classList.remove('hidden');
+    document.querySelector('#checkpointNext').classList.add('hidden');
+    renderCheckpointQuestion();
+  }
+
+  function closeCheckpoint() {
+    document.querySelector('#checkpointPanel').classList.add('hidden');
+  }
+
+  function renderCheckpointQuestion() {
+    const question = checkpointQuestions[checkpointIndex];
+    checkpointAnswered = false;
+    document.querySelector('#checkpointProgress').textContent = `${checkpointIndex + 1} / ${checkpointQuestions.length}`;
+    document.querySelector('#checkpointProgressBar').style.width = `${((checkpointIndex) / checkpointQuestions.length) * 100}%`;
+    document.querySelector('#checkpointQuestion').textContent = question.q;
+    document.querySelector('#checkpointFeedback').textContent = '';
+    document.querySelector('#checkpointNext').classList.add('hidden');
+    document.querySelector('#checkpointOptions').innerHTML = question.options.map((option, index) => `<button type="button" class="checkpoint-option" data-checkpoint-option="${index}">${escapeUi(option)}</button>`).join('');
+    document.querySelectorAll('[data-checkpoint-option]').forEach((button) => button.addEventListener('click', () => answerCheckpoint(Number(button.dataset.checkpointOption), button)));
+  }
+
+  function answerCheckpoint(choice, button) {
+    if (checkpointAnswered) return;
+    checkpointAnswered = true;
+    const question = checkpointQuestions[checkpointIndex];
+    document.querySelectorAll('[data-checkpoint-option]').forEach((option, index) => {
+      option.disabled = true;
+      if (index === question.answer) option.classList.add('correct');
+    });
+    if (choice === question.answer) {
+      checkpointCorrect += 1;
+      button.classList.add('correct');
+      document.querySelector('#checkpointFeedback').textContent = question.explain;
+    } else {
+      button.classList.add('wrong');
+      document.querySelector('#checkpointFeedback').textContent = `正确答案：${question.options[question.answer]}。${question.explain}`;
+    }
+    const next = document.querySelector('#checkpointNext');
+    next.classList.remove('hidden');
+    next.textContent = checkpointIndex >= checkpointQuestions.length - 1 ? '查看结果' : '下一题';
+  }
+
+  function nextCheckpoint() {
+    if (checkpointIndex >= checkpointQuestions.length - 1) {
+      finishCheckpoint();
+      return;
+    }
+    checkpointIndex += 1;
+    renderCheckpointQuestion();
+  }
+
+  function finishCheckpoint() {
+    document.querySelector('#checkpointOptions').classList.add('hidden');
+    document.querySelector('#checkpointQuestion').classList.add('hidden');
+    document.querySelector('#checkpointNext').classList.add('hidden');
+    document.querySelector('#checkpointFeedback').textContent = '';
+    document.querySelector('#checkpointDone').classList.remove('hidden');
+    const percent = Math.round((checkpointCorrect / checkpointQuestions.length) * 100);
+    document.querySelector('#checkpointScore').textContent = `${checkpointCorrect} / ${checkpointQuestions.length}`;
+    const message = percent >= 80 ? '掌握得很稳，可以进入下一步。' : percent >= 60 ? '基本理解，建议把错题对应的动作再练一遍。' : '先别急着加速，回到当前步骤再慢练一轮。';
+    document.querySelector('#checkpointMessage').textContent = message;
+    document.querySelector('#checkpointProgressBar').style.width = '100%';
+    if (session) {
+      const key = session.id;
+      const previous = state.mastery?.[key] || { attempts: 0, best: 0 };
+      state.mastery = { ...(state.mastery || {}), [key]: { attempts: previous.attempts + 1, best: Math.max(previous.best, percent), last: percent, updatedAt: new Date().toISOString() } };
+      APP.persist();
+    }
+  }
+
   function renderStep() {
     if (!session) return;
     if (stepIndex >= session.steps.length) {
@@ -649,6 +765,7 @@
       return;
     }
     const step = session.steps[stepIndex];
+    document.querySelector('#checkpointPanel')?.classList.add('hidden');
     remaining = step.minutes * 60;
     paused = false;
     $('#stepIndex').textContent = String(stepIndex + 1).padStart(2, '0');
@@ -1040,6 +1157,9 @@
     $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : '+20';
     const saveButton = document.querySelector('#saveCompletion');
     if (saveButton) saveButton.textContent = session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
+    const mastery = APP.state.mastery?.[session.id];
+    const masteryEl = document.querySelector('#completeMastery');
+    if (masteryEl) masteryEl.textContent = mastery ? `${mastery.best}%` : '未测';
     const completeSessions = document.querySelector('#completeSessionCount');
     if (completeSessions) completeSessions.textContent = Object.keys(APP.state.completed).length + (session.quick ? 0 : 1);
     $('#sessionNotes').value = '';
@@ -1586,6 +1706,10 @@
     });
     $('#closeLesson').addEventListener('click', closeSession);
     $('#metronomeToggle')?.addEventListener('click', cycleMetronome);
+    document.querySelector('#openCheckpoint')?.addEventListener('click', openCheckpoint);
+    document.querySelector('#closeCheckpoint')?.addEventListener('click', closeCheckpoint);
+    document.querySelector('#checkpointNext')?.addEventListener('click', nextCheckpoint);
+    document.querySelector('#checkpointFinish')?.addEventListener('click', closeCheckpoint);
     $('#completeStep').addEventListener('click', () => {
       if (stepIndex >= session.steps.length - 1) finishSession();
       else { stepIndex += 1; renderStep(); }

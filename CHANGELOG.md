@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.0 — 2026-11-06
+
+- Added in-lesson mastery checkpoints with three questions per session.
+- Added mastery scoring, best-score persistence and completion-card display.
+- Added mastery checks to the automated desktop/mobile regression suite.
+
+
 ## 1.7.0 — 2026-11-06
 
 - Added a 10-piece graded repertoire library with public/official score links.

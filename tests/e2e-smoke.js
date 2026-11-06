@@ -32,6 +32,25 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     await page.waitForTimeout(800);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: first lesson did not open`);
     assert.equal(await page.locator('#lessonSteps .lesson-step').count(), 7, `${name}: lesson should have 7 steps`);
+    await page.locator('#openCheckpoint').click();
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('#checkpointPanel').isVisible(), true, `${name}: mastery checkpoint missing`);
+    for (let i = 0; i < 3; i += 1) {
+      const options = await page.locator('.checkpoint-option').all();
+      await options[0].click();
+      await page.waitForTimeout(100);
+      await page.locator('#checkpointNext').click();
+      await page.waitForTimeout(150);
+    }
+    assert.equal(await page.locator('#checkpointDone').isVisible(), true, `${name}: mastery result missing`);
+    const masteryScore = await page.locator('#checkpointScore').innerText();
+    await page.locator('#checkpointFinish').click();
+    await page.waitForTimeout(150);
+    await page.waitForFunction(() => {
+      try { return Object.keys(JSON.parse(localStorage.getItem('pianopath-state-v1')).mastery || {}).length > 0; } catch (error) { return false; }
+    }, null, { timeout: 3000 });
+    const mastery = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).mastery);
+    assert.ok(mastery && Object.keys(mastery).length > 0, `${name}: mastery not persisted`);
     await page.locator('#finishSession').click();
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#completeModal').isVisible(), true, `${name}: completion modal missing`);

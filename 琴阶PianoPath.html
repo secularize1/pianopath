@@ -1070,6 +1070,17 @@ body.modal-open { overflow:hidden; }
 .repertoire-modal-card .repertoire-desc { min-height:0; }
 .repertoire-modal-hint { margin-top:11px; padding-top:10px; border-top:1px solid #f0f2ed; color:#9ba69e; font-size:8px; line-height:1.6; }
 .repertoire-phase.current { box-shadow:inset 0 0 0 1px #f0dda0; }
+.checkpoint-button { height:35px; padding:0 9px; border:1px solid #e6d89d; border-radius:10px; background:#fff9e1; color:#93752d; font-size:9px; font-weight:800; }
+.checkpoint-button:hover { background:#fff4c9; }
+.checkpoint-panel { margin-top:14px; padding:16px; border:1px solid #e4e8dc; border-radius:14px; background:#fffdf7; }
+.checkpoint-head { display:flex; justify-content:space-between; align-items:center; }
+.checkpoint-progress { display:flex; align-items:center; gap:9px; margin-top:12px; color:#8c9b91; font-size:8px; font-weight:800; }
+.checkpoint-progress > div { flex:1; height:5px; border-radius:6px; background:#edf0e8; overflow:hidden; }.checkpoint-progress i { display:block; width:0; height:100%; border-radius:inherit; background:#d6b74d; transition:width .3s ease; }
+.checkpoint-panel h3 { margin:13px 0 11px; color:#3f5546; font-size:16px; line-height:1.5; }
+.checkpoint-options { display:grid; gap:6px; }.checkpoint-option { padding:9px 10px; border:1px solid #e2e8dd; border-radius:8px; background:#fff; color:#65766a; text-align:left; font-size:10px; line-height:1.5; }.checkpoint-option:hover { border-color:#bdd8c0; background:#f8fcf7; }.checkpoint-option.correct { border-color:#79bd88; background:#eaf8e8; color:#3d7e4b; }.checkpoint-option.wrong { border-color:#e0aa9e; background:#fdf1ed; color:#a75e51; }
+.checkpoint-feedback { min-height:18px; margin-top:8px; color:#8a998f; font-size:8px; line-height:1.6; }
+.checkpoint-done { padding:10px 0 2px; text-align:center; }.checkpoint-done strong { display:block; color:#4b8858; font-size:22px; }.checkpoint-done p { margin:7px 0 12px; color:#88988e; font-size:9px; line-height:1.6; }
+@media(max-width:540px){ .timer-actions { flex-wrap:wrap; }.checkpoint-button { flex:1; }.checkpoint-panel { padding:13px; } }
 
 </style>
 </head>
@@ -1429,6 +1440,7 @@ body.modal-open { overflow:hidden; }
             <div class="timer-actions">
               <button class="timer-control" id="timerToggle" aria-label="暂停计时"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
               <button class="metronome-button" id="metronomeToggle" type="button" aria-label="开启节拍器" aria-pressed="false"><span class="metro-icon">♩</span><span id="metronomeLabel">节拍</span></button>
+              <button class="checkpoint-button" id="openCheckpoint" type="button">◎ 掌握检查</button>
               <button class="btn btn-primary" id="completeStep" type="button">完成这一段</button>
             </div>
           </div>
@@ -1437,6 +1449,15 @@ body.modal-open { overflow:hidden; }
             <div><small>现在做</small><h3 id="stepTitle">身体校准</h3><p id="stepDetail"></p><div class="cue" id="stepCue"></div></div>
           </article>
           <div class="lesson-source" id="lessonSource"></div>
+          <section class="checkpoint-panel hidden" id="checkpointPanel">
+            <div class="checkpoint-head"><span class="eyebrow">MASTERY CHECK</span><button type="button" class="text-button" id="closeCheckpoint">返回练习</button></div>
+            <div class="checkpoint-progress"><span id="checkpointProgress">1 / 3</span><div><i id="checkpointProgressBar"></i></div></div>
+            <h3 id="checkpointQuestion">本周技术重点是什么？</h3>
+            <div class="checkpoint-options" id="checkpointOptions"></div>
+            <div class="checkpoint-feedback" id="checkpointFeedback"></div>
+            <button class="btn btn-primary full-width hidden" id="checkpointNext" type="button">下一题</button>
+            <div class="checkpoint-done hidden" id="checkpointDone"><strong id="checkpointScore">2 / 3</strong><p id="checkpointMessage"></p><button class="btn btn-soft full-width" id="checkpointFinish" type="button">回到练习</button></div>
+          </section>
         </section>
         <aside class="lesson-plan">
           <div class="lesson-plan-head"><strong id="lessonPlanLength">今天的 60 分钟</strong><span id="lessonClock">剩余 60:00</span></div>
@@ -1453,7 +1474,7 @@ body.modal-open { overflow:hidden; }
       <span class="eyebrow">SESSION COMPLETE</span>
       <h2>今天的声音，已经留下。</h2>
       <p id="completeSummary">60 分钟 · 7 个练习段落</p>
-      <div class="complete-stats"><span><strong id="completeXp">+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong id="completeSessionCount">1</strong><small>完成课次</small></span></div>
+      <div class="complete-stats"><span><strong id="completeXp">+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong id="completeSessionCount">1</strong><small>完成课次</small></span><span><strong id="completeMastery">—</strong><small>掌握检查</small></span></div>
       <div class="rating-label">今天练得怎么样？</div>
       <div class="rating-row" id="ratingRow"><button data-rating="1">需要帮助</button><button data-rating="2">有点卡</button><button data-rating="3">刚刚好</button><button data-rating="4">很顺</button></div>
       <label class="notes-field"><span>留一句给下次的自己</span><textarea id="sessionNotes" placeholder="例如：F→G 换和弦提前半拍看左手。"></textarea></label>
@@ -1482,7 +1503,7 @@ body.modal-open { overflow:hidden; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.7 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.8 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -1566,7 +1587,7 @@ window.PIANO_DATA = {
       "播放量不作为唯一权威依据；粉丝量也不等于教学质量，仍以课程结构、专业资历和适用性二次筛选。"
     ],
     "localePolicy": "默认隐藏需翻墙的资源；教学库可切换“国内可用/全部来源”。",
-    "appVersion": "1.7.0",
+    "appVersion": "1.8.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -7665,6 +7686,7 @@ window.PIANO_DATA = {
     repertoire: {},
     placement: null,
     quickPractice: null,
+    mastery: {},
     serverPlan: null,
     settingsSource: 'local'
   };
@@ -8292,6 +8314,121 @@ window.PIANO_DATA = {
     });
   }
 
+  let checkpointQuestions = [];
+  let checkpointIndex = 0;
+  let checkpointCorrect = 0;
+  let checkpointAnswered = false;
+
+  function checkpointQuestionSet(step) {
+    const base = [
+      {
+        q: `这一步最关键的动作或听感检查是什么？`,
+        options: [`${step.title}：先慢速，确认均匀与放松`, '直接加速到目标速度', '只看手，不看谱和拍子'],
+        answer: 0,
+        explain: '练习先保证动作与声音可控，再逐步加速。'
+      },
+      {
+        q: '遇到连续两次相同错误时，最合理的处理是？',
+        options: ['从头再弹一遍完整曲目', '把问题缩到 2–4 小节，分手慢练', '继续原速直到碰对'],
+        answer: 1,
+        explain: '缩小问题范围，降低速度并分手，才能建立稳定反馈。'
+      },
+      {
+        q: '本步骤的时间结构更接近哪一种？',
+        options: ['一次练到累为止', '短段、多次、带暂停和复盘', '只练最熟悉的开头'],
+        answer: 1,
+        explain: '高质量练习需要短段、反馈和间歇，而不是无脑重复。'
+      }
+    ];
+    const template = String(step.detail || '').split(/[。；]/).filter(Boolean).slice(0, 2).join('；');
+    if (/视奏|陌生谱/.test(step.title + step.detail)) {
+      base[0] = { q: '视奏时遇到错音，正确的第一反应是？', options: ['停下来逐音纠正', '保持节拍继续，弹完再复盘', '从头重来'], answer: 1, explain: '视奏训练的是连续读谱与预判，错误留到弹完再处理。' };
+    } else if (/技术|音阶|哈农|琶音/.test(step.title + step.detail)) {
+      base[0] = { q: '技术练习中最重要的即时指标是？', options: ['速度越快越好', '均匀、放松、声音稳定', '每个音都用力'], answer: 1, explain: '技术练习的质量来自均匀、放松和可控的声音，而不是盲目加速。' };
+    }
+    return base;
+  }
+
+  function openCheckpoint() {
+    if (!session) return;
+    const step = session.steps[stepIndex] || session.steps[0];
+    checkpointQuestions = checkpointQuestionSet(step);
+    checkpointIndex = 0;
+    checkpointCorrect = 0;
+    checkpointAnswered = false;
+    document.querySelector('#checkpointPanel').classList.remove('hidden');
+    document.querySelector('#checkpointDone').classList.add('hidden');
+    document.querySelector('#checkpointOptions').classList.remove('hidden');
+    document.querySelector('#checkpointQuestion').classList.remove('hidden');
+    document.querySelector('#checkpointNext').classList.add('hidden');
+    renderCheckpointQuestion();
+  }
+
+  function closeCheckpoint() {
+    document.querySelector('#checkpointPanel').classList.add('hidden');
+  }
+
+  function renderCheckpointQuestion() {
+    const question = checkpointQuestions[checkpointIndex];
+    checkpointAnswered = false;
+    document.querySelector('#checkpointProgress').textContent = `${checkpointIndex + 1} / ${checkpointQuestions.length}`;
+    document.querySelector('#checkpointProgressBar').style.width = `${((checkpointIndex) / checkpointQuestions.length) * 100}%`;
+    document.querySelector('#checkpointQuestion').textContent = question.q;
+    document.querySelector('#checkpointFeedback').textContent = '';
+    document.querySelector('#checkpointNext').classList.add('hidden');
+    document.querySelector('#checkpointOptions').innerHTML = question.options.map((option, index) => `<button type="button" class="checkpoint-option" data-checkpoint-option="${index}">${escapeUi(option)}</button>`).join('');
+    document.querySelectorAll('[data-checkpoint-option]').forEach((button) => button.addEventListener('click', () => answerCheckpoint(Number(button.dataset.checkpointOption), button)));
+  }
+
+  function answerCheckpoint(choice, button) {
+    if (checkpointAnswered) return;
+    checkpointAnswered = true;
+    const question = checkpointQuestions[checkpointIndex];
+    document.querySelectorAll('[data-checkpoint-option]').forEach((option, index) => {
+      option.disabled = true;
+      if (index === question.answer) option.classList.add('correct');
+    });
+    if (choice === question.answer) {
+      checkpointCorrect += 1;
+      button.classList.add('correct');
+      document.querySelector('#checkpointFeedback').textContent = question.explain;
+    } else {
+      button.classList.add('wrong');
+      document.querySelector('#checkpointFeedback').textContent = `正确答案：${question.options[question.answer]}。${question.explain}`;
+    }
+    const next = document.querySelector('#checkpointNext');
+    next.classList.remove('hidden');
+    next.textContent = checkpointIndex >= checkpointQuestions.length - 1 ? '查看结果' : '下一题';
+  }
+
+  function nextCheckpoint() {
+    if (checkpointIndex >= checkpointQuestions.length - 1) {
+      finishCheckpoint();
+      return;
+    }
+    checkpointIndex += 1;
+    renderCheckpointQuestion();
+  }
+
+  function finishCheckpoint() {
+    document.querySelector('#checkpointOptions').classList.add('hidden');
+    document.querySelector('#checkpointQuestion').classList.add('hidden');
+    document.querySelector('#checkpointNext').classList.add('hidden');
+    document.querySelector('#checkpointFeedback').textContent = '';
+    document.querySelector('#checkpointDone').classList.remove('hidden');
+    const percent = Math.round((checkpointCorrect / checkpointQuestions.length) * 100);
+    document.querySelector('#checkpointScore').textContent = `${checkpointCorrect} / ${checkpointQuestions.length}`;
+    const message = percent >= 80 ? '掌握得很稳，可以进入下一步。' : percent >= 60 ? '基本理解，建议把错题对应的动作再练一遍。' : '先别急着加速，回到当前步骤再慢练一轮。';
+    document.querySelector('#checkpointMessage').textContent = message;
+    document.querySelector('#checkpointProgressBar').style.width = '100%';
+    if (session) {
+      const key = session.id;
+      const previous = state.mastery?.[key] || { attempts: 0, best: 0 };
+      state.mastery = { ...(state.mastery || {}), [key]: { attempts: previous.attempts + 1, best: Math.max(previous.best, percent), last: percent, updatedAt: new Date().toISOString() } };
+      APP.persist();
+    }
+  }
+
   function renderStep() {
     if (!session) return;
     if (stepIndex >= session.steps.length) {
@@ -8299,6 +8436,7 @@ window.PIANO_DATA = {
       return;
     }
     const step = session.steps[stepIndex];
+    document.querySelector('#checkpointPanel')?.classList.add('hidden');
     remaining = step.minutes * 60;
     paused = false;
     $('#stepIndex').textContent = String(stepIndex + 1).padStart(2, '0');
@@ -8690,6 +8828,9 @@ window.PIANO_DATA = {
     $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : '+20';
     const saveButton = document.querySelector('#saveCompletion');
     if (saveButton) saveButton.textContent = session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
+    const mastery = APP.state.mastery?.[session.id];
+    const masteryEl = document.querySelector('#completeMastery');
+    if (masteryEl) masteryEl.textContent = mastery ? `${mastery.best}%` : '未测';
     const completeSessions = document.querySelector('#completeSessionCount');
     if (completeSessions) completeSessions.textContent = Object.keys(APP.state.completed).length + (session.quick ? 0 : 1);
     $('#sessionNotes').value = '';
@@ -9236,6 +9377,10 @@ window.PIANO_DATA = {
     });
     $('#closeLesson').addEventListener('click', closeSession);
     $('#metronomeToggle')?.addEventListener('click', cycleMetronome);
+    document.querySelector('#openCheckpoint')?.addEventListener('click', openCheckpoint);
+    document.querySelector('#closeCheckpoint')?.addEventListener('click', closeCheckpoint);
+    document.querySelector('#checkpointNext')?.addEventListener('click', nextCheckpoint);
+    document.querySelector('#checkpointFinish')?.addEventListener('click', closeCheckpoint);
     $('#completeStep').addEventListener('click', () => {
       if (stepIndex >= session.steps.length - 1) finishSession();
       else { stepIndex += 1; renderStep(); }

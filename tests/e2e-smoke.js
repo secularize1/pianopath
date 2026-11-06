@@ -26,6 +26,7 @@ const PLAY_ALONG_KEYS = { '0': 'a', '1': 'w', '2': 's', '3': 'e', '4': 'd', '5':
     await page.waitForTimeout(900);
 
     assert.equal(errors.length, 0, `${name}: startup errors: ${errors.join('; ')}`);
+    assert.equal(await page.evaluate(() => typeof window.PIANO_APP.openPlayAlong), 'function', `${name}: play-along API not exposed`);
     assert.equal(await page.locator('#onboardingModal').isVisible(), true, `${name}: onboarding missing`);
     assert.equal(await page.locator('#onboardingForm .choice-chip').count(), 9, `${name}: onboarding choices incorrect`);
     await page.locator('[data-group="level"] [data-value="basic"]').click();

@@ -609,7 +609,7 @@
 
   window.PIANO_APP = {
     state, DATA, persist, renderAll, updateNav, showToast, findSession,
-    sessionsForWeek, currentWeekData, currentSessionData, streakCount, openPlayAlong,
+    sessionsForWeek, currentWeekData, currentSessionData, streakCount,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
@@ -2164,6 +2164,7 @@
     });
   }
 
+  APP.openPlayAlong = openPlayAlong;
   APP.openSession = openSession;
   window.PIANO_OPEN_SESSION = openSession;
   APP.openSettings = openSettings;

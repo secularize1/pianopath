@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.11.0 — 2026-11-06
+
+- Added a persisted adaptive review queue with due dates and 1/3/7/14/30 day progression.
+- Failed mastery checks, low-rated sessions and sessions with concrete notes now create review items automatically.
+- Successful reviews advance the next due date; failed reviews return to the queue immediately.
+- Added a due-review reminder on the home screen and a review-stage view in progress.
+- Included review scheduling in safe backup import/export.
+- Added desktop/mobile E2E coverage for review creation and post-review rescheduling.
+
 ## 1.10.0 — 2026-11-06
 
 - Added interactive play-along drills with target-note highlighting, instant pitch feedback, streak tracking and three-star scoring.

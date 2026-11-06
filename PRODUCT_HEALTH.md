@@ -1,4 +1,4 @@
-# PianoPath 1.10 — 产品健康检查
+# PianoPath 1.11 — 产品健康检查
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
@@ -8,7 +8,7 @@
 | 首次引导 | 三步选择，保存后进入第一课 | Playwright |
 | 掌握门槛 | 2/3 通过才完成课程并解锁下一课 | Playwright |
 | 跟弹练习 | 点击 / 电脑键盘 / MIDI，音高判定与结算 | Playwright |
-| 学习反馈 | 四项能力、热力图、复习、跟弹历史 | Playwright / app state |
+| 学习反馈 | 四项能力、热力图、到期复习、跟弹历史 | Playwright / app state |
 | 账户系统 | 注册、登录、退出、会话 | API integration |
 | 跨设备同步 | SQLite + revision 冲突检测 | API integration |
 | 离线能力 | Service Worker + 单文件离线包 | `sw.js` / standalone build |

@@ -18,6 +18,7 @@
     quickPractice: null,
     mastery: {},
     playAlong: {},
+    reviews: {},
     serverPlan: null,
     settingsSource: 'local'
   };
@@ -74,6 +75,75 @@
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  function dateKeyFromOffset(offset) {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() + offset);
+    return localDateKey(date);
+  }
+
+  function addReviewItem(sourceId, title, reason, dueInDays = 0, details = {}) {
+    if (!sourceId) return;
+    const previous = state.reviews?.[sourceId] || {};
+    const candidateDueAt = dateKeyFromOffset(Math.max(0, Number(dueInDays) || 0));
+    const dueAt = previous.dueAt && previous.dueAt < candidateDueAt ? previous.dueAt : candidateDueAt;
+    state.reviews = {
+      ...(state.reviews || {}),
+      [sourceId]: {
+        sourceId,
+        title,
+        reason,
+        level: 0,
+        dueAt,
+        lapseCount: (Number(previous.lapseCount) || 0) + 1,
+        lastReviewedAt: previous.lastReviewedAt || null,
+        createdAt: previous.createdAt || new Date().toISOString(),
+        ...details
+      }
+    };
+  }
+
+  function dueReviewItems() {
+    const today = localDateKey(new Date());
+    return Object.values(state.reviews || {})
+      .filter((item) => item && item.dueAt && item.dueAt <= today)
+      .sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt)));
+  }
+
+  function reviewIsDue(item) {
+    return Boolean(item && item.dueAt && item.dueAt <= localDateKey(new Date()));
+  }
+
+  function completeReviewItem(sourceId, success) {
+    const previous = state.reviews?.[sourceId];
+    if (!previous) return;
+    if (success) {
+      const nextLevel = Math.min(5, (Number(previous.level) || 0) + 1);
+      const intervals = [1, 2, 4, 8, 15, 31];
+      state.reviews = {
+        ...state.reviews,
+        [sourceId]: {
+          ...previous,
+          level: nextLevel,
+          dueAt: dateKeyFromOffset(intervals[nextLevel]),
+          lastReviewedAt: new Date().toISOString(),
+          lastResult: 'passed'
+        }
+      };
+    } else {
+      state.reviews = {
+        ...state.reviews,
+        [sourceId]: {
+          ...previous,
+          level: 0,
+          dueAt: dateKeyFromOffset(0),
+          lastReviewedAt: new Date().toISOString(),
+          lastResult: 'retry'
+        }
+      };
+    }
   }
 
   function parseLocalDate(value) {
@@ -339,6 +409,7 @@
     const todayMinutes = minutesForDate(todayKey);
     const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice', 'playalong'].includes(entry.type));
     const todayGame = gameToday.length > 0 || playAlongToday.length > 0;
+    const dueReviews = dueReviewItems();
     const quests = [
       { done: todayLesson, label: '完成 1 次课程练习', detail: todayLesson ? '已完成' : '开始今日课程' },
       { done: todayGame, label: '完成一次听辨或跟弹', detail: gameToday.length || playAlongToday.length ? `今日 ${gameToday.length + playAlongToday.length} 局` : '约 2 分钟' },
@@ -362,6 +433,11 @@
     if (routeCheck) routeCheck.className = checkDone ? 'done' : mainDone ? 'active' : '';
     if (routeDone) routeDone.className = checkDone ? 'done active' : '';
 
+    const dueReviewLink = document.querySelector('#dueReviewLink');
+    if (dueReviewLink) {
+      dueReviewLink.textContent = dueReviews.length ? `有 ${dueReviews.length} 个到期复习 →` : '复习队列已清空';
+      dueReviewLink.disabled = !dueReviews.length;
+    }
     const best = localStorage.getItem('pianopath-note-game-best') || localStorage.getItem('pianopath-ear-game-best');
     const gameBest = document.querySelector('#homeGameBest');
     if (gameBest) gameBest.textContent = best ? `${best} 分` : '—';
@@ -516,35 +592,28 @@
     $('#statSessionsHint').textContent = sessions ? `完成率 ${Math.round((sessions / 48) * 100)}%` : '第一周还在等你';
     $('#statSight').innerHTML = `${sight} <small>次</small>`;
 
-    const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.needsReview || entry.rating <= 2 || entry.notes));
+    const reviewItems = dueReviewItems();
     const reviewList = document.querySelector('#reviewList');
     if (reviewList) {
-      const unique = [];
-      const seen = new Set();
-      for (const entry of reviewEntries) {
-        const key = entry.id;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        unique.push(entry);
-        if (unique.length >= 4) break;
-      }
-      reviewList.innerHTML = unique.length ? unique.map((entry, index) => `<button type="button" class="review-item" data-review-index="${index}"><span class="review-number">${index + 1}</span><span><strong>${escapeHtml(entry.title.replace('5 分钟快练：',''))}</strong><small>${entry.rating <= 2 ? '上次感觉有点卡 · ' : ''}${escapeHtml(entry.notes || '重练最不稳的两小节')}</small></span><em>复习 →</em></button>`).join('') : '<div class="review-empty">完成一次课程后，这里会出现需要回练的内容。</div>';
-      document.querySelector('#reviewCount').textContent = `${unique.length} 项`;
-      reviewList.querySelectorAll('[data-review-index]').forEach((button) => button.addEventListener('click', () => {
-        const entry = unique[Number(button.dataset.reviewIndex)];
-        const sourceId = entry.sourceId || entry.id.replace(/-quick$/, '').replace(/-review-.*$/, '');
-        const found = window.PIANO_APP.findSession(sourceId);
-        const piece = (window.PIANO_APP.DATA.repertoire || []).find((item) => item.id === sourceId);
+      reviewList.innerHTML = reviewItems.length ? reviewItems.slice(0, 4).map((item, index) => `<button type="button" class="review-item" data-review-id="${escapeHtml(item.sourceId)}"><span class="review-number">${index + 1}</span><span><strong>${escapeHtml(String(item.title || '复习内容').replace('5 分钟快练：',''))}</strong><small>${escapeHtml(item.reason || '到期复习')} · 复习阶段 ${Math.min(5, Number(item.level) || 0)}/5</small></span><em>开始 →</em></button>`).join('') : '<div class="review-empty">今天的复习队列已清空。完成新课或记录卡点后，这里会自动排期。</div>';
+      document.querySelector('#reviewCount').textContent = `${reviewItems.length} 项`;
+      reviewList.querySelectorAll('[data-review-id]').forEach((button) => button.addEventListener('click', () => {
+        const item = reviewItems.find((candidate) => candidate.sourceId === button.dataset.reviewId);
+        if (!item) return;
+        const found = window.PIANO_APP.findSession(item.sourceId);
+        const piece = (window.PIANO_APP.DATA.repertoire || []).find((candidate) => candidate.id === item.sourceId);
         const source = found || piece;
-        if (source) {
-          const reviewSession = { ...source, id: `${source.id}-review-${Date.now()}`, sourceId: source.id, title: `复习：${source.title}`, duration: 10, quick: true, steps: [
-            { start: 0, end: 2, minutes: 2, title: '旧问题定位', category: '复习', detail: entry.notes || '先找到上次最不稳的两小节。', cue: '不从头弹' },
-            { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: found?.steps?.[2]?.detail || source.goal, cue: '分手、慢速、连续三次正确' },
-            { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
-            { start: 9, end: 10, minutes: 1, title: '记录新状态', category: '反馈', detail: '再听/再弹一次，写下现在的感受。', cue: '只记一个变化' }
-          ] };
-          window.PIANO_OPEN_SESSION?.(reviewSession);
+        if (!source) {
+          APP.showToast('这项复习的原始课程暂时找不到。');
+          return;
         }
+        const reviewSession = { ...source, id: `${source.id}-review-${Date.now()}`, sourceId: source.id, title: `复习：${source.title}`, duration: 10, quick: true, steps: [
+          { start: 0, end: 2, minutes: 2, title: '旧问题定位', category: '复习', detail: item.notes || item.reason || '先找到上次最不稳的两小节。', cue: '不从头弹' },
+          { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: found?.steps?.[2]?.detail || source.goal, cue: '分手、慢速、连续三次正确' },
+          { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
+          { start: 9, end: 10, minutes: 1, title: '记录新状态', category: '反馈', detail: '再听/再弹一次，写下现在的感受。', cue: '只记一个变化' }
+        ] };
+        window.PIANO_OPEN_SESSION?.(reviewSession);
       }));
     }
 
@@ -609,6 +678,7 @@
   window.PIANO_APP = {
     state, DATA, persist, renderAll, updateNav, showToast, findSession,
     sessionsForWeek, currentWeekData, currentSessionData, streakCount,
+    addReviewItem, completeReviewItem, dueReviewItems,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
@@ -825,6 +895,7 @@
       const key = session.id;
       const previous = state.mastery?.[key] || { attempts: 0, best: 0 };
       state.mastery = { ...(state.mastery || {}), [key]: { attempts: previous.attempts + 1, best: Math.max(previous.best, percent), last: percent, updatedAt: new Date().toISOString() } };
+      if (state.reviews?.[key]) APP.completeReviewItem(key, percent >= MASTERY_PASS_PERCENT);
       APP.persist();
     }
   }
@@ -1276,6 +1347,7 @@
       entry.needsReview = true;
       entry.notes = entry.notes || '掌握检查未通过：先复习错题对应的动作与听感，再重测。';
       entry.mastery = state.mastery?.[finished.id] || null;
+      APP.addReviewItem(finished.id, finished.title, '掌握检查未通过', 0, { notes: entry.notes });
       state.history = [entry, ...state.history.filter((item) => item.id !== finished.id || item.date !== entry.date)];
       state.history = state.history.slice(0, 400);
       APP.persist();
@@ -1290,6 +1362,12 @@
     }
     if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt, mastery: state.mastery?.[finished.id] || null };
     if (finished.quick) entry.type = finished.repertoireId ? 'repertoire' : 'quick';
+    const reviewSourceId = finished.sourceId || finished.id.replace(/-quick$/, '').replace(/-review-.*$/, '');
+    if (finished.sourceId && /^复习：/.test(finished.title)) {
+      APP.completeReviewItem(reviewSourceId, rating >= 3);
+    } else if (entry.rating <= 2 || entry.notes) {
+      APP.addReviewItem(reviewSourceId, finished.title.replace(/^5 分钟快练：/, ''), entry.rating <= 2 ? '练习感觉很卡' : '留下了具体问题', 1, { notes: entry.notes });
+    }
     if (finished.repertoireId) {
       const piece = findRepertoire(finished.repertoireId);
       if (piece) {
@@ -2003,7 +2081,7 @@
     document.querySelector('#accountSyncNow')?.addEventListener('click', () => syncNow({ force: true }));
     document.querySelector('#accountLogout')?.addEventListener('click', logoutAccount);
     window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
-    $('#routeReview')?.addEventListener('click', () => APP.updateNav('stats'));
+    $('#dueReviewLink')?.addEventListener('click', () => APP.updateNav('stats'));
     $('#startRhythmGame')?.addEventListener('click', openNoteGame);
     $('#startPlayAlongHome')?.addEventListener('click', openPlayAlong);
     document.querySelectorAll('#onboardingForm .choice-chip').forEach((button) => button.addEventListener('click', () => chooseOnboarding(button)));
@@ -2170,6 +2248,7 @@
           mastery: normalizeMap(parsed.mastery),
           repertoire: normalizeMap(parsed.repertoire),
           playAlong: normalizeMap(parsed.playAlong),
+          reviews: normalizeMap(parsed.reviews),
           history: normalizeList(parsed.history),
           gameSessions: normalizeList(parsed.gameSessions),
           activeSession: null,

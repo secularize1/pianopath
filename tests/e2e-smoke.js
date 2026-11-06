@@ -94,10 +94,13 @@ const PLAY_ALONG_KEYS = { '0': 'a', '1': 'w', '2': 's', '3': 'e', '4': 'd', '5':
     assert.equal(await page.locator('#completeXp').innerText(), '+0', `${name}: failed mastery awarded lesson XP`);
     await page.locator('#saveCompletion').click();
     await page.waitForTimeout(900);
+    assert.equal(errors.length, 0, `${name}: failed-review runtime errors: ${errors.join('; ')}`);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: failed lesson did not reopen for practice`);
     assert.equal(await page.locator('#lessonTitle').innerText(), '找到中央 C', `${name}: failed mastery unlocked next lesson`);
     const completedAfterFail = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).completed || {});
     assert.equal(Object.keys(completedAfterFail).length, 0, `${name}: failed mastery was marked complete`);
+    const queuedReview = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews?.['w1d1']);
+    assert.ok(queuedReview?.dueAt, `${name}: failed mastery was not scheduled for review`);
 
     // Retry with the correct answers: [0, 1, 1]. Passing at least 2/3 unlocks the next lesson.
     await page.locator('#openCheckpoint').click();
@@ -165,13 +168,23 @@ const PLAY_ALONG_KEYS = { '0': 'a', '1': 'w', '2': 's', '3': 'e', '4': 'd', '5':
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#reviewCard').isVisible(), true, `${name}: review card missing`);
     assert.ok(await page.locator('.review-item').count() > 0, `${name}: review item missing`);
+    const reviewBefore = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews);
+    assert.ok(reviewBefore && Object.keys(reviewBefore).length > 0, `${name}: review queue is empty`);
     await page.locator('.review-item').first().click();
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: review session did not open`);
     assert.equal(await page.locator('#lessonSteps .lesson-step').count(), 4, `${name}: review session should have 4 steps`);
     assert.match(await page.locator('#lessonTitle').innerText(), /^复习：/, `${name}: wrong review title`);
-    await page.locator('#closeLesson').click();
-    await page.waitForTimeout(200);
+    await page.locator('#finishSession').click();
+    await page.waitForTimeout(250);
+    await page.locator('#saveCompletion').click();
+    await page.waitForTimeout(500);
+    const reviewAfter = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews);
+    const reviewedId = Object.keys(reviewAfter).find((id) => reviewAfter[id]?.lastReviewedAt);
+    assert.ok(reviewedId, `${name}: successful review did not update schedule`);
+    if (reviewBefore[reviewedId]) {
+      assert.ok(reviewAfter[reviewedId].dueAt >= reviewBefore[reviewedId].dueAt, `${name}: review due date moved backwards`);
+    }
 
     // Placement runs during first-run onboarding, before onboarding is completed.
     // This smoke test has already passed onboarding, so exercise the exposed entry point directly.

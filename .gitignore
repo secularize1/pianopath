@@ -7,3 +7,8 @@ data/backups/
 Thumbs.db
 .vscode/
 .idea/
+
+# test artifacts
+work/
+
+tests/smoke-*.png

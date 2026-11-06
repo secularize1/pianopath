@@ -10,6 +10,8 @@
     profile: { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '' },
     completed: {},
     history: [],
+    activeSession: null,
+    gameSessions: [],
     serverPlan: null,
     settingsSource: 'local'
   };
@@ -31,8 +33,6 @@
   if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.documentElement.dataset.theme = 'dark';
   }
-  if (localStorage.getItem('pianopath-onboarded') === '1') {
-    }
   let activePage = 'today';
   let currentPhase = '全部';
   let currentTopic = '国内可用';
@@ -232,6 +232,19 @@
     return state.history.reduce((sum, entry) => sum + Number(entry.minutes || 0), 0);
   }
 
+  function totalXp() {
+    const completedLessons = Object.keys(state.completed).length;
+    const practiceXp = Math.floor(totalMinutes() / 5);
+    return completedLessons * 20 + practiceXp;
+  }
+
+  function levelForXp(xp) {
+    const level = Math.max(1, Math.floor(Number(xp || 0) / 100) + 1);
+    const intoLevel = Number(xp || 0) % 100;
+    return { level, intoLevel, nextLevelAt: 100, progress: intoLevel };
+  }
+
+
   function renderSidebar() {
     const streak = streakCount();
     const topStreak = document.querySelector('#topStreak');
@@ -272,7 +285,8 @@
     if (current) {
       const setText = (selector, value) => { const element = document.querySelector(selector); if (element) element.textContent = value; };
       setText('#homeStage', `第 ${current.week} 周 · ${week.phase}`);
-      setText('#homeLessonIndex', `第 ${current.week} 周 · 第 ${current.day} 次`);
+      const resumable = state.activeSession && state.activeSession.id === current.id;
+      setText('#homeLessonIndex', resumable ? `继续 · 第 ${current.week} 周 · 第 ${current.day} 次` : `第 ${current.week} 周 · 第 ${current.day} 次`);
       setText('#homeLessonTitle', current.title);
       setText('#homeLessonGoal', current.goal);
       setText('#homeLessonDuration', `${current.duration} 分钟`);
@@ -286,8 +300,9 @@
       trail.innerHTML = sessions.map((item, index) => {
         const done = isComplete(item.id);
         const isCurrent = current && item.id === current.id;
+        const locked = !done && !isCurrent;
         const stepLabel = ['学', '练', '合', '录'][index % 4] || String(index + 1);
-        return `<button class="week-trail-item ${done ? 'done' : ''} ${isCurrent ? 'current' : ''}" data-session="${escapeHtml(item.id)}" type="button">
+        return `<button class="week-trail-item ${done ? 'done' : ''} ${isCurrent ? 'current' : ''} ${locked ? 'locked' : ''}" data-session="${escapeHtml(item.id)}" type="button" ${locked ? 'aria-disabled="true" tabindex="-1"' : ''}>
           <span class="trail-node">${done ? '✓' : stepLabel}</span>
           <span class="trail-copy"><small>第 ${item.day} 次 · ${item.duration} 分钟</small><strong>${escapeHtml(item.title)}</strong><em>${escapeHtml(item.goal)}</em></span>
           ${isCurrent ? '<span class="trail-now">现在</span>' : ''}
@@ -316,7 +331,24 @@
       document.querySelector('#homePathNext').textContent = week.id >= 12 ? '完成阶段后生成下一阶段计划' : `下一站：第 ${week.id + 1} 周`;
     }
 
-    const best = localStorage.getItem('pianopath-note-game-best');
+    const todayKey = localDateKey(new Date());
+    const gameToday = (state.gameSessions || []).filter((item) => item.date === todayKey);
+    const todayMinutes = minutesForDate(todayKey);
+    const todayLesson = state.history.some((entry) => entry.date === todayKey && entry.type !== 'game');
+    const todayGame = gameToday.length > 0;
+    const quests = [
+      { done: todayLesson, label: '完成 1 次课程练习', detail: todayLesson ? '已完成' : '开始今日课程' },
+      { done: todayGame, label: '玩 1 次音名挑战', detail: gameToday.length ? `今日 ${gameToday.length} 局` : '约 2 分钟' },
+      { done: todayMinutes >= 20, label: '累计练习 20 分钟', detail: `${Math.min(todayMinutes, 20)} / 20 分钟` }
+    ];
+    const questList = document.querySelector('#dailyQuestList');
+    if (questList) {
+      questList.innerHTML = quests.map((quest) => `<div class="daily-quest ${quest.done ? 'done' : ''}"><span class="quest-check">${quest.done ? '✓' : ''}</span><span><strong>${escapeHtml(quest.label)}</strong><small>${escapeHtml(quest.detail)}</small></span></div>`).join('');
+      const questCount = document.querySelector('#dailyQuestCount');
+      if (questCount) questCount.textContent = `${quests.filter((quest) => quest.done).length} / 3`;
+    }
+
+    const best = localStorage.getItem('pianopath-note-game-best') || localStorage.getItem('pianopath-ear-game-best');
     const gameBest = document.querySelector('#homeGameBest');
     if (gameBest) gameBest.textContent = best ? `${best} 分` : '—';
     document.querySelector('#homePathNext').textContent = week.id >= 12 ? '准备进入下一阶段' : `下一站 · 第 ${week.id + 1} 周`;
@@ -333,7 +365,11 @@
       const locked = weekNumber > current;
       const nodeClass = done === sessions.length ? 'done' : weekNumber === current ? 'current' : '';
       const tags = [week.technique, week.sight].slice(0, 2).map((tag) => `<span class="week-tag">${escapeHtml(tag.split('；')[0])}</span>`).join('');
-      const dayButtons = sessions.map((session) => `<button class="week-day-btn ${isComplete(session.id) ? 'done' : ''} ${locked ? 'locked' : ''}" data-session="${escapeHtml(session.id)}"><strong>${isComplete(session.id) ? '✓ ' : ''}${escapeHtml(session.title)}</strong><span>${session.duration} 分钟 · ${escapeHtml(session.goal)}</span></button>`).join('');
+      const firstOpenIndex = sessions.findIndex((session) => !isComplete(session.id));
+      const dayButtons = sessions.map((session, sessionIndex) => {
+        const dayLocked = locked || (sessionIndex > firstOpenIndex && firstOpenIndex !== -1 && !isComplete(session.id));
+        return `<button class="week-day-btn ${isComplete(session.id) ? 'done' : ''} ${dayLocked ? 'locked' : ''}" data-session="${escapeHtml(session.id)}" ${dayLocked ? 'aria-disabled="true" tabindex="-1"' : ''}><strong>${isComplete(session.id) ? '✓ ' : ''}${escapeHtml(session.title)}</strong><span>${session.duration} 分钟 · ${escapeHtml(session.goal)}</span></button>`;
+      }).join('');
       return `<div class="week-row"><div class="week-node ${nodeClass}">${done === sessions.length ? '✓' : String(weekNumber).padStart(2, '0')}</div><article class="week-panel ${locked ? 'locked' : ''}"><div class="week-panel-head"><div><span class="eyebrow">${escapeHtml(week.phase)}</span><h3>${escapeHtml(week.title)}</h3><p>${escapeHtml(week.goal)}</p><div class="week-tags">${tags}</div></div><div class="week-meta"><strong>${done} / ${sessions.length}</strong>完成</div></div><div class="week-days">${dayButtons}</div></article></div>`;
     }).join('');
     renderStages();
@@ -421,7 +457,7 @@
     activePage = page;
     ['today', 'path', 'library', 'stats'].forEach((name) => {
       $(`#${name}Page`).classList.toggle('hidden', name !== page);
-      $$(`[data-nav="${name}"]`).forEach((link) => link.classList.toggle('active', name === page));
+      $$(`[data-nav="${name}"]`).forEach((link) => { link.classList.toggle('active', name === page); if (name === page) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); });
     });
     if (location.hash !== `#${page}` && page !== 'today') history.replaceState(null, '', `#${page}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -439,7 +475,7 @@
     setTimeout(() => toast.remove(), 2800);
   }
 
-  window.PIANO_APP = { state, DATA, persist, renderAll, updateNav, showToast, findSession, sessionsForWeek, currentWeekData, currentSessionData, streakCount, renderLibrary, isSessionComplete: isComplete };
+  window.PIANO_APP = { state, DATA, persist, renderAll, updateNav, showToast, findSession, sessionsForWeek, currentWeekData, currentSessionData, streakCount, renderLibrary, isSessionComplete: isComplete, totalXp, levelForXp };
 })();
 
 (() => {
@@ -460,12 +496,19 @@
   let rating = 3;
   let completionPreview = null;
   let deferredInstallPrompt = null;
+  let metronomeTimer = null;
+  let metronomeStep = 0;
+  let metronomeBpms = [0, 60, 72, 84, 96];
+  let metronomeIndex = 0;
+  let metronomeAudio = null;
   const NOTE_FREQ = { C: 261.63, D: 293.66, E: 329.63, F: 349.23, G: 392, A: 440, B: 493.88 };
   let noteGameIndex = 0;
   let noteGameScore = 0;
   let noteGameCombo = 0;
   let noteGameCurrent = 'C';
   let noteGameLocked = false;
+  let onboardingChoices = { level: 'zero', weeklyMinutes: 240, style: 'mixed' };
+  let noteGameMode = 'note';
 
   function formatClock(seconds) {
     const safe = Math.max(0, Math.round(seconds));
@@ -518,6 +561,24 @@
     updateLessonProgress();
   }
 
+  let lastActiveSessionSave = 0;
+
+  function rememberActiveSession(force = false) {
+    if (!session) return;
+    const now = Date.now();
+    if (!force && now - lastActiveSessionSave < 8000) return;
+    lastActiveSessionSave = now;
+    APP.state.activeSession = {
+      id: session.id,
+      week: session.week,
+      day: session.day,
+      stepIndex,
+      remaining,
+      updatedAt: new Date().toISOString()
+    };
+    APP.persist();
+  }
+
   function startTimer() {
     clearInterval(intervalId);
     intervalId = setInterval(() => {
@@ -537,7 +598,76 @@
         return;
       }
       updateLessonProgress();
+      rememberActiveSession();
     }, 1000);
+  }
+
+  function updateProgressDisplay() {
+    const xp = APP.totalXp();
+    const level = APP.levelForXp(xp);
+    const levelBadge = document.querySelector('#levelBadge');
+    const xpValue = document.querySelector('#xpValue');
+    const levelProgress = document.querySelector('#levelProgress');
+    if (levelBadge) levelBadge.textContent = `Lv.${level.level}`;
+    if (xpValue) xpValue.textContent = `${xp} XP`;
+    if (levelProgress) levelProgress.style.width = `${Math.min(100, Math.max(0, level.progress))}%`;
+    const profileSub = document.querySelector('#profileSub');
+    if (profileSub) {
+      const profile = APP.state.profile;
+      const levelText = profile.level === 'zero' ? '零基础' : profile.level === 'basic' ? '有基础' : '重新开始';
+      profileSub.textContent = `${levelText} · 每周 ${Math.round((Number(profile.weeklyMinutes) || 240) / 60)} 小时`;
+    }
+  }
+
+  function openOnboarding(force = false) {
+    if (!force && localStorage.getItem('pianopath-onboarded') === '1') return false;
+    const profile = APP.state.profile;
+    onboardingChoices = { level: profile.level || 'zero', weeklyMinutes: Number(profile.weeklyMinutes) || 240, style: profile.style || 'mixed' };
+    const form = document.querySelector('#onboardingForm');
+    if (form) {
+      form.querySelectorAll('[data-group]').forEach((group) => {
+        const activeValue = onboardingChoices[group.dataset.group];
+        group.querySelectorAll('.choice-chip').forEach((chip) => chip.classList.toggle('active', Number(chip.dataset.value) === Number(activeValue) || chip.dataset.value === String(activeValue)));
+      });
+    }
+    document.querySelector('#onboardingModal')?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    return true;
+  }
+
+  function closeOnboarding() {
+    document.querySelector('#onboardingModal')?.classList.add('hidden');
+    document.body.style.overflow = '';
+    localStorage.setItem('pianopath-onboarded', '1');
+  }
+
+  function chooseOnboarding(button) {
+    const group = button.closest('[data-group]');
+    if (!group) return;
+    const key = group.dataset.group;
+    const raw = button.dataset.value;
+    onboardingChoices[key] = key === 'weeklyMinutes' ? Number(raw) : raw;
+    group.querySelectorAll('.choice-chip').forEach((chip) => chip.classList.toggle('active', chip === button));
+  }
+
+  function saveOnboarding(event) {
+    event.preventDefault();
+    const weeklyMinutes = Number(onboardingChoices.weeklyMinutes) || 240;
+    const daysPerWeek = weeklyMinutes >= 360 ? 6 : weeklyMinutes >= 300 ? 5 : 4;
+    APP.state.profile = {
+      ...APP.state.profile,
+      weeklyMinutes,
+      daysPerWeek,
+      sessionMinutes: Math.round(weeklyMinutes / daysPerWeek),
+      level: onboardingChoices.level,
+      style: onboardingChoices.style
+    };
+    APP.persist();
+    APP.renderAll();
+    updateProgressDisplay();
+    closeOnboarding();
+    APP.showToast('计划创建好了，先完成第一课。');
+    setTimeout(() => openSession(APP.currentSessionData().id), 280);
   }
 
   function openSession(sessionId) {
@@ -546,8 +676,10 @@
       APP.showToast('找不到这节课，请刷新页面。');
       return;
     }
+    stopMetronome();
     session = found;
-    stepIndex = 0;
+    const saved = state.activeSession && state.activeSession.id === session.id ? state.activeSession : null;
+    stepIndex = saved ? Math.max(0, Math.min(session.steps.length - 1, Number(saved.stepIndex) || 0)) : 0;
     paused = false;
     startedAt = Date.now();
     $('#lessonKicker').textContent = `第 ${session.week} 周 · 第 ${session.day} 次`;
@@ -557,10 +689,17 @@
     $('#lessonModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     renderStep();
+    if (saved && Number(saved.remaining) > 0) {
+      remaining = Math.min(remaining, Number(saved.remaining));
+      updateLessonProgress();
+    }
+    rememberActiveSession(true);
     startTimer();
   }
 
   function closeSession() {
+    stopMetronome();
+    rememberActiveSession(true);
     clearInterval(intervalId);
     intervalId = null;
     $('#lessonModal').classList.add('hidden');
@@ -570,6 +709,7 @@
 
   function finishSession() {
     if (!session) return;
+    stopMetronome();
     clearInterval(intervalId);
     intervalId = null;
     const elapsed = Math.max(1, Math.round((Date.now() - (startedAt || Date.now())) / 60000));
@@ -582,6 +722,7 @@
       ? `${session.title} 已完成 · 完成后本周还剩 ${remaining} 次练习`
       : `${session.title} 已完成 · 这是本周最后一次练习`;
     $('#completeStreak').textContent = APP.streakCount();
+    $('#completeXp').textContent = '+20';
     $('#sessionNotes').value = '';
     rating = 3;
     $$('#ratingRow button').forEach((button) => button.classList.toggle('selected', button.dataset.rating === '3'));
@@ -605,14 +746,17 @@
       completedAt: now.toISOString()
     };
     state.completed[finished.id] = { ...entry, completedAt: entry.completedAt };
+    state.activeSession = null;
     state.history = [entry, ...state.history.filter((item) => item.id !== finished.id || item.date !== entry.date)];
     state.history = state.history.slice(0, 400);
     APP.persist();
     APP.renderAll();
+    updateProgressDisplay();
     $('#completeModal').classList.add('hidden');
     completionPreview = null;
-    APP.showToast('已保存。今天的练习成为路径上的一格。');
-    APP.updateNav('path');
+    APP.showToast('已保存。下一课已经准备好。');
+    APP.updateNav('today');
+    setTimeout(() => openSession(APP.currentSessionData().id), 500);
     syncStateToServer();
   }
 
@@ -666,6 +810,7 @@
     state.profile = profile;
     APP.persist();
     APP.renderAll();
+    updateProgressDisplay();
     closeSettings();
     APP.showToast(`计划已更新：每周 ${profile.daysPerWeek} 次，每次 ${profile.sessionMinutes} 分钟。`);
     if (window.PIANO_BACKEND_AVAILABLE) {
@@ -805,6 +950,8 @@
     warmupTimer = setInterval(tick, 60000 / warmupBpm);
   }
 
+  window.addEventListener('beforeunload', () => rememberActiveSession(true));
+
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     deferredInstallPrompt = event;
@@ -828,7 +975,7 @@
     $$('.install-button').forEach((button) => button.classList.add('hidden'));
   }
 
-  function playTone(freq=440) {
+  function playTone(freq=440, duration=.24) {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
@@ -838,10 +985,10 @@
       osc.type = 'sine';
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(.07, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .24);
+      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + duration);
       osc.connect(gain).connect(ctx.destination);
       osc.start();
-      osc.stop(ctx.currentTime + .25);
+      osc.stop(ctx.currentTime + duration + .01);
       osc.onended = () => ctx.close();
     } catch (error) {}
   }
@@ -857,10 +1004,39 @@
     const pool = notes.filter((note) => note !== noteGameCurrent);
     noteGameCurrent = pool[Math.floor(Math.random() * pool.length)];
     noteGameLocked = false;
-    document.querySelector('#noteGameQuestion').textContent = noteGameCurrent;
-    document.querySelector('#noteGameFeedback').textContent = '点击下方正确的白键';
+    const question = document.querySelector('#noteGameQuestion');
+    const hint = document.querySelector('#noteGameHint');
+    const replay = document.querySelector('#noteReplay');
+    if (noteGameMode === 'ear') {
+      question.textContent = '?';
+      hint.textContent = '听声音，点击对应的琴键';
+      replay?.classList.remove('hidden');
+      setTimeout(() => playTone(NOTE_FREQ[noteGameCurrent], .38), 180);
+    } else {
+      question.textContent = noteGameCurrent;
+      hint.textContent = '点击下方正确的白键';
+      replay?.classList.add('hidden');
+    }
+    document.querySelector('#noteGameFeedback').textContent = noteGameMode === 'ear' ? '先听，再选。' : '点击下方正确的白键';
     document.querySelectorAll('.note-key').forEach((key) => key.classList.remove('correct', 'wrong'));
     updateNoteGame();
+  }
+
+  function setNoteGameMode(mode) {
+    noteGameMode = mode === 'ear' ? 'ear' : 'note';
+    document.querySelectorAll('.note-mode').forEach((button) => {
+      const active = button.dataset.gameMode === noteGameMode;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+    const title = document.querySelector('#noteGameTitle');
+    const eyebrow = document.querySelector('#noteGameEyebrow');
+    if (title) title.textContent = noteGameMode === 'ear' ? '听出这个音' : '找出这个音';
+    if (eyebrow) eyebrow.textContent = noteGameMode === 'ear' ? 'EAR TRAINING' : 'FIND THE KEY';
+    noteGameIndex = 0;
+    noteGameScore = 0;
+    noteGameCombo = 0;
+    newNoteQuestion();
   }
 
   function openNoteGame() {
@@ -868,8 +1044,8 @@
     noteGameScore = 0;
     noteGameCombo = 0;
     noteGameCurrent = 'C';
-    newNoteQuestion();
-    const best = localStorage.getItem('pianopath-note-game-best');
+    setNoteGameMode(noteGameMode);
+    const best = localStorage.getItem('pianopath-note-game-best') || localStorage.getItem('pianopath-ear-game-best');
     document.querySelector('#noteGameBest').textContent = best || '—';
     document.querySelector('#noteGameModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -878,6 +1054,10 @@
   function closeNoteGame() {
     document.querySelector('#noteGameModal').classList.add('hidden');
     document.body.style.overflow = '';
+    const bestKey = noteGameMode === 'ear' ? 'pianopath-ear-game-best' : 'pianopath-note-game-best';
+    const best = localStorage.getItem(bestKey);
+    const gameBest = document.querySelector('#homeGameBest');
+    if (gameBest) gameBest.textContent = best ? `${best} 分` : '—';
   }
 
   function chooseNote(note, keyElement) {
@@ -887,7 +1067,7 @@
       noteGameCombo += 1;
       noteGameScore += 10 + (noteGameCombo - 1) * 2;
       keyElement.classList.add('correct');
-      playTone(NOTE_FREQ[note]);
+      playTone(NOTE_FREQ[note], .28);
       document.querySelector('#noteGameFeedback').textContent = noteGameCombo >= 3 ? `连对 ${noteGameCombo} 题，漂亮！` : '答对了，继续！';
       noteGameIndex += 1;
       updateNoteGame();
@@ -899,21 +1079,77 @@
     } else {
       noteGameCombo = 0;
       keyElement.classList.add('wrong');
-      document.querySelector('#noteGameFeedback').textContent = `这是 ${note}，再找找 ${noteGameCurrent}`;
+      document.querySelector('#noteGameFeedback').textContent = noteGameMode === 'ear' ? '不是这个音，再听一次。' : `这是 ${note}，再找找 ${noteGameCurrent}`;
       updateNoteGame();
       setTimeout(() => keyElement.classList.remove('wrong'), 300);
     }
   }
 
   function finishNoteGame() {
-    const best = Number(localStorage.getItem('pianopath-note-game-best') || 0);
+    const today = localDateKey(new Date());
+    state.gameSessions = [{ date: today, mode: noteGameMode, score: noteGameScore, completedAt: new Date().toISOString() }, ...(state.gameSessions || [])].slice(0, 120);
+    if (!state.history.some((entry) => entry.date === today && entry.type === 'game')) {
+      state.history = [{ id: `game-${Date.now()}`, type: 'game', title: noteGameMode === 'ear' ? '听声音辨音' : '看音名找键', week: 0, date: today, minutes: 3, rating: 4, ratingLabel: '小游戏', notes: `得分 ${noteGameScore}`, sightDone: 0, completedAt: new Date().toISOString() }, ...state.history].slice(0, 400);
+    }
+    APP.persist();
+    const bestKey = noteGameMode === 'ear' ? 'pianopath-ear-game-best' : 'pianopath-note-game-best';
+    const best = Number(localStorage.getItem(bestKey) || 0);
     if (noteGameScore > best) {
-      localStorage.setItem('pianopath-note-game-best', String(noteGameScore));
+      localStorage.setItem(bestKey, String(noteGameScore));
       document.querySelector('#noteGameBest').textContent = noteGameScore;
     }
-    document.querySelector('#noteGameFeedback').textContent = `完成 10 题，得分 ${noteGameScore}。${noteGameScore >= 120 ? '节奏感很棒！' : '再来一局会更准。'}`;
+    document.querySelector('#noteGameFeedback').textContent = `完成 10 题，得分 ${noteGameScore}。${noteGameScore >= 120 ? '听辨很稳！' : '再来一局会更准。'}`;
     document.querySelector('#noteGameQuestion').textContent = '✓';
     document.querySelector('#noteGameProgress').textContent = '完成';
+    APP.renderAll();
+    updateProgressDisplay();
+  }
+
+  function stopMetronome() {
+    clearInterval(metronomeTimer);
+    metronomeTimer = null;
+    metronomeIndex = 0;
+    metronomeStep = 0;
+    const button = document.querySelector('#metronomeToggle');
+    const label = document.querySelector('#metronomeLabel');
+    if (button) { button.classList.remove('active'); button.setAttribute('aria-pressed', 'false'); }
+    if (label) label.textContent = '节拍';
+  }
+
+  function tickMetronome() {
+    const bpm = metronomeBpms[metronomeIndex];
+    if (!bpm) return;
+    try {
+      metronomeAudio = metronomeAudio || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = metronomeAudio.createOscillator();
+      const gain = metronomeAudio.createGain();
+      osc.frequency.value = metronomeStep % 4 === 0 ? 880 : 660;
+      gain.gain.setValueAtTime(.035, metronomeAudio.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001, metronomeAudio.currentTime + .045);
+      osc.connect(gain).connect(metronomeAudio.destination);
+      osc.start();
+      osc.stop(metronomeAudio.currentTime + .05);
+    } catch (error) {}
+    metronomeStep += 1;
+  }
+
+  function cycleMetronome() {
+    clearInterval(metronomeTimer);
+    metronomeTimer = null;
+    metronomeIndex = (metronomeIndex + 1) % metronomeBpms.length;
+    const bpm = metronomeBpms[metronomeIndex];
+    const button = document.querySelector('#metronomeToggle');
+    const label = document.querySelector('#metronomeLabel');
+    if (!bpm) {
+      if (button) { button.classList.remove('active'); button.setAttribute('aria-pressed', 'false'); }
+      if (label) label.textContent = '节拍';
+      return;
+    }
+    if (button) { button.classList.add('active'); button.setAttribute('aria-pressed', 'true'); }
+    if (label) label.textContent = `${bpm}`;
+    metronomeStep = 0;
+    tickMetronome();
+    metronomeTimer = setInterval(tickMetronome, 60000 / bpm);
   }
 
   function bindEvents() {
@@ -926,6 +1162,10 @@
       }
       const sessionButton = event.target.closest('[data-session]');
       if (sessionButton) {
+        if (sessionButton.getAttribute('aria-disabled') === 'true' || sessionButton.classList.contains('locked')) {
+          APP.showToast('先完成前一课，下一课就会解锁。');
+          return;
+        }
         openSession(sessionButton.dataset.session);
         return;
       }
@@ -958,6 +1198,12 @@
     $('#routeWarmup')?.addEventListener('click', openWarmup);
     $('#routeReview')?.addEventListener('click', () => APP.updateNav('stats'));
     $('#startRhythmGame')?.addEventListener('click', openNoteGame);
+    document.querySelectorAll('#onboardingForm .choice-chip').forEach((button) => button.addEventListener('click', () => chooseOnboarding(button)));
+    document.querySelector('#onboardingForm')?.addEventListener('submit', saveOnboarding);
+    document.querySelectorAll('.note-mode').forEach((button) => button.addEventListener('click', () => setNoteGameMode(button.dataset.gameMode)));
+    document.querySelector('#noteReplay')?.addEventListener('click', () => playTone(NOTE_FREQ[noteGameCurrent], .38));
+    document.querySelector('#closeOnboarding')?.addEventListener('click', closeOnboarding);
+    document.querySelector('#levelButton')?.addEventListener('click', () => APP.updateNav('stats'));
     $('#openTodayDetail')?.addEventListener('click', () => APP.updateNav('path'));
     $('#searchButton')?.addEventListener('click', () => {
       APP.updateNav('library');
@@ -967,10 +1213,12 @@
       const dark = document.documentElement.dataset.theme !== 'dark';
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       localStorage.setItem('pianopath-theme', dark ? 'dark' : 'light');
+      if (document.querySelector('#themeToggle')) document.querySelector('#themeToggle').setAttribute('aria-label', dark ? '切换浅色模式' : '切换深色模式');
       document.documentElement.classList.add('theme-transition');
       setTimeout(() => document.documentElement.classList.remove('theme-transition'), 320);
     });
     $('#closeLesson').addEventListener('click', closeSession);
+    $('#metronomeToggle')?.addEventListener('click', cycleMetronome);
     $('#completeStep').addEventListener('click', () => {
       if (stepIndex >= session.steps.length - 1) finishSession();
       else { stepIndex += 1; renderStep(); }
@@ -997,10 +1245,21 @@
     $$('select[name="weeklyMinutes"], select[name="daysPerWeek"]').forEach((select) => {
       select.addEventListener('change', updateDerivedMinutes);
     });
+    $('#reopenOnboarding')?.addEventListener('click', () => {
+      closeSettings();
+      setTimeout(() => openOnboarding(true), 180);
+    });
+    $('#clearAllData')?.addEventListener('click', () => {
+      if (!confirm('将清除计划、打卡和最佳成绩，且无法恢复。确认吗？')) return;
+      localStorage.clear();
+      location.reload();
+    });
     $('#resetPlan')?.addEventListener('click', () => {
       state.profile = { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '' };
+      state.activeSession = null;
       APP.persist();
       APP.renderAll();
+      updateProgressDisplay();
       closeSettings();
       APP.showToast('已恢复默认：每周 4 小时，4 次 × 60 分钟。');
     });
@@ -1030,6 +1289,7 @@
       state.history = [];
       APP.persist();
       APP.renderAll();
+      updateProgressDisplay();
       APP.showToast('本地练习记录已清除。');
     });
     $('#exportData')?.addEventListener('click', () => {
@@ -1044,7 +1304,8 @@
     $$('.modal-backdrop').forEach((backdrop) => {
       backdrop.addEventListener('click', (event) => {
         if (event.target !== backdrop) return;
-        if (backdrop.id === 'settingsModal') closeSettings();
+        if (backdrop.id === 'onboardingModal') closeOnboarding();
+        else if (backdrop.id === 'settingsModal') closeSettings();
         else if (backdrop.id === 'warmupModal') closeWarmup();
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
         else if (backdrop.id === 'videoModal') closeVideo();
@@ -1052,7 +1313,8 @@
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
-        if (!$('#settingsModal').classList.contains('hidden')) closeSettings();
+        if (!$('#onboardingModal').classList.contains('hidden')) closeOnboarding();
+        else if (!$('#settingsModal').classList.contains('hidden')) closeSettings();
         else if (!$('#videoModal').classList.contains('hidden')) closeVideo();
         else if (!$('#warmupModal').classList.contains('hidden')) closeWarmup();
         else if (!$('#noteGameModal').classList.contains('hidden')) closeNoteGame();
@@ -1062,12 +1324,16 @@
 
   APP.openSession = openSession;
   APP.openSettings = openSettings;
+  APP.openOnboarding = () => openOnboarding(true);
+  APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;
 
   async function init() {
     if (location.protocol === 'file:') {
       bindEvents();
       APP.renderAll();
+      updateProgressDisplay();
+      if (localStorage.getItem('pianopath-onboarded') !== '1') setTimeout(() => openOnboarding(), 350);
       const page = (location.hash || '#today').replace('#', '');
       if (['today', 'path', 'library', 'stats'].includes(page)) APP.updateNav(page);
       return;
@@ -1091,6 +1357,8 @@
     }
     bindEvents();
     APP.renderAll();
+    updateProgressDisplay();
+    if (localStorage.getItem('pianopath-onboarded') !== '1') setTimeout(() => openOnboarding(), 350);
     const page = (location.hash || '#today').replace('#', '');
     if (['today', 'path', 'library', 'stats'].includes(page)) APP.updateNav(page);
   }

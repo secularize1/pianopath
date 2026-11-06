@@ -13,7 +13,7 @@
 </head>
 <body>
   <a class="skip-link" href="#todayPage">跳到今日练习</a>
-  <div class="app-shell">
+  <div class="app-shell" id="appShell">
     <aside class="sidebar" aria-label="主导航">
       <a class="brand" href="#today" data-nav="today" aria-label="琴阶首页">
         <span class="brand-mark" aria-hidden="true">
@@ -51,7 +51,7 @@
 
       <button class="profile-mini" id="openSettings" type="button">
         <span class="avatar">C</span>
-        <span><strong>练琴人</strong><small>每周 4 小时 · 自学者</small></span>
+        <span><strong>练琴人</strong><small id="profileSub">每周 4 小时 · 自学者</small></span>
         <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
       </button>
 
@@ -75,6 +75,11 @@
           </button>
           <button class="streak-pill" id="streakButton" aria-label="连续学习天数">
             <span class="flame">◆</span><strong id="topStreak">0</strong>
+          </button>
+          <button class="level-pill" id="levelButton" aria-label="等级与经验值">
+            <span class="level-badge" id="levelBadge">Lv.1</span>
+            <span class="level-track"><i id="levelProgress"></i></span>
+            <strong id="xpValue">0 XP</strong>
           </button>
           <button class="avatar-button" id="profileButton" aria-label="打开个性化计划">C</button>
         </div>
@@ -110,6 +115,10 @@
             <button class="text-button" data-nav="path">查看完整 12 周 →</button>
           </div>
           <div class="week-trail" id="homeWeekTrail"></div>
+          <div class="daily-quests">
+            <div class="daily-quests-head"><span>今日任务</span><strong id="dailyQuestCount">0 / 3</strong></div>
+            <div class="daily-quest-list" id="dailyQuestList"></div>
+          </div>
         </section>
 
         <section class="home-bottom">
@@ -125,7 +134,7 @@
             <span class="home-game-label">每日小游戏</span>
             <strong>节拍热身</strong>
             <p>跟着四个音拍点一下，看看你能命中几拍。</p>
-            <span class="home-game-meta"><span>最佳 <b id="homeGameBest">0%</b></span><em>开始挑战 →</em></span>
+            <span class="home-game-meta"><span>最佳 <b id="homeGameBest">—</b></span><em>开始挑战 →</em></span>
             <span class="home-game-notes" aria-hidden="true"><i>♪</i><i>♫</i><i>♩</i></span>
           </button>
         </section>
@@ -215,6 +224,47 @@
     </nav>
   </div>
 
+  <div class="modal-backdrop hidden" id="onboardingModal" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+    <div class="onboarding-card">
+      <button class="icon-button modal-close onboarding-skip" id="closeOnboarding" aria-label="稍后设置"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="onboarding-art" aria-hidden="true">
+        <span class="onboarding-mascot">♪</span>
+        <span class="onboarding-key key-one"></span><span class="onboarding-key key-two"></span><span class="onboarding-key key-three"></span>
+      </div>
+      <span class="eyebrow">WELCOME TO PIANOPATH</span>
+      <h2 id="onboardingTitle">先定一个小目标</h2>
+      <p>只需要三个选择。之后每天打开，都会直接告诉你今天该练什么。</p>
+      <form id="onboardingForm">
+        <div class="onboarding-block">
+          <label class="onboarding-label">你现在的基础</label>
+          <div class="choice-grid" data-group="level">
+            <button type="button" class="choice-chip active" data-value="zero"><strong>完全零基础</strong><small>从找键和拍子开始</small></button>
+            <button type="button" class="choice-chip" data-value="basic"><strong>会一点</strong><small>想系统补齐基础</small></button>
+            <button type="button" class="choice-chip" data-value="return"><strong>重新开始</strong><small>以前学过，手生了</small></button>
+          </div>
+        </div>
+        <div class="onboarding-block">
+          <label class="onboarding-label">每周能练多久</label>
+          <div class="choice-grid compact" data-group="weeklyMinutes">
+            <button type="button" class="choice-chip" data-value="120"><strong>2 小时</strong><small>轻量起步</small></button>
+            <button type="button" class="choice-chip active" data-value="240"><strong>4 小时</strong><small>推荐节奏</small></button>
+            <button type="button" class="choice-chip" data-value="360"><strong>6 小时</strong><small>更快进步</small></button>
+          </div>
+        </div>
+        <div class="onboarding-block">
+          <label class="onboarding-label">最想先学什么</label>
+          <div class="choice-grid compact" data-group="style">
+            <button type="button" class="choice-chip" data-value="classical"><strong>古典打底</strong><small>读谱与基本功</small></button>
+            <button type="button" class="choice-chip" data-value="pop"><strong>流行伴奏</strong><small>和弦与弹唱</small></button>
+            <button type="button" class="choice-chip active" data-value="mixed"><strong>两种都要</strong><small>先打底再扩展</small></button>
+          </div>
+        </div>
+        <button class="onboarding-submit" id="onboardingSubmit" type="submit"><span>创建我的计划</span><strong>开始第一课 →</strong></button>
+      </form>
+      <div class="onboarding-foot">不需要买教材，先用你手边的琴开始。</div>
+    </div>
+  </div>
+
   <div class="modal-backdrop hidden" id="lessonModal" role="dialog" aria-modal="true" aria-labelledby="lessonTitle">
     <div class="lesson-shell">
       <header class="lesson-top">
@@ -231,6 +281,7 @@
             <div class="timer-ring"><span id="timerText">12:00</span><small id="timerStepName">身体校准</small></div>
             <div class="timer-actions">
               <button class="timer-control" id="timerToggle" aria-label="暂停计时"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+              <button class="metronome-button" id="metronomeToggle" type="button" aria-label="开启节拍器" aria-pressed="false"><span class="metro-icon">♩</span><span id="metronomeLabel">节拍</span></button>
               <button class="btn btn-primary" id="completeStep" type="button">完成这一段</button>
             </div>
           </div>
@@ -255,11 +306,11 @@
       <span class="eyebrow">SESSION COMPLETE</span>
       <h2>今天的声音，已经留下。</h2>
       <p id="completeSummary">60 分钟 · 7 个练习段落</p>
-      <div class="complete-stats"><span><strong>+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong>1</strong><small>完成课次</small></span></div>
+      <div class="complete-stats"><span><strong id="completeXp">+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong>1</strong><small>完成课次</small></span></div>
       <div class="rating-label">今天练得怎么样？</div>
       <div class="rating-row" id="ratingRow"><button data-rating="1">需要帮助</button><button data-rating="2">有点卡</button><button data-rating="3">刚刚好</button><button data-rating="4">很顺</button></div>
       <label class="notes-field"><span>留一句给下次的自己</span><textarea id="sessionNotes" placeholder="例如：F→G 换和弦提前半拍看左手。"></textarea></label>
-      <button class="btn btn-primary full-width" id="saveCompletion" type="button">保存并查看下一步</button>
+      <button class="btn btn-primary full-width" id="saveCompletion" type="button">保存，继续下一课</button>
     </div>
   </div>
 
@@ -280,20 +331,26 @@
         </div>
         <div class="range-label plan-derived"><span>单次约 <strong id="minutesPerDayLabel">60 分钟</strong></span><small>由每周总时长 ÷ 练习天数自动计算</small></div>
         <label><span>你的首要目标</span><input name="goal" type="text" maxlength="80" placeholder="例如：半年内能完整弹《天空之城》"></label>
-        <div class="form-actions"><button type="button" class="btn btn-ghost" id="resetPlan">恢复默认</button><button type="submit" class="btn btn-primary">生成并同步计划</button></div>
+        <div class="plan-tools"><button type="button" class="text-button" id="reopenOnboarding">重新选择目标</button><button type="button" class="text-button" id="resetPlan">恢复默认</button></div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
-      <button type="button" class="btn btn-soft full-width install-button hidden" id="installAppModal">安装为桌面应用</button>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
+      <div class="app-version">琴阶 1.3 · <span id="storageStatus">离线可用</span></div>
+      <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
 
   <div class="modal-backdrop hidden" id="noteGameModal" role="dialog" aria-modal="true" aria-labelledby="noteGameTitle">
     <div class="note-game-card">
       <button class="icon-button modal-close" id="closeNoteGame" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-      <div class="note-game-top"><span class="eyebrow">FIND THE KEY</span><span class="note-game-progress" id="noteGameProgress">1 / 10</span></div>
+      <div class="note-game-top"><span class="eyebrow" id="noteGameEyebrow">FIND THE KEY</span><span class="note-game-progress" id="noteGameProgress">1 / 10</span></div>
       <h2 id="noteGameTitle">找出这个音</h2>
+      <div class="note-game-modes" role="tablist" aria-label="练习模式">
+        <button type="button" class="note-mode active" data-game-mode="note" role="tab" aria-selected="true">看音名找键</button>
+        <button type="button" class="note-mode" data-game-mode="ear" role="tab" aria-selected="false">听声音辨音</button>
+      </div>
       <div class="note-game-question" id="noteGameQuestion">C</div>
-      <p id="noteGameHint">点击下方正确的白键</p>
+      <div class="note-game-prompt"><p id="noteGameHint">点击下方正确的白键</p><button type="button" class="note-replay hidden" id="noteReplay"><span>◉</span> 再听一次</button></div>
       <div class="note-piano" id="notePiano">
         <button data-note="C" class="note-key"><span>C</span></button>
         <button data-note="D" class="note-key"><span>D</span></button>
@@ -343,6 +400,7 @@
   </script>
 </body>
 </html>
+
 
 
 

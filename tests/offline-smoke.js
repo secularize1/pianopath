@@ -1,0 +1,40 @@
+const fs = require('fs');
+const { chromium } = require('playwright');
+const path = require('path');
+const assert = require('assert');
+const ROOT = path.resolve(__dirname, '..');
+const ORIGIN = process.env.PIANOPATH_ORIGIN || 'https://secularize1.github.io/pianopath/';
+const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const cacheVersion = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8').match(/const CACHE = '([^']+)'/)?.[1];
+if (!cacheVersion) throw new Error('Service worker cache version missing');
+(async () => {
+  const browser = await chromium.launch({ executablePath, headless: true });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'zh-CN', serviceWorkers: 'allow' });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(ORIGIN, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.waitForTimeout(3500);
+  await page.waitForFunction(async (expectedCache) => {
+    const keys = await caches.keys();
+    if (!keys.includes(expectedCache)) return false;
+    const cache = await caches.open(expectedCache);
+    const urls = (await cache.keys()).map((request) => request.url);
+    return ['/app.js', '/data.js', '/styles.css'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
+  }, cacheVersion, { timeout: 20000 });
+  const cached = await page.evaluate(async (expectedCache) => {
+    const keys = await caches.keys();
+    if (!keys.includes(expectedCache)) return { keys, urls: [] };
+    const cache = await caches.open(expectedCache);
+    return { keys, urls: (await cache.keys()).map((request) => request.url) };
+  }, cacheVersion);
+  assert.ok(cached.keys.includes(cacheVersion), `cache ${cacheVersion} missing`);
+  assert.ok(cached.urls.length > 0, `offline app shell is incomplete: ${cached.urls.join(', ')}`);
+  await context.setOffline(true);
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.waitForTimeout(1000);
+  assert.equal(await page.locator('#todayPage').isVisible(), true, 'offline home unavailable');
+  assert.equal(errors.length, 0, `offline errors: ${errors.join('; ')}`);
+  await browser.close();
+  console.log(JSON.stringify({ ok: true, cacheVersion, offlineHome: true, cachedUrls: cached.urls.length }, null, 2));
+})().catch((error) => { console.error(error.stack || String(error)); process.exit(1); });

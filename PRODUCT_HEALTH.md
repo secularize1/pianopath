@@ -11,9 +11,9 @@
 | 学习反馈 | 四项能力、热力图、到期复习、跟弹历史 | Playwright / app state |
 | 账户系统 | 注册、登录、退出、会话 | API integration |
 | 跨设备同步 | SQLite + revision 冲突检测 | API integration |
-| 离线能力 | Service Worker + 单文件离线包 | `sw.js` / standalone build |
+| 离线能力 | 断网刷新仍可进入课程；单文件离线包可用 | `tests/offline-smoke.js` / standalone build |
 | 响应式 | 桌面 / 手机 / 横屏平板无横向溢出 | Playwright |
-| 无障碍 | Playwright keyboard and modal regression | Playwright |
+| 无障碍 | Keyboard modal regression, DOM audit, named controls | Playwright / `tests/dom-audit.js` |
 | 安全性 | PBKDF2、HttpOnly Cookie、私有 DB、CSP | `server.py` |
 | 线上部署 | GitHub Pages 自动构建与部署 | GitHub Actions |
 

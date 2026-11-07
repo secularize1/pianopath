@@ -2486,7 +2486,10 @@
       const dark = document.documentElement.dataset.theme !== 'dark';
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       localStorage.setItem('pianopath-theme', dark ? 'dark' : 'light');
-      if (document.querySelector('#themeToggle')) document.querySelector('#themeToggle').setAttribute('aria-label', dark ? '切换浅色模式' : '切换深色模式');
+      if (document.querySelector('#themeToggle')) {
+        document.querySelector('#themeToggle').setAttribute('aria-label', dark ? '切换浅色模式' : '切换深色模式');
+        document.querySelector('#themeToggle').setAttribute('aria-pressed', String(dark));
+      }
       document.documentElement.classList.add('theme-transition');
       setTimeout(() => document.documentElement.classList.remove('theme-transition'), 320);
     });

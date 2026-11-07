@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.16.0 — 2026-11-07
+
+- Replaced native browser confirms for clearing all local data and practice records with an accessible in-app confirmation sheet.
+- Clearing practice records now resets completion, mastery, reviews and in-progress practice while preserving the learner's plan.
+- Added regression coverage for focus, Escape/cancel safety, persisted clearing and desktop/mobile parity.
+
 ## 1.15.0 — 2026-11-07
 
 - Added a domestic/official-source integrity gate for all 48 main-path lessons; global and YouTube sources are rejected there.

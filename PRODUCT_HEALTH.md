@@ -1,4 +1,4 @@
-# PianoPath 1.15 — 产品健康检查
+# PianoPath 1.16 — 产品健康检查
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
@@ -15,6 +15,7 @@
 | 响应式 | 桌面 / 手机 / 横屏平板无横向溢出 | Playwright |
 | 无障碍 | Keyboard modal regression, DOM audit, named controls | Playwright / `tests/dom-audit.js` |
 | 安全性 | PBKDF2、HttpOnly Cookie、私有 DB、CSP | `server.py` |
+| 危险操作 | 应用内确认、焦点锁定、Esc/取消与持久化清除验证 | Playwright |
 | 线上部署 | GitHub Pages 自动构建与部署 | GitHub Actions |
 
 ## 仍需商业级建设

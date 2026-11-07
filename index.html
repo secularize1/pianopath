@@ -572,7 +572,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.15 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.16 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -642,6 +642,14 @@
   </div>
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
   <script src="data.js"></script>
+  <div class="modal-backdrop hidden" id="confirmActionModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="confirmActionTitle" aria-describedby="confirmActionBody">
+    <div class="account-card confirm-action-card">
+      <button class="icon-button modal-close" id="closeConfirmAction" aria-label="取消"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="account-brand"><span class="account-logo danger">!</span><div><h2 id="confirmActionTitle">确认操作？</h2></div></div>
+      <p class="account-intro" id="confirmActionBody"></p>
+      <div class="delete-account-actions"><button type="button" class="btn btn-soft" id="cancelConfirmAction">取消</button><button type="button" class="btn danger-button" id="confirmActionButton">确认</button></div>
+    </div>
+  </div>
   <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {

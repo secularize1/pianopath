@@ -1317,4 +1317,8 @@ button, input, select, textarea { font-family: inherit; }
 .danger-button:hover { background:#a94c41; }
 .danger-button:disabled { opacity:.65; cursor:wait; transform:none; }
 .delete-account-card .account-error { min-height:18px; }
+/* === 1.16 shared destructive confirmation === */
+.confirm-action-card { width:min(430px,100%); }
+.confirm-action-card .account-intro { margin-bottom:0; }
+.confirm-action-card .delete-account-actions { margin-top:18px; }
 @media(max-width:540px){ .delete-account-actions{grid-template-columns:1fr}.delete-account-actions .btn{width:100%} }

@@ -2328,6 +2328,42 @@
     metronomeTimer = setInterval(tickMetronome, 60000 / bpm);
   }
 
+  let pendingConfirmation = null;
+
+  function confirmAction({ title, body, confirmLabel = '确认', onConfirm }) {
+    const modal = document.querySelector('#confirmActionModal');
+    if (!modal || typeof onConfirm !== 'function') return;
+    pendingConfirmation = { onConfirm };
+    document.querySelector('#confirmActionTitle').textContent = title;
+    document.querySelector('#confirmActionBody').textContent = body;
+    document.querySelector('#confirmActionButton').textContent = confirmLabel;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    syncModalFocus();
+  }
+
+  function closeConfirmAction() {
+    pendingConfirmation = null;
+    document.querySelector('#confirmActionModal')?.classList.add('hidden');
+    document.body.style.overflow = (() => { const visible = document.querySelectorAll('.modal-backdrop:not(.hidden)'); return visible.length ? 'hidden' : ''; })();
+    syncModalFocus();
+  }
+
+  function runConfirmedAction() {
+    const action = pendingConfirmation;
+    if (!action) return;
+    pendingConfirmation = null;
+    const button = document.querySelector('#confirmActionButton');
+    if (button) button.disabled = true;
+    try {
+      const shouldClose = action.onConfirm();
+      if (shouldClose !== false) closeConfirmAction();
+    } catch (error) {
+      APP.showToast('操作失败，请稍后再试。');
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
   const modalFocusState = { lastTrigger: null, currentModal: null };
 
   function isElementVisible(element) {
@@ -2470,6 +2506,9 @@
     document.querySelector('#closeDeleteAccount')?.addEventListener('click', closeDeleteAccountConfirm);
     document.querySelector('#cancelDeleteAccount')?.addEventListener('click', closeDeleteAccountConfirm);
     document.querySelector('#confirmDeleteAccount')?.addEventListener('click', deleteAccount);
+    document.querySelector('#closeConfirmAction')?.addEventListener('click', () => closeConfirmAction());
+    document.querySelector('#cancelConfirmAction')?.addEventListener('click', () => closeConfirmAction());
+    document.querySelector('#confirmActionButton')?.addEventListener('click', () => runConfirmedAction());
     window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
     const modalObserver = new MutationObserver(syncModalFocus);
     $$('.modal-backdrop').forEach((modal) => modalObserver.observe(modal, { attributes: true, attributeFilter: ['class'] }));
@@ -2566,10 +2605,17 @@
       closeSettings();
       setTimeout(() => openOnboarding(true), 180);
     });
-    $('#clearAllData')?.addEventListener('click', () => {
-      if (!confirm('将清除计划、打卡和最佳成绩，且无法恢复。确认吗？')) return;
-      localStorage.clear();
-      location.reload();
+    document.querySelector('#clearAllData')?.addEventListener('click', () => {
+      confirmAction({
+        title: '清除全部本地数据？',
+        body: '计划、打卡、最佳成绩与账户同步队列都会从这台设备移除，且无法恢复。',
+        confirmLabel: '清除全部数据',
+        onConfirm: () => {
+          localStorage.clear();
+          location.reload();
+          return false;
+        }
+      });
     });
     $('#resetPlan')?.addEventListener('click', () => {
       state.profile = { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '' };
@@ -2600,14 +2646,27 @@
     $('#librarySearch')?.addEventListener('input', (event) => {
       APP.renderLibrary(undefined, event.target.value);
     });
-    $('#clearHistory')?.addEventListener('click', () => {
-      if (!confirm('只清除本浏览器中的练习记录，确认吗？')) return;
-      state.completed = {};
-      state.history = [];
-      APP.persist();
-      APP.renderAll();
-      updateProgressDisplay();
-      APP.showToast('本地练习记录已清除。');
+    document.querySelector('#clearHistory')?.addEventListener('click', () => {
+      confirmAction({
+        title: '清除练习记录？',
+        body: '课程完成、掌握成绩、曲目阶段、最佳成绩、复习队列和练习历史会从这台设备清除，计划设置会保留。',
+        confirmLabel: '清除练习记录',
+        onConfirm: () => {
+          state.completed = {};
+          state.mastery = {};
+          state.repertoire = {};
+          state.playAlong = {};
+          state.history = [];
+          state.reviews = {};
+          state.gameSessions = [];
+          state.quickPractice = null;
+          state.activeSession = null;
+          APP.persist();
+          APP.renderAll();
+          updateProgressDisplay();
+          APP.showToast('本地练习记录已清除。');
+        }
+      });
     });
     $('#exportData')?.addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -2672,7 +2731,8 @@
     $$('.modal-backdrop').forEach((backdrop) => {
       backdrop.addEventListener('click', (event) => {
         if (event.target !== backdrop) return;
-        if (backdrop.id === 'accountModal') closeAccount();
+        if (backdrop.id === 'confirmActionModal') closeConfirmAction();
+        else if (backdrop.id === 'accountModal') closeAccount();
         else if (backdrop.id === 'onboardingModal') closeOnboarding();
         else if (backdrop.id === 'settingsModal') closeSettings();
         else if (backdrop.id === 'warmupModal') closeWarmup();
@@ -2685,6 +2745,7 @@
     document.addEventListener('keydown', (event) => {
       trapModalTab(event);
       if (event.key === 'Escape') {
+        if (document.querySelector('#confirmActionModal') && !document.querySelector('#confirmActionModal').classList.contains('hidden')) { closeConfirmAction(); return; }
         if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }

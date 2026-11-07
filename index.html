@@ -277,7 +277,7 @@
     </nav>
   </div>
 
-  <div class="modal-backdrop hidden" id="accountModal" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+  <div class="modal-backdrop hidden" id="accountModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="accountTitle">
     <div class="account-card">
       <button class="icon-button modal-close" id="closeAccount" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="account-brand"><span class="account-logo">♪</span><div><span class="eyebrow">PIANOPATH ACCOUNT</span><h2 id="accountTitle">保存你的学习进度</h2></div></div>
@@ -312,7 +312,7 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="placementModal" role="dialog" aria-modal="true" aria-labelledby="placementTitle">
+  <div class="modal-backdrop hidden" id="placementModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="placementTitle">
     <div class="placement-card">
       <button class="icon-button modal-close" id="closePlacement" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="placement-top"><span class="eyebrow">QUICK PLACEMENT</span><span class="placement-progress" id="placementProgress">1 / 5</span></div>
@@ -331,7 +331,7 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="onboardingModal" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+  <div class="modal-backdrop hidden" id="onboardingModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="onboardingTitle">
     <div class="onboarding-card">
       <button class="icon-button modal-close onboarding-skip" id="closeOnboarding" aria-label="稍后设置"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="onboarding-art" aria-hidden="true">
@@ -374,7 +374,7 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="lessonModal" role="dialog" aria-modal="true" aria-labelledby="lessonTitle">
+  <div class="modal-backdrop hidden" id="lessonModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="lessonTitle">
     <div class="lesson-shell">
       <header class="lesson-top">
         <button class="icon-button light" id="closeLesson" aria-label="退出练习"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
@@ -420,7 +420,7 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="playAlongModal" role="dialog" aria-modal="true" aria-labelledby="playAlongTitle">
+  <div class="modal-backdrop hidden" id="playAlongModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="playAlongTitle">
     <div class="playalong-card" id="playAlongCard" data-total="10">
       <button class="icon-button modal-close" id="closePlayAlong" aria-label="关闭跟弹练习"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">白键 Z–M 可用</span></div>
@@ -470,7 +470,7 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden rhythm-piano-modal" id="rhythmPianoModal" role="dialog" aria-modal="true" aria-labelledby="rhythmPianoTitle">
+  <div class="modal-backdrop hidden rhythm-piano-modal" id="rhythmPianoModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="rhythmPianoTitle">
     <div class="rhythm-piano-card" id="rhythmPianoCard">
       <header class="rhythm-piano-top">
         <button class="icon-button light" id="closeRhythmPiano" aria-label="退出节奏钢琴"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
@@ -524,11 +524,11 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="completeModal" role="dialog" aria-modal="true">
+  <div class="modal-backdrop hidden" id="completeModal" role="dialog" aria-modal="true" aria-labelledby="completeTitle" aria-hidden="true" tabindex="-1">
     <div class="complete-card">
       <div class="complete-burst"><span>♪</span></div>
       <span class="eyebrow">SESSION COMPLETE</span>
-      <h2>今天的声音，已经留下。</h2>
+      <h2 id="completeTitle">今天的声音，已经留下。</h2>
       <p id="completeSummary">60 分钟 · 7 个练习段落</p>
       <div class="complete-stats"><span><strong id="completeXp">+20</strong><small>XP</small></span><span><strong id="completeStreak">1</strong><small>连续天数</small></span><span><strong id="completeSessionCount">1</strong><small>完成课次</small></span><span><strong id="completeMastery">—</strong><small>掌握检查</small></span></div>
       <div class="rating-label">今天练得怎么样？</div>
@@ -538,11 +538,11 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="settingsModal" role="dialog" aria-modal="true">
+  <div class="modal-backdrop hidden" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-hidden="true" tabindex="-1">
     <div class="settings-card">
       <button class="icon-button modal-close" id="closeSettings" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <span class="eyebrow">PERSONAL PLAN</span>
-      <h2>定制你的练习节奏</h2>
+      <h2 id="settingsTitle">定制你的练习节奏</h2>
       <p>保留教学结构，调整每周时间、练习天数与目标方向。生成后可随时恢复默认。</p>
       <form id="planForm">
         <div class="form-row two">
@@ -559,12 +559,12 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.12 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.13 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="noteGameModal" role="dialog" aria-modal="true" aria-labelledby="noteGameTitle">
+  <div class="modal-backdrop hidden" id="noteGameModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="noteGameTitle">
     <div class="note-game-card">
       <button class="icon-button modal-close" id="closeNoteGame" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="note-game-top"><span class="eyebrow" id="noteGameEyebrow">FIND THE KEY</span><span class="note-game-progress" id="noteGameProgress">1 / 10</span></div>
@@ -590,7 +590,7 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="warmupModal" role="dialog" aria-modal="true" aria-labelledby="warmupTitle">
+  <div class="modal-backdrop hidden" id="warmupModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="warmupTitle">
     <div class="warmup-card">
       <button class="icon-button modal-close" id="closeWarmup" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <span class="eyebrow">RHYTHM GAME</span>
@@ -604,7 +604,7 @@
       <div class="warmup-tip">先听两拍，再从第 3 拍进入。错拍不要停，下一拍接着数。</div>
     </div>
   </div>
-  <div class="modal-backdrop hidden" id="videoModal" role="dialog" aria-modal="true" aria-labelledby="videoTitle">
+  <div class="modal-backdrop hidden" id="videoModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="videoTitle">
     <div class="video-card">
       <button class="icon-button modal-close" id="closeVideo" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <span class="eyebrow">VERIFIED SOURCE</span>
@@ -614,7 +614,7 @@
       <a class="btn btn-primary full-width" id="videoOpen" href="#" target="_blank" rel="noreferrer noopener">在原平台打开</a>
     </div>
   </div>
-  <div class="modal-backdrop hidden" id="repertoireModal" role="dialog" aria-modal="true" aria-labelledby="repertoireModalTitle">
+  <div class="modal-backdrop hidden" id="repertoireModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="repertoireModalTitle">
     <div class="repertoire-modal-card">
       <button class="icon-button modal-close" id="closeRepertoire" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <span class="eyebrow">REPERTOIRE PRACTICE</span>

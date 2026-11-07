@@ -1198,7 +1198,11 @@
     if (form) {
       form.querySelectorAll('[data-group]').forEach((group) => {
         const activeValue = onboardingChoices[group.dataset.group];
-        group.querySelectorAll('.choice-chip').forEach((chip) => chip.classList.toggle('active', Number(chip.dataset.value) === Number(activeValue) || chip.dataset.value === String(activeValue)));
+        group.querySelectorAll('.choice-chip').forEach((chip) => {
+          const active = Number(chip.dataset.value) === Number(activeValue) || chip.dataset.value === String(activeValue);
+          chip.classList.toggle('active', active);
+          chip.setAttribute('aria-pressed', String(active));
+        });
       });
     }
     document.querySelector('#onboardingModal')?.classList.remove('hidden');
@@ -1218,7 +1222,11 @@
     const key = group.dataset.group;
     const raw = button.dataset.value;
     onboardingChoices[key] = key === 'weeklyMinutes' ? Number(raw) : raw;
-    group.querySelectorAll('.choice-chip').forEach((chip) => chip.classList.toggle('active', chip === button));
+    group.querySelectorAll('.choice-chip').forEach((chip) => {
+      const active = chip === button;
+      chip.classList.toggle('active', active);
+      chip.setAttribute('aria-pressed', String(active));
+    });
   }
 
   function saveOnboarding(event) {
@@ -2305,6 +2313,80 @@
     metronomeTimer = setInterval(tickMetronome, 60000 / bpm);
   }
 
+  const modalFocusState = { lastTrigger: null, currentModal: null };
+
+  function isElementVisible(element) {
+    if (!element || element.disabled || element.getAttribute('aria-hidden') === 'true') return false;
+    if (element.closest('.hidden')) return false;
+    const style = window.getComputedStyle(element);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  }
+
+  function modalFocusables(modal) {
+    return Array.from(modal.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'))
+      .filter(isElementVisible);
+  }
+
+  function activateModalFocus(modal) {
+    if (!modal || !modal.matches('.modal-backdrop')) return;
+    if (modalFocusState.currentModal !== modal) {
+      const active = document.activeElement;
+      if (active && active !== document.body && !active.closest('.modal-backdrop')) modalFocusState.lastTrigger = active;
+      modalFocusState.currentModal = modal;
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    window.requestAnimationFrame(() => {
+      if (!modal || modal.classList.contains('hidden')) return;
+      const preferred = modal.querySelector('[data-autofocus], .modal-close, button, input, select, textarea, a[href]');
+      const first = isElementVisible(preferred) ? preferred : modalFocusables(modal)[0];
+      first?.focus({ preventScroll: true });
+    });
+  }
+
+  function releaseModalFocus(modal) {
+    if (!modal) return;
+    if (modalFocusState.currentModal === modal) {
+      modalFocusState.currentModal = null;
+      modal.setAttribute('aria-hidden', 'true');
+      const trigger = modalFocusState.lastTrigger;
+      modalFocusState.lastTrigger = null;
+      if (trigger && document.contains(trigger) && isElementVisible(trigger)) {
+        window.requestAnimationFrame(() => trigger.focus({ preventScroll: true }));
+      }
+    }
+  }
+
+  function syncModalFocus() {
+    const visible = $$('.modal-backdrop').filter((modal) => !modal.classList.contains('hidden'));
+    visible.forEach((modal) => modal.setAttribute('aria-hidden', 'false'));
+    const target = visible[visible.length - 1] || null;
+    const shell = document.querySelector('#appShell');
+    if (shell) shell.inert = Boolean(target);
+    if (target && target !== modalFocusState.currentModal) activateModalFocus(target);
+    else if (!target && modalFocusState.currentModal) releaseModalFocus(modalFocusState.currentModal);
+  }
+
+  function trapModalTab(event) {
+    if (event.key !== 'Tab') return;
+    const modal = modalFocusState.currentModal;
+    if (!modal || modal.classList.contains('hidden')) return;
+    const focusables = modalFocusables(modal);
+    if (!focusables.length) {
+      event.preventDefault();
+      modal.focus({ preventScroll: true });
+      return;
+    }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   function bindEvents() {
     document.addEventListener('click', (event) => {
       const nav = event.target.closest('[data-nav]');
@@ -2369,10 +2451,20 @@
     document.querySelector('#accountSyncNow')?.addEventListener('click', () => syncNow({ force: true }));
     document.querySelector('#accountLogout')?.addEventListener('click', logoutAccount);
     window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
+    const modalObserver = new MutationObserver(syncModalFocus);
+    $$('.modal-backdrop').forEach((modal) => modalObserver.observe(modal, { attributes: true, attributeFilter: ['class'] }));
+    document.addEventListener('focusin', (event) => {
+      const modal = modalFocusState.currentModal;
+      if (!modal || modal.classList.contains('hidden')) return;
+      if (event.target.closest('.modal-backdrop') !== modal) activateModalFocus(modal);
+    });
     $('#dueReviewLink')?.addEventListener('click', () => APP.updateNav('stats'));
     $('#startRhythmGame')?.addEventListener('click', openNoteGame);
     $('#startPlayAlongHome')?.addEventListener('click', openPlayAlong);
-    document.querySelectorAll('#onboardingForm .choice-chip').forEach((button) => button.addEventListener('click', () => chooseOnboarding(button)));
+    document.querySelectorAll('#onboardingForm .choice-chip').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.classList.contains('active')));
+      button.addEventListener('click', () => chooseOnboarding(button));
+    });
     document.querySelector('#onboardingForm')?.addEventListener('submit', saveOnboarding);
     document.querySelector('#openPlacement')?.addEventListener('click', openPlacement);
     document.querySelector('#closePlacement')?.addEventListener('click', closePlacement);
@@ -2568,6 +2660,7 @@
       });
     });
     document.addEventListener('keydown', (event) => {
+      trapModalTab(event);
       if (event.key === 'Escape') {
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
@@ -2582,6 +2675,7 @@
   }
 
   APP.openPlayAlong = openPlayAlong;
+  APP.getModalFocusState = () => ({ currentModal: modalFocusState.currentModal?.id || null, lastTrigger: modalFocusState.lastTrigger?.id || null });
   APP.openRhythmPiano = openRhythmPiano;
   APP.finishRhythmPiano = finishRhythmPiano;
   APP.getRhythmSnapshot = () => ({

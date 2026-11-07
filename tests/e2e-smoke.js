@@ -29,8 +29,23 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
     assert.equal(errors.length, 0, `${name}: startup errors: ${errors.join('; ')}`);
     assert.equal(await page.evaluate(() => typeof window.PIANO_APP.openPlayAlong), 'function', `${name}: play-along API not exposed`);
     assert.equal(await page.locator('#onboardingModal').isVisible(), true, `${name}: onboarding missing`);
+    assert.equal(await page.locator('#onboardingModal').getAttribute('aria-hidden'), 'false', `${name}: open modal should be exposed to assistive tech`);
+    const onboardingFocus = await page.evaluate(() => ({
+      modal: window.PIANO_APP.getModalFocusState().currentModal,
+      inside: Boolean(document.activeElement.closest('#onboardingModal'))
+    }));
+    assert.equal(onboardingFocus.modal, 'onboardingModal', `${name}: modal focus was not activated`);
+    assert.equal(onboardingFocus.inside, true, `${name}: opening modal did not move focus inside`);
+    assert.equal(await page.evaluate(() => document.querySelector('#appShell').inert), true, `${name}: background stayed interactive under modal`);
+    for (let i = 0; i < 6; i += 1) await page.keyboard.press('Tab');
+    assert.equal(await page.evaluate(() => Boolean(document.activeElement.closest('#onboardingModal'))), true, `${name}: Tab escaped the modal`);
+    await page.keyboard.press('Shift+Tab');
+    assert.equal(await page.evaluate(() => Boolean(document.activeElement.closest('#onboardingModal'))), true, `${name}: Shift+Tab escaped the modal`);
     assert.equal(await page.locator('#onboardingForm .choice-chip').count(), 9, `${name}: onboarding choices incorrect`);
+    assert.equal(await page.locator('[data-group="level"] [data-value="zero"]').getAttribute('aria-pressed'), 'true', `${name}: selected onboarding choice is not exposed`);
     await page.locator('[data-group="level"] [data-value="basic"]').click();
+    assert.equal(await page.locator('[data-group="level"] [data-value="basic"]').getAttribute('aria-pressed'), 'true', `${name}: onboarding selection state did not update`);
+    assert.equal(await page.locator('[data-group="level"] [data-value="zero"]').getAttribute('aria-pressed'), 'false', `${name}: previous onboarding choice stayed selected`);
     await page.locator('#onboardingSubmit').click();
     await page.waitForTimeout(800);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: first lesson did not open`);
@@ -70,6 +85,8 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
     await page.locator('#closePlayAlong').click();
     await page.waitForTimeout(180);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: play-along did not return to lesson`);
+    assert.equal(await page.evaluate(() => window.PIANO_APP.getModalFocusState().currentModal), 'lessonModal', `${name}: focus did not return to parent lesson modal`);
+    assert.equal(await page.evaluate(() => Boolean(document.activeElement.closest('#lessonModal'))), true, `${name}: focus did not return inside parent lesson`);
     await page.locator('#openCheckpoint').click();
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#checkpointPanel').isVisible(), true, `${name}: mastery checkpoint missing`);

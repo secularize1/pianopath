@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.13.0 - 2026-11-07
+
+- Added an accessible modal system with focus entry, focus trapping, Escape-to-close and focus restoration.
+- Marked the application shell inert while dialogs are open so background content cannot be interacted with.
+- Added visible keyboard focus styles and larger touch targets for coarse-pointer devices.
+- Exposed onboarding selection state with aria-pressed and added focus/selection regression coverage.
+- Improved dialog labels for completion and settings views.
+
 ## 1.12.0 — 2026-11-07
 
 - Added a two-octave virtual rhythm piano with four public-domain melodies and per-song note charts.

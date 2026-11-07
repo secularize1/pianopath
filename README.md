@@ -18,6 +18,13 @@
 - **PWA**：可安装到桌面、离线打开，带 Service Worker 缓存。
 - **主题**：亮色与深色模式。
 
+### 1.13 accessibility
+
+- Modal focus entry, focus trap, Escape close and focus restoration.
+- Background shell inert while dialogs are open.
+- Visible keyboard focus and larger touch targets.
+- Selection semantics and regression tests for onboarding.
+
 ### 1.12 节奏钢琴
 
 - 内置双八度虚拟电子琴，四首公共领域短曲各有独立节拍与落点。

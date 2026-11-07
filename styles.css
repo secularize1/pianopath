@@ -1304,3 +1304,17 @@ button, input, select, textarea { font-family: inherit; }
 .daily-quest-celebration small { color:#718879; font-size:10px; }
 
 .account-plan-link { display:block; width:100%; margin-top:10px; padding:10px 12px; border:1px solid #d9e8da; border-radius:10px; background:#f7fbf5; color:#4e7c5b; text-align:center; font-size:10px; }
+
+.account-delete-link { display:block; width:100%; margin-top:8px; padding:9px 10px; border:1px solid #efd7d3; border-radius:9px; background:#fff8f6; color:#a5665d; text-align:center; font-size:10px; }
+.account-delete-link:hover { background:#fff0ec; color:#914d43; }
+
+/* === 1.14 account deletion confirmation === */
+.delete-account-card { width:min(430px,100%); }
+.account-logo.danger { background:#fdece8; color:#ae5c50; }
+.delete-account-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:17px; }
+.delete-account-actions .btn { min-height:42px; }
+.danger-button { border:1px solid #bf6659; background:#b85b4f; color:#fff; box-shadow:0 3px 0 #93483e; }
+.danger-button:hover { background:#a94c41; }
+.danger-button:disabled { opacity:.65; cursor:wait; transform:none; }
+.delete-account-card .account-error { min-height:18px; }
+@media(max-width:540px){ .delete-account-actions{grid-template-columns:1fr}.delete-account-actions .btn{width:100%} }

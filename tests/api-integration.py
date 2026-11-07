@@ -75,13 +75,22 @@ def main():
         assert status == 200 and cookie2
         status, pulled2, _ = request(base, "/api/sync", cookie=cookie2.split(";", 1)[0])
         assert status == 200 and pulled2["revision"] == 1
+        status, wrong_delete, _ = request(base, "/api/auth/delete", "POST", {"confirmation": "wrong"}, cookie)
+        assert status == 400
+        status, deleted, delete_cookie = request(base, "/api/auth/delete", "POST", {"confirmation": "DELETE"}, cookie)
+        assert status == 200 and deleted["ok"] is True
+        assert delete_cookie and "Max-Age=0" in delete_cookie
+        status, deleted_me, _ = request(base, "/api/auth/me", cookie=cookie)
+        assert status == 200 and deleted_me["authenticated"] is False
+        status, deleted_login, _ = request(base, "/api/auth/login", "POST", {"email": email, "password": "PianoPath123!"})
+        assert status == 401
         status, logged_out, _ = request(base, "/api/auth/logout", "POST", {}, cookie)
         assert status == 200
         status, unauthenticated, _ = request(base, "/api/auth/me", cookie=cookie)
         assert status == 200 and unauthenticated["authenticated"] is False
         status, db_probe, _ = request(base, "/data/pianopath.db")
         assert status == 404
-        print(json.dumps({"ok": True, "checks": ["register", "session", "sync", "revision-conflict", "login", "logout", "private-db"]}, ensure_ascii=False))
+        print(json.dumps({"ok": True, "checks": ["register", "session", "sync", "revision-conflict", "login", "delete-account", "logout", "private-db"]}, ensure_ascii=False))
     finally:
         process.terminate()
         try:

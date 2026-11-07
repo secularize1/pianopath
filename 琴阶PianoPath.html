@@ -1321,6 +1321,20 @@ button, input, select, textarea { font-family: inherit; }
 
 .account-plan-link { display:block; width:100%; margin-top:10px; padding:10px 12px; border:1px solid #d9e8da; border-radius:10px; background:#f7fbf5; color:#4e7c5b; text-align:center; font-size:10px; }
 
+.account-delete-link { display:block; width:100%; margin-top:8px; padding:9px 10px; border:1px solid #efd7d3; border-radius:9px; background:#fff8f6; color:#a5665d; text-align:center; font-size:10px; }
+.account-delete-link:hover { background:#fff0ec; color:#914d43; }
+
+/* === 1.14 account deletion confirmation === */
+.delete-account-card { width:min(430px,100%); }
+.account-logo.danger { background:#fdece8; color:#ae5c50; }
+.delete-account-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:17px; }
+.delete-account-actions .btn { min-height:42px; }
+.danger-button { border:1px solid #bf6659; background:#b85b4f; color:#fff; box-shadow:0 3px 0 #93483e; }
+.danger-button:hover { background:#a94c41; }
+.danger-button:disabled { opacity:.65; cursor:wait; transform:none; }
+.delete-account-card .account-error { min-height:18px; }
+@media(max-width:540px){ .delete-account-actions{grid-template-columns:1fr}.delete-account-actions .btn{width:100%} }
+
 </style>
 </head>
 <body>
@@ -1613,11 +1627,22 @@ button, input, select, textarea { font-family: inherit; }
         <div class="account-user"><strong id="accountUserName">练琴人</strong><small id="accountUserEmail"></small></div>
         <div class="account-sync-state"><span class="sync-dot"></span><span id="accountSyncState">已同步</span></div>
         <div class="account-actions"><button type="button" class="btn btn-soft" id="accountSyncNow">立即同步</button><button type="button" class="text-button" id="accountLogout">退出登录</button></div>
+        <button type="button" class="text-button account-delete-link" id="accountDelete">删除账户与云端进度</button>
       </div>
       <div class="account-divider"><span>或</span></div>
       <button type="button" class="guest-button" id="continueGuest">继续以游客身份使用</button>
       <p class="account-note">账户为可选功能。你的练习数据默认保存在本机，不会自动公开。</p>
       <button type="button" class="text-button account-plan-link" id="accountPlanSettings">练习计划设置 →</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="deleteAccountModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="deleteAccountTitle">
+    <div class="account-card delete-account-card">
+      <button class="icon-button modal-close" id="closeDeleteAccount" aria-label="取消删除"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="account-brand"><span class="account-logo danger">!</span><div><span class="eyebrow">DELETE ACCOUNT</span><h2 id="deleteAccountTitle">删除账户？</h2></div></div>
+      <p class="account-intro">云端学习进度会被永久删除。此设备上的本地记录会保留。</p>
+      <div class="account-error" id="deleteAccountError" role="alert"></div>
+      <div class="delete-account-actions"><button type="button" class="btn btn-soft" id="cancelDeleteAccount">保留账户</button><button type="button" class="btn danger-button" id="confirmDeleteAccount">永久删除</button></div>
     </div>
   </div>
 
@@ -1868,7 +1893,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.13 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.14 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -1945,7 +1970,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.13.0",
+    "appVersion": "1.14.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -10494,6 +10519,10 @@ window.PIANO_DATA = {
     document.querySelector('#continueLocal')?.addEventListener('click', closeAccount);
     document.querySelector('#accountSyncNow')?.addEventListener('click', () => syncNow({ force: true }));
     document.querySelector('#accountLogout')?.addEventListener('click', logoutAccount);
+    document.querySelector('#accountDelete')?.addEventListener('click', openDeleteAccountConfirm);
+    document.querySelector('#closeDeleteAccount')?.addEventListener('click', closeDeleteAccountConfirm);
+    document.querySelector('#cancelDeleteAccount')?.addEventListener('click', closeDeleteAccountConfirm);
+    document.querySelector('#confirmDeleteAccount')?.addEventListener('click', deleteAccount);
     window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
     const modalObserver = new MutationObserver(syncModalFocus);
     $$('.modal-backdrop').forEach((modal) => modalObserver.observe(modal, { attributes: true, attributeFilter: ['class'] }));
@@ -10709,6 +10738,7 @@ window.PIANO_DATA = {
     document.addEventListener('keydown', (event) => {
       trapModalTab(event);
       if (event.key === 'Escape') {
+        if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
         if (!$('#accountModal').classList.contains('hidden')) closeAccount();
@@ -11022,6 +11052,46 @@ window.PIANO_DATA = {
     showAccountView();
     setSyncStatus('本地保存', '');
     APP.showToast('已退出账户，本地进度仍保留。');
+  }
+
+  function openDeleteAccountConfirm() {
+    if (!accountState.loggedIn) return;
+    const error = document.querySelector('#deleteAccountError');
+    if (error) error.textContent = '';
+    document.querySelector('#deleteAccountModal')?.classList.remove('hidden');
+  }
+
+  function closeDeleteAccountConfirm() {
+    document.querySelector('#deleteAccountModal')?.classList.add('hidden');
+  }
+
+  async function deleteAccount() {
+    if (!accountState.loggedIn) return;
+    const confirmButton = document.querySelector('#confirmDeleteAccount');
+    const errorBox = document.querySelector('#deleteAccountError');
+    if (confirmButton) {
+      confirmButton.disabled = true;
+      confirmButton.textContent = '正在删除…';
+    }
+    if (errorBox) errorBox.textContent = '';
+    try {
+      await accountRequest('/api/auth/delete', { confirmation: 'DELETE' });
+      accountState.loggedIn = false;
+      accountState.user = null;
+      accountState.syncRevision = 0;
+      closeDeleteAccountConfirm();
+      closeAccount();
+      showAccountView();
+      setSyncStatus('本地保存', '');
+      APP.showToast('账户与云端进度已删除，本机练习记录仍保留。');
+    } catch (error) {
+      if (errorBox) errorBox.textContent = error.message || '删除失败，请稍后再试。';
+    } finally {
+      if (confirmButton) {
+        confirmButton.disabled = false;
+        confirmButton.textContent = '永久删除';
+      }
+    }
   }
 
   async function refreshAccountSummary() {

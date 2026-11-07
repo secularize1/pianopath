@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.14.0 — 2026-11-07
+
+- Added in-app account deletion with an explicit destructive confirmation dialog.
+- Deleting an account now revokes sessions and cascades removal of server-side progress, while keeping this device's local practice history.
+- Added backend and browser regression coverage for deletion confirmation, cancellation, session revocation, re-login rejection and UI state cleanup.
+- Updated the account sheet with a clear account/sync label and direct access to plan settings on mobile.
+
 ## 1.13.0 - 2026-11-07
 
 - Added an accessible modal system with focus entry, focus trapping, Escape-to-close and focus restoration.

@@ -1,6 +1,6 @@
 {
   "name": "pianopath",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "private": true,
   "description": "每周 4 小时的钢琴学习工作台，国内资源优先，支持 PWA 与本地后端。",
   "scripts": {
@@ -11,8 +11,9 @@
     "test:content": "node tests/content-audit.js",
     "test:e2e": "node tests/e2e-smoke.js",
     "test:offline": "node tests/offline-smoke.js",
+    "test:account-ui": "node tests/account-ui-smoke.js",
     "test:api": "python tests/api-integration.py",
-    "test": "npm run check && npm run test:e2e && npm run test:offline && npm run test:api"
+    "test": "npm run check && npm run test:e2e && npm run test:account-ui && npm run test:offline && npm run test:api"
   },
   "keywords": ["piano", "learning", "pwa", "education", "music"],
   "license": "MIT"

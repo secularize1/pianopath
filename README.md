@@ -18,6 +18,12 @@
 - **PWA**：可安装到桌面、离线打开，带 Service Worker 缓存。
 - **主题**：亮色与深色模式。
 
+### 1.14 账户数据控制
+
+- 账户弹窗可删除账户与云端进度，并在应用内二次确认。
+- 删除后撤销所有会话、级联清除服务器进度；本机练习记录保留。
+- 移动端账户入口直达计划设置，删除与同步流程共享同一套弹窗焦点管理。
+
 ### 1.13 accessibility
 
 - Modal focus entry, focus trap, Escape close and focus restoration.
@@ -87,7 +93,7 @@
 
 ### 1.4 账户与跨设备同步
 
-- 可选账户：注册/登录/退出，游客模式无需账户。
+- 可选账户：注册/登录/同步/退出/删除，游客模式无需账户；删除账户会清除云端进度并撤销会话。
 - PBKDF2 密码哈希、HttpOnly SameSite Cookie、会话过期与登录限流。
 - SQLite 服务端进度存储，支持版本冲突检测与手动/自动同步。
 - 离线优先：本地先保存，恢复网络后补传；账户进度按版本合并。
@@ -171,6 +177,7 @@ python tools/build-standalone.py
 | POST | `/api/auth/login` | 登录并建立会话 |
 | GET | `/api/auth/me` | 当前账户状态 |
 | POST | `/api/auth/logout` | 退出并清除会话 |
+| POST | `/api/auth/delete` | 删除账户并级联清除云端进度 |
 | GET / POST | `/api/sync` | 跨设备读取/写入进度，带 revision 冲突检测 |
 
 示例：

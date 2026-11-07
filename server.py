@@ -53,7 +53,7 @@ def load_curriculum() -> dict:
 
 
 CURRICULUM = load_curriculum()
-APP_VERSION = str(CURRICULUM.get("meta", {}).get("appVersion", "1.13.0"))
+APP_VERSION = str(CURRICULUM.get("meta", {}).get("appVersion", "1.14.0"))
 
 
 def now_iso() -> str:
@@ -157,7 +157,7 @@ def public_path(path: str) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "PianoPath/1.13"
+    server_version = "PianoPath/1.14"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -374,6 +374,18 @@ class Handler(SimpleHTTPRequestHandler):
                     if token:
                         connection.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash(token),))
                         connection.commit()
+                self.send_json({"ok": True}, cookie="pianopath_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0")
+                return
+            if path == "/api/auth/delete":
+                payload = self.read_json()
+                if payload.get("confirmation") != "DELETE":
+                    return self.send_error_json(400, "confirmation required")
+                with db() as connection:
+                    user = self.auth_required(connection)
+                    if not user:
+                        return
+                    connection.execute("DELETE FROM users WHERE id = ?", (user["id"],))
+                    connection.commit()
                 self.send_json({"ok": True}, cookie="pianopath_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0")
                 return
             if path == "/api/sync":

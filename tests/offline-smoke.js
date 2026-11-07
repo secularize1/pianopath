@@ -1,19 +1,57 @@
 const fs = require('fs');
 const { chromium } = require('playwright');
+const { spawn } = require('child_process');
+const net = require('net');
 const path = require('path');
 const assert = require('assert');
 const ROOT = path.resolve(__dirname, '..');
 const ORIGIN = process.env.PIANOPATH_ORIGIN || 'https://secularize1.github.io/pianopath/';
+const LOCAL_SERVER = process.env.PIANOPATH_OFFLINE_REMOTE !== '1';
 const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const cacheVersion = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8').match(/const CACHE = '([^']+)'/)?.[1];
 if (!cacheVersion) throw new Error('Service worker cache version missing');
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      server.close(() => resolve(port));
+    });
+    server.on('error', reject);
+  });
+}
+
+async function waitForServer(url) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    try {
+      const response = await fetch(`${url}/api/health`);
+      if (response.ok) return;
+    } catch (error) {}
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error('PianoPath offline test server did not start');
+}
+
 (async () => {
+  let server = null;
+  let origin = ORIGIN;
+  if (LOCAL_SERVER) {
+    const port = await freePort();
+    origin = `http://127.0.0.1:${port}`;
+    server = spawn(process.env.PYTHON || 'python', ['server.py'], {
+      cwd: ROOT,
+      env: { ...process.env, PORT: String(port), PIANOPATH_DATA_DIR: `${ROOT}/data/offline-test`, PIANOPATH_NO_BROWSER: '1' },
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    await waitForServer(origin);
+  }
   const browser = await chromium.launch({ executablePath, headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'zh-CN', serviceWorkers: 'allow' });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(ORIGIN, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await page.waitForFunction(() => Boolean(window.PIANO_APP), null, { timeout: 15000 });
   await page.waitForTimeout(3500);
   await page.waitForFunction(async (expectedCache) => {
     const keys = await caches.keys();
@@ -36,5 +74,10 @@ if (!cacheVersion) throw new Error('Service worker cache version missing');
   assert.equal(await page.locator('#todayPage').isVisible(), true, 'offline home unavailable');
   assert.equal(errors.length, 0, `offline errors: ${errors.join('; ')}`);
   await browser.close();
-  console.log(JSON.stringify({ ok: true, cacheVersion, offlineHome: true, cachedUrls: cached.urls.length }, null, 2));
-})().catch((error) => { console.error(error.stack || String(error)); process.exit(1); });
+  if (server) server.kill();
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  console.log(JSON.stringify({ ok: true, cacheVersion, offlineHome: true, cachedUrls: cached.urls.length, mode: LOCAL_SERVER ? 'local' : 'remote' }, null, 2));
+})().catch(async (error) => {
+  console.error(error.stack || String(error));
+  process.exit(1);
+});

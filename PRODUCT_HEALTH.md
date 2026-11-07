@@ -1,4 +1,4 @@
-# PianoPath 1.13 — 产品健康检查
+# PianoPath 1.14 — 产品健康检查
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
@@ -9,7 +9,7 @@
 | 掌握门槛 | 2/3 通过才完成课程并解锁下一课 | Playwright |
 | 音乐练习 | 触屏 / 双排电脑键盘；跟弹判定与节奏钢琴结算 | Playwright |
 | 学习反馈 | 今日主课/掌握路径、每日目标完成反馈、四项能力、热力图、到期复习、跟弹历史 | Playwright / app state |
-| 账户系统 | 注册、登录、退出、会话 | API integration |
+| 账户系统 | 注册、登录、同步、退出、删除账户与云端进度 | API / UI integration |
 | 跨设备同步 | SQLite + revision 冲突检测 | API integration |
 | 离线能力 | 断网刷新仍可进入课程；单文件离线包可用 | `tests/offline-smoke.js` / standalone build |
 | 响应式 | 桌面 / 手机 / 横屏平板无横向溢出 | Playwright |

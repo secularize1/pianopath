@@ -2465,6 +2465,10 @@
     document.querySelector('#continueLocal')?.addEventListener('click', closeAccount);
     document.querySelector('#accountSyncNow')?.addEventListener('click', () => syncNow({ force: true }));
     document.querySelector('#accountLogout')?.addEventListener('click', logoutAccount);
+    document.querySelector('#accountDelete')?.addEventListener('click', openDeleteAccountConfirm);
+    document.querySelector('#closeDeleteAccount')?.addEventListener('click', closeDeleteAccountConfirm);
+    document.querySelector('#cancelDeleteAccount')?.addEventListener('click', closeDeleteAccountConfirm);
+    document.querySelector('#confirmDeleteAccount')?.addEventListener('click', deleteAccount);
     window.addEventListener('online', () => { if (accountState.loggedIn) syncNow(); });
     const modalObserver = new MutationObserver(syncModalFocus);
     $$('.modal-backdrop').forEach((modal) => modalObserver.observe(modal, { attributes: true, attributeFilter: ['class'] }));
@@ -2680,6 +2684,7 @@
     document.addEventListener('keydown', (event) => {
       trapModalTab(event);
       if (event.key === 'Escape') {
+        if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
         if (!$('#accountModal').classList.contains('hidden')) closeAccount();
@@ -2993,6 +2998,46 @@
     showAccountView();
     setSyncStatus('本地保存', '');
     APP.showToast('已退出账户，本地进度仍保留。');
+  }
+
+  function openDeleteAccountConfirm() {
+    if (!accountState.loggedIn) return;
+    const error = document.querySelector('#deleteAccountError');
+    if (error) error.textContent = '';
+    document.querySelector('#deleteAccountModal')?.classList.remove('hidden');
+  }
+
+  function closeDeleteAccountConfirm() {
+    document.querySelector('#deleteAccountModal')?.classList.add('hidden');
+  }
+
+  async function deleteAccount() {
+    if (!accountState.loggedIn) return;
+    const confirmButton = document.querySelector('#confirmDeleteAccount');
+    const errorBox = document.querySelector('#deleteAccountError');
+    if (confirmButton) {
+      confirmButton.disabled = true;
+      confirmButton.textContent = '正在删除…';
+    }
+    if (errorBox) errorBox.textContent = '';
+    try {
+      await accountRequest('/api/auth/delete', { confirmation: 'DELETE' });
+      accountState.loggedIn = false;
+      accountState.user = null;
+      accountState.syncRevision = 0;
+      closeDeleteAccountConfirm();
+      closeAccount();
+      showAccountView();
+      setSyncStatus('本地保存', '');
+      APP.showToast('账户与云端进度已删除，本机练习记录仍保留。');
+    } catch (error) {
+      if (errorBox) errorBox.textContent = error.message || '删除失败，请稍后再试。';
+    } finally {
+      if (confirmButton) {
+        confirmButton.disabled = false;
+        confirmButton.textContent = '永久删除';
+      }
+    }
   }
 
   async function refreshAccountSummary() {

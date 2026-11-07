@@ -306,11 +306,22 @@
         <div class="account-user"><strong id="accountUserName">练琴人</strong><small id="accountUserEmail"></small></div>
         <div class="account-sync-state"><span class="sync-dot"></span><span id="accountSyncState">已同步</span></div>
         <div class="account-actions"><button type="button" class="btn btn-soft" id="accountSyncNow">立即同步</button><button type="button" class="text-button" id="accountLogout">退出登录</button></div>
+        <button type="button" class="text-button account-delete-link" id="accountDelete">删除账户与云端进度</button>
       </div>
       <div class="account-divider"><span>或</span></div>
       <button type="button" class="guest-button" id="continueGuest">继续以游客身份使用</button>
       <p class="account-note">账户为可选功能。你的练习数据默认保存在本机，不会自动公开。</p>
       <button type="button" class="text-button account-plan-link" id="accountPlanSettings">练习计划设置 →</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="deleteAccountModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="deleteAccountTitle">
+    <div class="account-card delete-account-card">
+      <button class="icon-button modal-close" id="closeDeleteAccount" aria-label="取消删除"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <div class="account-brand"><span class="account-logo danger">!</span><div><span class="eyebrow">DELETE ACCOUNT</span><h2 id="deleteAccountTitle">删除账户？</h2></div></div>
+      <p class="account-intro">云端学习进度会被永久删除。此设备上的本地记录会保留。</p>
+      <div class="account-error" id="deleteAccountError" role="alert"></div>
+      <div class="delete-account-actions"><button type="button" class="btn btn-soft" id="cancelDeleteAccount">保留账户</button><button type="button" class="btn danger-button" id="confirmDeleteAccount">永久删除</button></div>
     </div>
   </div>
 
@@ -561,7 +572,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.13 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.14 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

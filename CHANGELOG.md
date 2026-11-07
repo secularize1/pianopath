@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.19.0 — 2026-11-07
+
+- Expanded the rhythm-piano library from four to eight public-domain melodies.
+- Added Frère Jacques, London Bridge, Old MacDonald and Auld Lang Syne arrangements.
+- Added all/beginner/advanced song filters with pressed-state accessibility.
+- Added desktop and mobile coverage for song counts and filter behavior.
+
 ## 1.18.0 — 2026-11-07
 
 - Added live key and unique-note feedback to free-play sessions.

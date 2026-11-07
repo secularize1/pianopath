@@ -1282,7 +1282,12 @@ button, input, select, textarea { font-family: inherit; }
 .rhythm-piano-actions { display:flex; gap:7px; }.rhythm-top-button { padding:7px 10px; border:1px solid rgba(255,255,255,.18); border-radius:8px; background:rgba(255,255,255,.06); color:#d9e8d7; font-size:10px; font-weight:800; }.rhythm-top-button:hover { background:rgba(255,255,255,.14); }
 .rhythm-piano-home { flex:1; overflow:auto; padding:28px 34px 24px; }
 .rhythm-home-intro { max-width:560px; }.rhythm-mini-label { color:#a9c98a; font-size:10px; font-weight:850; letter-spacing:.12em; }.rhythm-home-intro h2 { margin:9px 0 7px; font-size:clamp(26px,4vw,44px); letter-spacing:-.045em; }.rhythm-home-intro p { margin:0; color:#a8b9a8; font-size:13px; }
-.rhythm-song-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:23px; }
+.rhythm-song-filters { display:flex; gap:7px; margin-top:20px; }
+.rhythm-song-filters button { min-height:32px; padding:0 13px; border:1px solid rgba(255,255,255,.14); border-radius:999px; background:rgba(255,255,255,.05); color:#aebfae; font-size:10px; font-weight:800; transition:background .16s ease,color .16s ease; }
+.rhythm-song-filters button:hover { background:rgba(255,255,255,.11); color:#edf6e6; }
+.rhythm-song-filters button.active { border-color:#b9d993; background:#b9d993; color:#263821; }
+.rhythm-song-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+.rhythm-song-empty { grid-column:1/-1; padding:28px; border:1px dashed rgba(255,255,255,.16); border-radius:14px; color:#aebfae; text-align:center; font-size:12px; }
 .rhythm-song-card { display:flex; align-items:center; gap:13px; min-height:112px; padding:13px; border:1px solid rgba(255,255,255,.12); border-radius:16px; background:rgba(255,255,255,.06); text-align:left; color:#eef5e8; transition:transform .16s ease, background .16s ease; }.rhythm-song-card:hover { transform:translateY(-3px); background:rgba(255,255,255,.12); }.rhythm-song-art { position:relative; display:grid; place-items:center; width:72px; height:76px; flex:0 0 auto; overflow:hidden; border-radius:13px; background:var(--song-color); color:#fff; }.rhythm-song-art i { position:absolute; width:70px; height:70px; border:1px solid rgba(255,255,255,.35); border-radius:50%; left:-20px; bottom:-25px; }.rhythm-song-art b { position:relative; font-size:30px; }.rhythm-song-copy { display:grid; gap:4px; flex:1; min-width:0; }.rhythm-song-copy small { color:#b8c5a9; font-size:9px; }.rhythm-song-copy strong { font-size:16px; }.rhythm-song-copy em { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#9eb09f; font-size:10px; font-style:normal; }.rhythm-song-play { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.13); color:#e7f2dc; font-size:12px; }.rhythm-song-best { flex:0 0 auto; padding:4px 7px; border-radius:999px; background:rgba(255,255,255,.08); color:#cfe3ba; font-size:9px; font-weight:800; }
 .rhythm-free-play-entry { display:flex; align-items:center; gap:12px; width:100%; min-height:74px; margin-top:14px; padding:12px 15px; border:1px solid rgba(217,239,173,.32); border-radius:15px; background:linear-gradient(120deg,rgba(168,207,122,.18),rgba(255,255,255,.06)); color:#eff7e7; text-align:left; transition:transform .16s ease, background .16s ease; }
 .rhythm-free-play-entry:hover { transform:translateY(-2px); background:linear-gradient(120deg,rgba(168,207,122,.28),rgba(255,255,255,.1)); }
@@ -1836,6 +1841,11 @@ button, input, select, textarea { font-family: inherit; }
           <h2>跟着节奏，弹会一首歌</h2>
           <p>选一首短曲。音符会从上方落下，在判定线接住它。</p>
         </div>
+        <div class="rhythm-song-filters" aria-label="曲目难度筛选">
+          <button type="button" class="active" data-rhythm-filter="全部" aria-pressed="true">全部</button>
+          <button type="button" data-rhythm-filter="入门" aria-pressed="false">入门</button>
+          <button type="button" data-rhythm-filter="进阶" aria-pressed="false">进阶</button>
+        </div>
         <div class="rhythm-song-grid" id="rhythmSongGrid"></div>
         <button class="rhythm-free-play-entry" id="startFreePiano" type="button">
           <span class="rhythm-free-play-icon">♬</span>
@@ -1937,7 +1947,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.18 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.19 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -2014,7 +2024,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.18.0",
+    "appVersion": "1.19.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -9919,8 +9929,13 @@ window.PIANO_DATA = {
     { id: 'twinkle', title: '小星星', composer: '法国民谣', difficulty: '入门', bpm: 82, color: '#5bbd78', notes: [[0, 60, .8], [.8, 60, .4], [1.2, 67, .8], [2, 67, .4], [2.4, 69, .8], [3.2, 69, .4], [3.6, 67, 1.2], [5.2, 65, .8], [6, 65, .4], [6.4, 64, .8], [7.2, 64, .4], [7.6, 62, .8], [8.4, 62, .4], [8.8, 60, 1.4]] },
     { id: 'ode', title: '欢乐颂', composer: '贝多芬', difficulty: '入门', bpm: 88, color: '#e7b44f', notes: [[0, 64, .7], [.7, 64, .7], [1.4, 65, .7], [2.1, 67, .7], [2.8, 67, .7], [3.5, 65, .7], [4.2, 64, .7], [4.9, 62, .7], [5.6, 60, .7], [6.3, 60, .7], [7, 62, .7], [7.7, 64, .7], [8.4, 64, 1.2]] },
     { id: 'mary', title: '玛丽有只小羔羊', composer: '美国民谣', difficulty: '入门', bpm: 76, color: '#8db9d6', notes: [[0, 64, .8], [.8, 62, .8], [1.6, 60, .8], [2.4, 62, .8], [3.2, 64, .8], [4, 64, .8], [4.8, 64, 1.2], [6.4, 62, .8], [7.2, 62, .8], [8, 62, 1.2]] },
-    { id: 'jingle', title: 'Jingle Bells', composer: 'James Lord Pierpont', difficulty: '进阶', bpm: 96, color: '#e58c77', notes: [[0, 64, .6], [.6, 64, .6], [1.2, 64, 1], [2.6, 64, .6], [3.2, 64, .6], [3.8, 64, 1], [5.2, 64, .6], [5.8, 67, .6], [6.4, 60, .8], [7.2, 62, .6], [7.8, 64, 1.4]] }
+    { id: 'jingle', title: 'Jingle Bells', composer: 'James Lord Pierpont', difficulty: '进阶', bpm: 96, color: '#e58c77', notes: [[0, 64, .6], [.6, 64, .6], [1.2, 64, 1], [2.6, 64, .6], [3.2, 64, .6], [3.8, 64, 1], [5.2, 64, .6], [5.8, 67, .6], [6.4, 60, .8], [7.2, 62, .6], [7.8, 64, 1.4]] },
+    { id: 'frere', title: '雅克兄弟', composer: '法国民谣', difficulty: '入门', bpm: 84, color: '#82b9a3', notes: [[0, 60, .7], [.8, 62, .7], [1.6, 64, .7], [2.4, 60, .7], [3.2, 60, .7], [4, 62, .7], [4.8, 64, .7], [5.6, 60, 1.2], [7.2, 64, .7], [8, 65, .7], [8.8, 67, 1.4]] },
+    { id: 'london', title: '伦敦桥', composer: '英国民谣', difficulty: '入门', bpm: 86, color: '#a88fc6', notes: [[0, 67, .7], [.8, 69, .7], [1.6, 67, .7], [2.4, 65, .7], [3.2, 64, .7], [4, 65, .7], [4.8, 67, 1.2], [6.4, 62, .7], [7.2, 64, .7], [8, 65, 1.4]] },
+    { id: 'oldmacdonald', title: '老麦克唐纳', composer: '美国民谣', difficulty: '入门', bpm: 78, color: '#d19b67', notes: [[0, 67, .7], [.8, 67, .7], [1.6, 67, .7], [2.4, 62, .7], [3.2, 64, .7], [4, 64, .7], [4.8, 62, 1.2], [6.4, 71, .7], [7.2, 71, .7], [8, 69, .7], [8.8, 69, .7], [9.6, 67, 1.4]] },
+    { id: 'auld', title: '友谊地久天长', composer: '苏格兰民谣', difficulty: '进阶', bpm: 74, color: '#729db5', notes: [[0, 60, .8], [.8, 65, .7], [1.6, 65, .7], [2.4, 65, .7], [3.2, 69, .7], [4, 67, .7], [4.8, 65, .7], [5.6, 67, .7], [6.4, 69, .7], [7.2, 65, .7], [8, 65, .7], [8.8, 69, .7], [9.6, 72, .7], [10.4, 74, 1.4]] }
   ];
+  let rhythmDifficulty = '全部';
   let rhythmSong = null;
   let rhythmEvents = [];
   let rhythmStartedAt = 0;
@@ -9956,12 +9971,18 @@ window.PIANO_DATA = {
   function renderRhythmSongs() {
     const grid = document.querySelector('#rhythmSongGrid');
     if (!grid) return;
-    grid.innerHTML = RHYTHM_SONGS.map((song) => {
+    document.querySelectorAll('[data-rhythm-filter]').forEach((button) => {
+      const active = button.dataset.rhythmFilter === rhythmDifficulty;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    const songs = rhythmDifficulty === '全部' ? RHYTHM_SONGS : RHYTHM_SONGS.filter((song) => song.difficulty === rhythmDifficulty);
+    grid.innerHTML = songs.map((song) => {
       const progress = state.playAlong?.[`rhythm-${song.id}`];
       const best = Math.max(0, Math.min(100, Number(progress?.bestAccuracy) || 0));
       const bestText = progress ? `最佳 ${best}%` : '开始';
-      return `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" data-best="${best}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM</em></span><span class="rhythm-song-best">${bestText}</span><span class="rhythm-song-play">▶</span></button>`;
-    }).join('');
+      return `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" data-best="${best}" data-difficulty="${escapeUi(song.difficulty)}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM</em></span><span class="rhythm-song-best">${bestText}</span><span class="rhythm-song-play">▶</span></button>`;
+    }).join('') || '<div class="rhythm-song-empty">这个难度还没有曲目。</div>';
     grid.querySelectorAll('[data-rhythm-song]').forEach((button) => button.addEventListener('click', () => startRhythmPiano(button.dataset.rhythmSong)));
   }
 
@@ -10354,6 +10375,12 @@ window.PIANO_DATA = {
     });
     document.querySelector('#rhythmRotateHint')?.addEventListener('click', () => APP.showToast('横屏后键盘会更宽，左右手也更容易分开。'));
     document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U I O，黑键 2 3 5 6 7。'));
+    document.querySelectorAll('[data-rhythm-filter]').forEach((button) => {
+      button.addEventListener('click', () => {
+        rhythmDifficulty = button.dataset.rhythmFilter;
+        renderRhythmSongs();
+      });
+    });
     document.addEventListener('keydown', handleRhythmKeydown);
   }
 

@@ -169,7 +169,14 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('#startRhythmPianoHome').click();
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#rhythmPianoModal').isVisible(), true, `${name}: rhythm piano modal missing`);
-    assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 4, `${name}: rhythm song picker incomplete`);
+    assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 8, `${name}: rhythm song picker incomplete`);
+    await page.locator('[data-rhythm-filter="入门"]').click();
+    assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 6, `${name}: beginner song filter incomplete`);
+    await page.locator('[data-rhythm-filter="进阶"]').click();
+    assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 2, `${name}: advanced song filter incomplete`);
+    assert.equal(await page.locator('[data-rhythm-filter="进阶"]').getAttribute('aria-pressed'), 'true', `${name}: active song filter not exposed`);
+    await page.locator('[data-rhythm-filter="全部"]').click();
+    assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 8, `${name}: all-song filter did not restore songs`);
     const reviewsBeforeFreePlay = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews || {});
     const practiceMinutesBeforeFreePlay = await page.evaluate(() => window.PIANO_APP.totalXp());
     const completedBeforeFreePlay = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('pianopath-state-v1')).completed || {}).length);

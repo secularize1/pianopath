@@ -1813,8 +1813,13 @@
     { id: 'twinkle', title: '小星星', composer: '法国民谣', difficulty: '入门', bpm: 82, color: '#5bbd78', notes: [[0, 60, .8], [.8, 60, .4], [1.2, 67, .8], [2, 67, .4], [2.4, 69, .8], [3.2, 69, .4], [3.6, 67, 1.2], [5.2, 65, .8], [6, 65, .4], [6.4, 64, .8], [7.2, 64, .4], [7.6, 62, .8], [8.4, 62, .4], [8.8, 60, 1.4]] },
     { id: 'ode', title: '欢乐颂', composer: '贝多芬', difficulty: '入门', bpm: 88, color: '#e7b44f', notes: [[0, 64, .7], [.7, 64, .7], [1.4, 65, .7], [2.1, 67, .7], [2.8, 67, .7], [3.5, 65, .7], [4.2, 64, .7], [4.9, 62, .7], [5.6, 60, .7], [6.3, 60, .7], [7, 62, .7], [7.7, 64, .7], [8.4, 64, 1.2]] },
     { id: 'mary', title: '玛丽有只小羔羊', composer: '美国民谣', difficulty: '入门', bpm: 76, color: '#8db9d6', notes: [[0, 64, .8], [.8, 62, .8], [1.6, 60, .8], [2.4, 62, .8], [3.2, 64, .8], [4, 64, .8], [4.8, 64, 1.2], [6.4, 62, .8], [7.2, 62, .8], [8, 62, 1.2]] },
-    { id: 'jingle', title: 'Jingle Bells', composer: 'James Lord Pierpont', difficulty: '进阶', bpm: 96, color: '#e58c77', notes: [[0, 64, .6], [.6, 64, .6], [1.2, 64, 1], [2.6, 64, .6], [3.2, 64, .6], [3.8, 64, 1], [5.2, 64, .6], [5.8, 67, .6], [6.4, 60, .8], [7.2, 62, .6], [7.8, 64, 1.4]] }
+    { id: 'jingle', title: 'Jingle Bells', composer: 'James Lord Pierpont', difficulty: '进阶', bpm: 96, color: '#e58c77', notes: [[0, 64, .6], [.6, 64, .6], [1.2, 64, 1], [2.6, 64, .6], [3.2, 64, .6], [3.8, 64, 1], [5.2, 64, .6], [5.8, 67, .6], [6.4, 60, .8], [7.2, 62, .6], [7.8, 64, 1.4]] },
+    { id: 'frere', title: '雅克兄弟', composer: '法国民谣', difficulty: '入门', bpm: 84, color: '#82b9a3', notes: [[0, 60, .7], [.8, 62, .7], [1.6, 64, .7], [2.4, 60, .7], [3.2, 60, .7], [4, 62, .7], [4.8, 64, .7], [5.6, 60, 1.2], [7.2, 64, .7], [8, 65, .7], [8.8, 67, 1.4]] },
+    { id: 'london', title: '伦敦桥', composer: '英国民谣', difficulty: '入门', bpm: 86, color: '#a88fc6', notes: [[0, 67, .7], [.8, 69, .7], [1.6, 67, .7], [2.4, 65, .7], [3.2, 64, .7], [4, 65, .7], [4.8, 67, 1.2], [6.4, 62, .7], [7.2, 64, .7], [8, 65, 1.4]] },
+    { id: 'oldmacdonald', title: '老麦克唐纳', composer: '美国民谣', difficulty: '入门', bpm: 78, color: '#d19b67', notes: [[0, 67, .7], [.8, 67, .7], [1.6, 67, .7], [2.4, 62, .7], [3.2, 64, .7], [4, 64, .7], [4.8, 62, 1.2], [6.4, 71, .7], [7.2, 71, .7], [8, 69, .7], [8.8, 69, .7], [9.6, 67, 1.4]] },
+    { id: 'auld', title: '友谊地久天长', composer: '苏格兰民谣', difficulty: '进阶', bpm: 74, color: '#729db5', notes: [[0, 60, .8], [.8, 65, .7], [1.6, 65, .7], [2.4, 65, .7], [3.2, 69, .7], [4, 67, .7], [4.8, 65, .7], [5.6, 67, .7], [6.4, 69, .7], [7.2, 65, .7], [8, 65, .7], [8.8, 69, .7], [9.6, 72, .7], [10.4, 74, 1.4]] }
   ];
+  let rhythmDifficulty = '全部';
   let rhythmSong = null;
   let rhythmEvents = [];
   let rhythmStartedAt = 0;
@@ -1850,12 +1855,18 @@
   function renderRhythmSongs() {
     const grid = document.querySelector('#rhythmSongGrid');
     if (!grid) return;
-    grid.innerHTML = RHYTHM_SONGS.map((song) => {
+    document.querySelectorAll('[data-rhythm-filter]').forEach((button) => {
+      const active = button.dataset.rhythmFilter === rhythmDifficulty;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    const songs = rhythmDifficulty === '全部' ? RHYTHM_SONGS : RHYTHM_SONGS.filter((song) => song.difficulty === rhythmDifficulty);
+    grid.innerHTML = songs.map((song) => {
       const progress = state.playAlong?.[`rhythm-${song.id}`];
       const best = Math.max(0, Math.min(100, Number(progress?.bestAccuracy) || 0));
       const bestText = progress ? `最佳 ${best}%` : '开始';
-      return `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" data-best="${best}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM</em></span><span class="rhythm-song-best">${bestText}</span><span class="rhythm-song-play">▶</span></button>`;
-    }).join('');
+      return `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" data-best="${best}" data-difficulty="${escapeUi(song.difficulty)}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM</em></span><span class="rhythm-song-best">${bestText}</span><span class="rhythm-song-play">▶</span></button>`;
+    }).join('') || '<div class="rhythm-song-empty">这个难度还没有曲目。</div>';
     grid.querySelectorAll('[data-rhythm-song]').forEach((button) => button.addEventListener('click', () => startRhythmPiano(button.dataset.rhythmSong)));
   }
 
@@ -2248,6 +2259,12 @@
     });
     document.querySelector('#rhythmRotateHint')?.addEventListener('click', () => APP.showToast('横屏后键盘会更宽，左右手也更容易分开。'));
     document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U I O，黑键 2 3 5 6 7。'));
+    document.querySelectorAll('[data-rhythm-filter]').forEach((button) => {
+      button.addEventListener('click', () => {
+        rhythmDifficulty = button.dataset.rhythmFilter;
+        renderRhythmSongs();
+      });
+    });
     document.addEventListener('keydown', handleRhythmKeydown);
   }
 

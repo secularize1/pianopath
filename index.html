@@ -500,6 +500,11 @@
           <h2>跟着节奏，弹会一首歌</h2>
           <p>选一首短曲。音符会从上方落下，在判定线接住它。</p>
         </div>
+        <div class="rhythm-song-filters" aria-label="曲目难度筛选">
+          <button type="button" class="active" data-rhythm-filter="全部" aria-pressed="true">全部</button>
+          <button type="button" data-rhythm-filter="入门" aria-pressed="false">入门</button>
+          <button type="button" data-rhythm-filter="进阶" aria-pressed="false">进阶</button>
+        </div>
         <div class="rhythm-song-grid" id="rhythmSongGrid"></div>
         <button class="rhythm-free-play-entry" id="startFreePiano" type="button">
           <span class="rhythm-free-play-icon">♬</span>
@@ -601,7 +606,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.18 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.19 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

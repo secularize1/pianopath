@@ -13,8 +13,15 @@ for (const week of data.weeks || []) {
     sessions += 1;
     if (!Array.isArray(session.steps) || !session.steps.length) issues.push(`${session.id}: no steps`);
     if (!Array.isArray(session.sources) || !session.sources.length) issues.push(`${session.id}: no sources`);
+    const resolvedSources = (session.sources || []).map((source) => videos.get(source)).filter(Boolean);
     for (const source of session.sources || []) {
       if (!videos.has(source)) issues.push(`${session.id}: missing source ${source}`);
+    }
+    if (!resolvedSources.some((source) => source.region === 'cn' || source.region === 'institution')) {
+      issues.push(`${session.id}: no domestic or official primary source`);
+    }
+    if (resolvedSources.some((source) => source.region === 'global' || source.platform === 'YouTube')) {
+      issues.push(`${session.id}: global or YouTube source leaked into main path`);
     }
     const sum = (session.steps || []).reduce((total, step) => total + Number(step.minutes || 0), 0);
     steps += (session.steps || []).length;

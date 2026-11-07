@@ -436,7 +436,7 @@
   <div class="modal-backdrop hidden" id="playAlongModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="playAlongTitle">
     <div class="playalong-card" id="playAlongCard" data-total="10">
       <button class="icon-button modal-close" id="closePlayAlong" aria-label="关闭跟弹练习"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-      <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">白键 Z–M 可用</span></div>
+      <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">双排字母键 / 触屏</span></div>
       <h2 id="playAlongTitle">跟着亮起的音弹</h2>
       <p class="playalong-subtitle" id="playAlongSubtitle">先听一次示范，再按你的速度弹；错音不会中断整段。</p>
       <div class="playalong-listen-row">
@@ -450,7 +450,7 @@
           <strong id="playAlongPatternTitle">C 五指位</strong>
           <span id="playAlongPatternCue">右手 1–2–3–4–5，慢速弹准每个音</span>
         </div>
-        <div class="playalong-input-note" id="playAlongInputNote">白键 Z X C V B N M；黑键 2 3 5 6 7。</div>
+        <div class="playalong-input-note" id="playAlongInputNote">白键 Z X C V B N M；黑键 S D G H J。</div>
         <div class="playalong-ready-actions">
           <button class="btn btn-primary" id="playAlongStart" type="button">开始 10 音跟弹</button>
         </div>
@@ -470,7 +470,7 @@
         </div>
         <div class="playalong-keyboard" id="playAlongKeyboard" aria-label="跟弹钢琴键盘"></div>
         <div class="playalong-feedback" id="playAlongFeedback" aria-live="polite">慢一点，弹准比弹快重要。</div>
-        <div class="playalong-key-hint">白键 Z X C V B N M · 黑键 2 3 5 6 7</div>
+        <div class="playalong-key-hint">白键 Z X C V B N M · 黑键 S D G H J</div>
       </div>
 
       <div class="playalong-result hidden" id="playAlongResult">
@@ -521,7 +521,7 @@
         <div class="rhythm-keyboard" id="rhythmKeyboard" aria-label="节奏钢琴键盘"></div>
         <div class="rhythm-stage-footer">
           <button class="rhythm-stage-button" id="rhythmPause" type="button">暂停</button>
-          <span id="rhythmKeyHint">触摸琴键，或按琴键标注的电脑按键</span>
+          <span id="rhythmKeyHint">电脑：Z–M / S D G H J + Q–U / 2 3 5 6 7</span>
           <button class="rhythm-stage-button" id="rhythmQuit" type="button">退出本曲</button>
         </div>
       </section>
@@ -572,7 +572,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.14 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.15 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

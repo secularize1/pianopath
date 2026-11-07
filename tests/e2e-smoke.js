@@ -10,9 +10,16 @@ const fs = require('fs');
 const assert = require('assert');
 
 const ROOT = path.resolve(__dirname, '..');
+const EXPECTED_RHYTHM_KEYS = Object.freeze({
+  lowerWhite: ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
+  lowerBlack: ['s', 'd', 'g', 'h', 'j'],
+  upperWhite: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o'],
+  upperBlack: ['2', '3', '5', '6', '7']
+});
+
 const INDEX = 'file:///' + path.join(ROOT, 'index.html').replace(/\\/g, '/');
 const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5': 'v', '6': '5', '7': 'b', '8': '6', '9': 'n', '10': '7', '11': 'm' };
+const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5': 'v', '6': 'g', '7': 'b', '8': 'h', '9': 'n', '10': 'j', '11': 'm' };
 
 (async () => {
   const browser = await chromium.launch({ executablePath, headless: true });
@@ -57,6 +64,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
     await page.locator('#playAlongStart').click();
     await page.waitForTimeout(200);
     assert.equal(await page.locator('#playAlongPractice').isVisible(), true, `${name}: play-along practice state missing`);
+    assert.equal(await page.locator('#playAlongInputNote').innerText(), '白键 Z X C V B N M；黑键 S D G H J。', `${name}: play-along mapping hint drifted`);
     assert.equal(await page.locator('.playalong-key').count(), 12, `${name}: play-along keyboard incomplete`);
     for (let i = 0; i < 3; i += 1) {
       const targetPc = await page.locator('#playAlongTarget').getAttribute('data-pc');
@@ -167,8 +175,16 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
     assert.equal(await page.locator('#rhythmPianoStage').isVisible(), true, `${name}: rhythm stage missing`);
     assert.equal(await page.locator('.rhythm-key').count(), 26, `${name}: rhythm keyboard should have two octaves`);
     assert.equal(await page.locator('.rhythm-lane').count(), 16, `${name}: rhythm lanes should align with white keys`);
-    assert.equal(await page.locator('.rhythm-key[data-note="60"]').getAttribute('data-key'), 'a', `${name}: upper C keyboard mapping wrong`);
-    assert.equal(await page.locator('.rhythm-key[data-note="49"]').getAttribute('data-key'), '2', `${name}: lower sharp keyboard mapping wrong`);
+    assert.equal(await page.locator('.rhythm-key[data-note="60"]').getAttribute('data-key'), 'q', `${name}: upper C keyboard mapping wrong`);
+    assert.equal(await page.locator('.rhythm-key[data-note="49"]').getAttribute('data-key'), 's', `${name}: lower C sharp keyboard mapping wrong`);
+    assert.equal(await page.locator('.rhythm-key[data-note="49"]').getAttribute('data-key'), 's', `${name}: lower sharp keyboard mapping wrong`);
+    const rhythmKeyGroups = await page.evaluate(() => ({
+      lowerWhite: [...document.querySelectorAll('.rhythm-key.white[data-note="48"], .rhythm-key.white[data-note="50"], .rhythm-key.white[data-note="52"], .rhythm-key.white[data-note="53"], .rhythm-key.white[data-note="55"], .rhythm-key.white[data-note="57"], .rhythm-key.white[data-note="59"]')].map((key) => key.dataset.key),
+      lowerBlack: [...document.querySelectorAll('.rhythm-key.black[data-note="49"], .rhythm-key.black[data-note="51"], .rhythm-key.black[data-note="54"], .rhythm-key.black[data-note="56"], .rhythm-key.black[data-note="58"]')].map((key) => key.dataset.key),
+      upperWhite: [...document.querySelectorAll('.rhythm-key.white[data-note="60"], .rhythm-key.white[data-note="62"], .rhythm-key.white[data-note="64"], .rhythm-key.white[data-note="65"], .rhythm-key.white[data-note="67"], .rhythm-key.white[data-note="69"], .rhythm-key.white[data-note="71"], .rhythm-key.white[data-note="72"], .rhythm-key.white[data-note="74"]')].map((key) => key.dataset.key),
+      upperBlack: [...document.querySelectorAll('.rhythm-key.black[data-note="61"], .rhythm-key.black[data-note="63"], .rhythm-key.black[data-note="66"], .rhythm-key.black[data-note="68"], .rhythm-key.black[data-note="70"]')].map((key) => key.dataset.key)
+    }));
+    assert.deepEqual(rhythmKeyGroups, EXPECTED_RHYTHM_KEYS, `${name}: computer keyboard mapping drifted`);
     await page.locator('#rhythmPause').click();
     assert.equal(await page.locator('#rhythmPauseLayer').isVisible(), true, `${name}: rhythm pause layer missing`);
     assert.equal(await page.locator('#rhythmPause').innerText(), '继续', `${name}: rhythm pause label wrong`);

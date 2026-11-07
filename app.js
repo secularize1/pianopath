@@ -731,16 +731,16 @@
   let activeRepertoirePiece = null;
   const PLAY_ALONG_PITCHES = [
     { name: 'C', pc: 0, input: 'z', black: false },
-    { name: 'C♯', pc: 1, input: '2', black: true },
+    { name: 'C♯', pc: 1, input: 's', black: true },
     { name: 'D', pc: 2, input: 'x', black: false },
-    { name: 'D♯', pc: 3, input: '3', black: true },
+    { name: 'D♯', pc: 3, input: 'd', black: true },
     { name: 'E', pc: 4, input: 'c', black: false },
     { name: 'F', pc: 5, input: 'v', black: false },
-    { name: 'F♯', pc: 6, input: '5', black: true },
+    { name: 'F♯', pc: 6, input: 'g', black: true },
     { name: 'G', pc: 7, input: 'b', black: false },
-    { name: 'G♯', pc: 8, input: '6', black: true },
+    { name: 'G♯', pc: 8, input: 'h', black: true },
     { name: 'A', pc: 9, input: 'n', black: false },
-    { name: 'A♯', pc: 10, input: '7', black: true },
+    { name: 'A♯', pc: 10, input: 'j', black: true },
     { name: 'B', pc: 11, input: 'm', black: false }
   ];
   const PLAY_ALONG_PATTERNS = [
@@ -1774,27 +1774,27 @@
     { note: 55, name: 'G3', pc: 7, key: 'b' },
     { note: 57, name: 'A3', pc: 9, key: 'n' },
     { note: 59, name: 'B3', pc: 11, key: 'm' },
-    { note: 60, name: 'C4', pc: 0, key: 'a' },
-    { note: 62, name: 'D4', pc: 2, key: 's' },
-    { note: 64, name: 'E4', pc: 4, key: 'd' },
-    { note: 65, name: 'F4', pc: 5, key: 'f' },
-    { note: 67, name: 'G4', pc: 7, key: 'g' },
-    { note: 69, name: 'A4', pc: 9, key: 'h' },
-    { note: 71, name: 'B4', pc: 11, key: 'j' },
-    { note: 72, name: 'C5', pc: 0, key: 'k' },
-    { note: 74, name: 'D5', pc: 2, key: 'l' }
+    { note: 60, name: 'C4', pc: 0, key: 'q' },
+    { note: 62, name: 'D4', pc: 2, key: 'w' },
+    { note: 64, name: 'E4', pc: 4, key: 'e' },
+    { note: 65, name: 'F4', pc: 5, key: 'r' },
+    { note: 67, name: 'G4', pc: 7, key: 't' },
+    { note: 69, name: 'A4', pc: 9, key: 'y' },
+    { note: 71, name: 'B4', pc: 11, key: 'u' },
+    { note: 72, name: 'C5', pc: 0, key: 'i' },
+    { note: 74, name: 'D5', pc: 2, key: 'o' }
   ];
   const RHYTHM_BLACK_KEYS = [
-    { note: 49, name: 'C#3', pc: 1, key: '2' },
-    { note: 51, name: 'D#3', pc: 3, key: '3' },
-    { note: 54, name: 'F#3', pc: 6, key: '5' },
-    { note: 56, name: 'G#3', pc: 8, key: '6' },
-    { note: 58, name: 'A#3', pc: 10, key: '7' },
-    { note: 61, name: 'C#4', pc: 1, key: 'w' },
-    { note: 63, name: 'D#4', pc: 3, key: 'e' },
-    { note: 66, name: 'F#4', pc: 6, key: 't' },
-    { note: 68, name: 'G#4', pc: 8, key: 'y' },
-    { note: 70, name: 'A#4', pc: 10, key: 'u' }
+    { note: 49, name: 'C#3', pc: 1, key: 's' },
+    { note: 51, name: 'D#3', pc: 3, key: 'd' },
+    { note: 54, name: 'F#3', pc: 6, key: 'g' },
+    { note: 56, name: 'G#3', pc: 8, key: 'h' },
+    { note: 58, name: 'A#3', pc: 10, key: 'j' },
+    { note: 61, name: 'C#4', pc: 1, key: '2' },
+    { note: 63, name: 'D#4', pc: 3, key: '3' },
+    { note: 66, name: 'F#4', pc: 6, key: '5' },
+    { note: 68, name: 'G#4', pc: 8, key: '6' },
+    { note: 70, name: 'A#4', pc: 10, key: '7' }
   ];
   const RHYTHM_SONGS = [
     { id: 'twinkle', title: '小星星', composer: '法国民谣', difficulty: '入门', bpm: 82, color: '#5bbd78', notes: [[0, 60, .8], [.8, 60, .4], [1.2, 67, .8], [2, 67, .4], [2.4, 69, .8], [3.2, 69, .4], [3.6, 67, 1.2], [5.2, 65, .8], [6, 65, .4], [6.4, 64, .8], [7.2, 64, .4], [7.6, 62, .8], [8.4, 62, .4], [8.8, 60, 1.4]] },
@@ -2075,7 +2075,7 @@
       try { await document.querySelector('#rhythmPianoCard')?.requestFullscreen?.(); } catch (error) {}
     });
     document.querySelector('#rhythmRotateHint')?.addEventListener('click', () => APP.showToast('横屏后键盘会更宽，左右手也更容易分开。'));
-    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('音符落到判定线时，点对应琴键。白键 Z X C V B N M，黑键 2 3 5 6 7。'));
+    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U，黑键 2 3 5 6 7。'));
     document.addEventListener('keydown', handleRhythmKeydown);
   }
 
@@ -2083,9 +2083,10 @@
     const white = PLAY_ALONG_PITCHES.filter((pitch) => !pitch.black);
     const black = PLAY_ALONG_PITCHES.filter((pitch) => pitch.black);
     const blackLeft = { 1: 10.2, 3: 24.5, 6: 52.8, 8: 67.0, 10: 81.3 };
-    return white.map((pitch) => `<button class="playalong-key white" type="button" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('') + black.map((pitch) => `<button class="playalong-key black" type="button" style="left:${blackLeft[pitch.pc]}%" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
+    const whiteKeys = white.map((pitch) => `<button class="playalong-key white" type="button" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
+    const blackKeys = black.map((pitch) => `<button class="playalong-key black" type="button" style="left:${blackLeft[pitch.pc]}%" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
+    return whiteKeys + blackKeys;
   }
-
   function renderPlayAlongSequence() {
     const sequence = document.querySelector('#playAlongSequence');
     if (!sequence) return;

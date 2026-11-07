@@ -1,10 +1,10 @@
-# PianoPath 1.14 — 产品健康检查
+# PianoPath 1.15 — 产品健康检查
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
 | 课程完整度 | 12 周 / 48 次 / 336 步 / 每次 60 分钟 | `tests/content-audit.js` |
-| 国内资源 | 13 个国内可用 / 官方来源 | `resources.videos.region` |
-| 海外依赖 | 48 节课来源引用 0 个 YouTube | `sessions.sources` 校验 |
+| 国内资源 | 48 节课均有国内或官方来源，主路径无 YouTube | `tests/content-audit.js` |
+| 电脑键盘 | 双八度白键/黑键逐键映射与节奏命中 | `tests/e2e-smoke.js` |
 | 首次引导 | 三步选择，保存后进入第一课 | Playwright |
 | 掌握门槛 | 2/3 通过才完成课程并解锁下一课 | Playwright |
 | 音乐练习 | 触屏 / 双排电脑键盘；跟弹判定与节奏钢琴结算 | Playwright |

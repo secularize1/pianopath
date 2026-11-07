@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
 const net = require('net');
@@ -34,50 +35,68 @@ async function waitForServer(url) {
 
 (async () => {
   let server = null;
+  let browser = null;
+  let tempDataDir = null;
   let origin = ORIGIN;
-  if (LOCAL_SERVER) {
-    const port = await freePort();
-    origin = `http://127.0.0.1:${port}`;
-    server = spawn(process.env.PYTHON || 'python', ['server.py'], {
-      cwd: ROOT,
-      env: { ...process.env, PORT: String(port), PIANOPATH_DATA_DIR: `${ROOT}/data/offline-test`, PIANOPATH_NO_BROWSER: '1' },
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
-    await waitForServer(origin);
+  const stopServer = async () => {
+    if (!server) return;
+    const child = server;
+    server = null;
+    if (child.exitCode === null && !child.killed) {
+      child.kill();
+      await new Promise((resolve) => {
+        const timer = setTimeout(resolve, 3000);
+        child.once('exit', () => { clearTimeout(timer); resolve(); });
+      });
+    }
+  };
+  try {
+    if (LOCAL_SERVER) {
+      const port = await freePort();
+      origin = `http://127.0.0.1:${port}`;
+      tempDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pianopath-offline-'));
+      server = spawn(process.env.PYTHON || 'python', ['server.py'], {
+        cwd: ROOT,
+        env: { ...process.env, PORT: String(port), PIANOPATH_DATA_DIR: tempDataDir, PIANOPATH_NO_BROWSER: '1' },
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+      await waitForServer(origin);
+    }
+    browser = await chromium.launch({ executablePath, headless: true });
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'zh-CN', serviceWorkers: 'allow' });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForFunction(() => Boolean(window.PIANO_APP), null, { timeout: 15000 });
+    await page.waitForTimeout(3500);
+    await page.waitForFunction(async (expectedCache) => {
+      const keys = await caches.keys();
+      if (!keys.includes(expectedCache)) return false;
+      const cache = await caches.open(expectedCache);
+      const urls = (await cache.keys()).map((request) => request.url);
+      return ['/app.js', '/data.js', '/styles.css'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
+    }, cacheVersion, { timeout: 20000 });
+    const cached = await page.evaluate(async (expectedCache) => {
+      const keys = await caches.keys();
+      if (!keys.includes(expectedCache)) return { keys, urls: [] };
+      const cache = await caches.open(expectedCache);
+      return { keys, urls: (await cache.keys()).map((request) => request.url) };
+    }, cacheVersion);
+    assert.ok(cached.keys.includes(cacheVersion), `cache ${cacheVersion} missing`);
+    assert.ok(cached.urls.length > 0, `offline app shell is incomplete: ${cached.urls.join(', ')}`);
+    await context.setOffline(true);
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(1000);
+    assert.equal(await page.locator('#todayPage').isVisible(), true, 'offline home unavailable');
+    assert.equal(errors.length, 0, `offline errors: ${errors.join('; ')}`);
+    console.log(JSON.stringify({ ok: true, cacheVersion, offlineHome: true, cachedUrls: cached.urls.length, mode: LOCAL_SERVER ? 'local' : 'remote' }, null, 2));
+  } finally {
+    if (browser) await browser.close();
+    await stopServer();
+    if (tempDataDir) fs.rmSync(tempDataDir, { recursive: true, force: true });
   }
-  const browser = await chromium.launch({ executablePath, headless: true });
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'zh-CN', serviceWorkers: 'allow' });
-  const page = await context.newPage();
-  const errors = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  await page.waitForFunction(() => Boolean(window.PIANO_APP), null, { timeout: 15000 });
-  await page.waitForTimeout(3500);
-  await page.waitForFunction(async (expectedCache) => {
-    const keys = await caches.keys();
-    if (!keys.includes(expectedCache)) return false;
-    const cache = await caches.open(expectedCache);
-    const urls = (await cache.keys()).map((request) => request.url);
-    return ['/app.js', '/data.js', '/styles.css'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
-  }, cacheVersion, { timeout: 20000 });
-  const cached = await page.evaluate(async (expectedCache) => {
-    const keys = await caches.keys();
-    if (!keys.includes(expectedCache)) return { keys, urls: [] };
-    const cache = await caches.open(expectedCache);
-    return { keys, urls: (await cache.keys()).map((request) => request.url) };
-  }, cacheVersion);
-  assert.ok(cached.keys.includes(cacheVersion), `cache ${cacheVersion} missing`);
-  assert.ok(cached.urls.length > 0, `offline app shell is incomplete: ${cached.urls.join(', ')}`);
-  await context.setOffline(true);
-  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
-  await page.waitForTimeout(1000);
-  assert.equal(await page.locator('#todayPage').isVisible(), true, 'offline home unavailable');
-  assert.equal(errors.length, 0, `offline errors: ${errors.join('; ')}`);
-  await browser.close();
-  if (server) server.kill();
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  console.log(JSON.stringify({ ok: true, cacheVersion, offlineHome: true, cachedUrls: cached.urls.length, mode: LOCAL_SERVER ? 'local' : 'remote' }, null, 2));
-})().catch(async (error) => {
+})().catch((error) => {
   console.error(error.stack || String(error));
-  process.exit(1);
+  process.exitCode = 1;
 });

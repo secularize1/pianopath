@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.15.0 — 2026-11-07
+
+- Added a domestic/official-source integrity gate for all 48 main-path lessons; global and YouTube sources are rejected there.
+- Audited the runtime to prevent Web MIDI from returning and aligned the full two-octave computer mapping with its on-key labels and help copy.
+- Reworked the offline smoke test to use a disposable system temp directory and reliably stop its local server.
+
 ## 1.14.0 — 2026-11-07
 
 - Added in-app account deletion with an explicit destructive confirmation dialog.
@@ -27,9 +33,9 @@
 
 - Added a two-octave virtual rhythm piano with four public-domain melodies and per-song note charts.
 - Added a landscape-first touch stage for phones and tablets with 16 aligned lanes, a judgement line and responsive on-screen keys.
-- Added non-conflicting two-row computer keyboard controls: `Z X C V B N M` / `2 3 5 6 7` for the lower octave and `A S D F G H J K L` / `W E T Y U` for the upper octave.
+- Added non-conflicting two-row computer keyboard controls: `Z X C V B N M` / `S D G H J` for the lower octave and `Q W E R T Y U I O` / `2 3 5 6 7` for the upper octave.
 - Added pause, countdown, pre-roll, hit judgement, combo, accuracy, XP, results and practice history.
-- Removed the MIDI capability and permissions from the current product.
+- The current UI and runtime contain no external-device or Web MIDI integration; only the history entry records its earlier removal.
 - Expanded regression coverage for mapped keyboard hits, pause/resume, results, phone landscape clipping and lane/key alignment.
 
 ## 1.11.0 — 2026-11-06

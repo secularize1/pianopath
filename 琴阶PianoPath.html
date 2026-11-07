@@ -1757,7 +1757,7 @@ button, input, select, textarea { font-family: inherit; }
   <div class="modal-backdrop hidden" id="playAlongModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="playAlongTitle">
     <div class="playalong-card" id="playAlongCard" data-total="10">
       <button class="icon-button modal-close" id="closePlayAlong" aria-label="关闭跟弹练习"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-      <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">白键 Z–M 可用</span></div>
+      <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">双排字母键 / 触屏</span></div>
       <h2 id="playAlongTitle">跟着亮起的音弹</h2>
       <p class="playalong-subtitle" id="playAlongSubtitle">先听一次示范，再按你的速度弹；错音不会中断整段。</p>
       <div class="playalong-listen-row">
@@ -1771,7 +1771,7 @@ button, input, select, textarea { font-family: inherit; }
           <strong id="playAlongPatternTitle">C 五指位</strong>
           <span id="playAlongPatternCue">右手 1–2–3–4–5，慢速弹准每个音</span>
         </div>
-        <div class="playalong-input-note" id="playAlongInputNote">白键 Z X C V B N M；黑键 2 3 5 6 7。</div>
+        <div class="playalong-input-note" id="playAlongInputNote">白键 Z X C V B N M；黑键 S D G H J。</div>
         <div class="playalong-ready-actions">
           <button class="btn btn-primary" id="playAlongStart" type="button">开始 10 音跟弹</button>
         </div>
@@ -1791,7 +1791,7 @@ button, input, select, textarea { font-family: inherit; }
         </div>
         <div class="playalong-keyboard" id="playAlongKeyboard" aria-label="跟弹钢琴键盘"></div>
         <div class="playalong-feedback" id="playAlongFeedback" aria-live="polite">慢一点，弹准比弹快重要。</div>
-        <div class="playalong-key-hint">白键 Z X C V B N M · 黑键 2 3 5 6 7</div>
+        <div class="playalong-key-hint">白键 Z X C V B N M · 黑键 S D G H J</div>
       </div>
 
       <div class="playalong-result hidden" id="playAlongResult">
@@ -1842,7 +1842,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="rhythm-keyboard" id="rhythmKeyboard" aria-label="节奏钢琴键盘"></div>
         <div class="rhythm-stage-footer">
           <button class="rhythm-stage-button" id="rhythmPause" type="button">暂停</button>
-          <span id="rhythmKeyHint">触摸琴键，或按琴键标注的电脑按键</span>
+          <span id="rhythmKeyHint">电脑：Z–M / S D G H J + Q–U / 2 3 5 6 7</span>
           <button class="rhythm-stage-button" id="rhythmQuit" type="button">退出本曲</button>
         </div>
       </section>
@@ -1893,7 +1893,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.14 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.15 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -1970,7 +1970,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.14.0",
+    "appVersion": "1.15.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -8785,16 +8785,16 @@ window.PIANO_DATA = {
   let activeRepertoirePiece = null;
   const PLAY_ALONG_PITCHES = [
     { name: 'C', pc: 0, input: 'z', black: false },
-    { name: 'C♯', pc: 1, input: '2', black: true },
+    { name: 'C♯', pc: 1, input: 's', black: true },
     { name: 'D', pc: 2, input: 'x', black: false },
-    { name: 'D♯', pc: 3, input: '3', black: true },
+    { name: 'D♯', pc: 3, input: 'd', black: true },
     { name: 'E', pc: 4, input: 'c', black: false },
     { name: 'F', pc: 5, input: 'v', black: false },
-    { name: 'F♯', pc: 6, input: '5', black: true },
+    { name: 'F♯', pc: 6, input: 'g', black: true },
     { name: 'G', pc: 7, input: 'b', black: false },
-    { name: 'G♯', pc: 8, input: '6', black: true },
+    { name: 'G♯', pc: 8, input: 'h', black: true },
     { name: 'A', pc: 9, input: 'n', black: false },
-    { name: 'A♯', pc: 10, input: '7', black: true },
+    { name: 'A♯', pc: 10, input: 'j', black: true },
     { name: 'B', pc: 11, input: 'm', black: false }
   ];
   const PLAY_ALONG_PATTERNS = [
@@ -9828,27 +9828,27 @@ window.PIANO_DATA = {
     { note: 55, name: 'G3', pc: 7, key: 'b' },
     { note: 57, name: 'A3', pc: 9, key: 'n' },
     { note: 59, name: 'B3', pc: 11, key: 'm' },
-    { note: 60, name: 'C4', pc: 0, key: 'a' },
-    { note: 62, name: 'D4', pc: 2, key: 's' },
-    { note: 64, name: 'E4', pc: 4, key: 'd' },
-    { note: 65, name: 'F4', pc: 5, key: 'f' },
-    { note: 67, name: 'G4', pc: 7, key: 'g' },
-    { note: 69, name: 'A4', pc: 9, key: 'h' },
-    { note: 71, name: 'B4', pc: 11, key: 'j' },
-    { note: 72, name: 'C5', pc: 0, key: 'k' },
-    { note: 74, name: 'D5', pc: 2, key: 'l' }
+    { note: 60, name: 'C4', pc: 0, key: 'q' },
+    { note: 62, name: 'D4', pc: 2, key: 'w' },
+    { note: 64, name: 'E4', pc: 4, key: 'e' },
+    { note: 65, name: 'F4', pc: 5, key: 'r' },
+    { note: 67, name: 'G4', pc: 7, key: 't' },
+    { note: 69, name: 'A4', pc: 9, key: 'y' },
+    { note: 71, name: 'B4', pc: 11, key: 'u' },
+    { note: 72, name: 'C5', pc: 0, key: 'i' },
+    { note: 74, name: 'D5', pc: 2, key: 'o' }
   ];
   const RHYTHM_BLACK_KEYS = [
-    { note: 49, name: 'C#3', pc: 1, key: '2' },
-    { note: 51, name: 'D#3', pc: 3, key: '3' },
-    { note: 54, name: 'F#3', pc: 6, key: '5' },
-    { note: 56, name: 'G#3', pc: 8, key: '6' },
-    { note: 58, name: 'A#3', pc: 10, key: '7' },
-    { note: 61, name: 'C#4', pc: 1, key: 'w' },
-    { note: 63, name: 'D#4', pc: 3, key: 'e' },
-    { note: 66, name: 'F#4', pc: 6, key: 't' },
-    { note: 68, name: 'G#4', pc: 8, key: 'y' },
-    { note: 70, name: 'A#4', pc: 10, key: 'u' }
+    { note: 49, name: 'C#3', pc: 1, key: 's' },
+    { note: 51, name: 'D#3', pc: 3, key: 'd' },
+    { note: 54, name: 'F#3', pc: 6, key: 'g' },
+    { note: 56, name: 'G#3', pc: 8, key: 'h' },
+    { note: 58, name: 'A#3', pc: 10, key: 'j' },
+    { note: 61, name: 'C#4', pc: 1, key: '2' },
+    { note: 63, name: 'D#4', pc: 3, key: '3' },
+    { note: 66, name: 'F#4', pc: 6, key: '5' },
+    { note: 68, name: 'G#4', pc: 8, key: '6' },
+    { note: 70, name: 'A#4', pc: 10, key: '7' }
   ];
   const RHYTHM_SONGS = [
     { id: 'twinkle', title: '小星星', composer: '法国民谣', difficulty: '入门', bpm: 82, color: '#5bbd78', notes: [[0, 60, .8], [.8, 60, .4], [1.2, 67, .8], [2, 67, .4], [2.4, 69, .8], [3.2, 69, .4], [3.6, 67, 1.2], [5.2, 65, .8], [6, 65, .4], [6.4, 64, .8], [7.2, 64, .4], [7.6, 62, .8], [8.4, 62, .4], [8.8, 60, 1.4]] },
@@ -10129,7 +10129,7 @@ window.PIANO_DATA = {
       try { await document.querySelector('#rhythmPianoCard')?.requestFullscreen?.(); } catch (error) {}
     });
     document.querySelector('#rhythmRotateHint')?.addEventListener('click', () => APP.showToast('横屏后键盘会更宽，左右手也更容易分开。'));
-    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('音符落到判定线时，点对应琴键。白键 Z X C V B N M，黑键 2 3 5 6 7。'));
+    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U，黑键 2 3 5 6 7。'));
     document.addEventListener('keydown', handleRhythmKeydown);
   }
 
@@ -10137,9 +10137,10 @@ window.PIANO_DATA = {
     const white = PLAY_ALONG_PITCHES.filter((pitch) => !pitch.black);
     const black = PLAY_ALONG_PITCHES.filter((pitch) => pitch.black);
     const blackLeft = { 1: 10.2, 3: 24.5, 6: 52.8, 8: 67.0, 10: 81.3 };
-    return white.map((pitch) => `<button class="playalong-key white" type="button" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('') + black.map((pitch) => `<button class="playalong-key black" type="button" style="left:${blackLeft[pitch.pc]}%" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
+    const whiteKeys = white.map((pitch) => `<button class="playalong-key white" type="button" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
+    const blackKeys = black.map((pitch) => `<button class="playalong-key black" type="button" style="left:${blackLeft[pitch.pc]}%" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
+    return whiteKeys + blackKeys;
   }
-
   function renderPlayAlongSequence() {
     const sequence = document.querySelector('#playAlongSequence');
     if (!sequence) return;

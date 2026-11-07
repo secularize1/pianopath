@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.21.0 — 2026-11-07
+
+- Added standalone privacy-policy and terms pages with local-data, account-sync, retention, deletion, copyright and practice-safety disclosures.
+- Registration now requires explicit consent to the current legal version; the server validates and records the version and timestamp.
+- Added legal links to account controls and an embedded legal view for the single-file offline build.
+- Added DOM, API, account-flow, responsive-page and offline-cache coverage for the legal surfaces.
+
 ## 1.20.0 — 2026-11-07
 
 - Added a real landscape control to free-play piano mode instead of a hint-only button.

@@ -60,6 +60,11 @@ def main() -> None:
         1,
     )
 
+    # Local documentation pages cannot be opened from a single-file build.
+    # Point those links at the embedded, accessible in-app legal view instead.
+    html = html.replace('href="privacy.html"', 'href="#privacy"')
+    html = html.replace('href="terms.html"', 'href="#terms"')
+
     if re.search(r'(?:src|href)="assets/', html):
         raise SystemExit("Standalone build still contains local asset references.")
     if 'src="data.js"' in html or 'href="styles.css"' in html or 'src="app.js"' in html:

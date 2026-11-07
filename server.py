@@ -33,14 +33,15 @@ DATA_FILE = ROOT / "data.js"
 MAX_BODY = 2 * 1024 * 1024
 SESSION_DAYS = 30
 PBKDF2_ITERATIONS = 310_000
+LEGAL_VERSION = "2026-11-07"
 LOCK = threading.Lock()
 ATTEMPTS: dict[str, list[float]] = {}
 ATTEMPTS_LOCK = threading.Lock()
 PUBLIC_FILES = {
-    "index.html", "styles.css", "app.js", "data.js", "manifest.webmanifest",
-    "sw.js", "琴阶PianoPath.html", "assets/hero-piano.jpg", "assets/icon.svg",
-    "assets/icon-192.png", "assets/icon-512.png", "assets/apple-touch-icon.png",
-    "assets/fallback.svg",
+    "index.html", "styles.css", "legal.css", "app.js", "data.js", "manifest.webmanifest",
+    "sw.js", "privacy.html", "terms.html", "琴阶PianoPath.html",
+    "assets/hero-piano.jpg", "assets/icon.svg", "assets/icon-192.png",
+    "assets/icon-512.png", "assets/apple-touch-icon.png", "assets/fallback.svg",
 }
 
 
@@ -79,6 +80,8 @@ def init_db() -> None:
                 name TEXT NOT NULL,
                 password_hash TEXT NOT NULL,
                 password_salt TEXT NOT NULL,
+                consent_version TEXT,
+                consent_at TEXT,
                 created_at TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS sessions (
@@ -98,6 +101,12 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
             """
         )
+        columns = {row["name"] for row in connection.execute("PRAGMA table_info(users)")}
+        if "consent_version" not in columns:
+            connection.execute("ALTER TABLE users ADD COLUMN consent_version TEXT")
+        if "consent_at" not in columns:
+            connection.execute("ALTER TABLE users ADD COLUMN consent_at TEXT")
+        connection.commit()
 
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
@@ -157,7 +166,7 @@ def public_path(path: str) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "PianoPath/1.14"
+    server_version = "PianoPath/1.21"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -261,7 +270,7 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
         if path == "/api/health":
-            self.send_json({"ok": True, "app": "PianoPath", "version": APP_VERSION, "resources": len(CURRICULUM.get("resources", {}).get("videos", [])), "weeks": len(CURRICULUM.get("weeks", [])), "accounts": True})
+            self.send_json({"ok": True, "app": "PianoPath", "version": APP_VERSION, "resources": len(CURRICULUM.get("resources", {}).get("videos", [])), "weeks": len(CURRICULUM.get("weeks", [])), "accounts": True, "legalVersion": LEGAL_VERSION})
             return
         if path == "/api/auth/me":
             with db() as connection:
@@ -346,14 +355,18 @@ class Handler(SimpleHTTPRequestHandler):
                     return self.send_error_json(400, validation)
                 with db() as connection:
                     if path.endswith("register"):
+                        consent_version = str(payload.get("consentVersion", "")).strip()[:32]
+                        if payload.get("consentAccepted") is not True or consent_version != LEGAL_VERSION:
+                            return self.send_error_json(400, "注册前需要同意当前版本的服务条款与隐私政策。")
                         name = str(payload.get("name", "")).strip()[:60] or "练琴人"
                         existing = connection.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
                         if existing:
                             return self.send_error_json(409, "这个邮箱已经注册。")
                         encoded_hash, encoded_salt = hash_password(password)
+                        accepted_at = now_iso()
                         cursor = connection.execute(
-                            "INSERT INTO users(email, name, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?)",
-                            (email, name, encoded_hash, encoded_salt, now_iso()),
+                            "INSERT INTO users(email, name, password_hash, password_salt, consent_version, consent_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            (email, name, encoded_hash, encoded_salt, consent_version, accepted_at, accepted_at),
                         )
                         user_id = cursor.lastrowid
                         connection.execute("INSERT INTO progress(user_id, state_json, revision, updated_at) VALUES (?, '{}', 0, ?)", (user_id, now_iso()))

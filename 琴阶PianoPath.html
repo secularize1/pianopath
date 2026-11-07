@@ -970,7 +970,18 @@ body.modal-open { overflow:hidden; }
 .account-divider span { position:relative; padding:0 8px; background:#fffefb; color:#acb5ae; font-size:8px; }
 .guest-button { width:100%; padding:8px; border:0; background:transparent; color:#788b7c; font-size:9px; }
 .guest-button:hover { color:#428355; }
-.account-note { margin:13px 0 0; color:#adb6af; font-size:8px; line-height:1.6; text-align:center; }
+.account-note { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin:13px 0 0; color:#adb6af; font-size:8px; line-height:1.6; text-align:center; }
+.account-note a { color:#789c81; text-decoration:none; font-weight:750; }
+.account-consent { display:flex; align-items:flex-start; gap:8px; margin:2px 0 5px; padding:10px; border:1px solid #e1e9de; border-radius:9px; background:#f8faf5; color:#738279; font-size:9px; line-height:1.65; cursor:pointer; }
+.account-consent.hidden { display:none; }
+.account-consent input { width:15px; height:15px; flex:0 0 auto; margin:2px 0 0; accent-color:#4e9a62; }
+.account-consent a { color:#438554; font-weight:750; }
+.legal-view-card { width:min(620px,100%); max-height:min(760px,calc(100vh - 30px)); }
+.legal-view-card h2 { margin:9px 0 17px; font-size:24px; letter-spacing:-.04em; }
+.legal-view-body { display:grid; gap:13px; }
+.legal-view-body section { padding-top:13px; border-top:1px solid #edf1e9; }
+.legal-view-body strong { display:block; color:#405d49; font-size:11px; }
+.legal-view-body p { margin:5px 0 0; color:#7c8b80; font-size:10px; line-height:1.75; }
 .account-logged-in { display:flex; flex-wrap:wrap; align-items:center; gap:11px; padding:14px; border:1px solid #dde9d9; border-radius:13px; background:#f8fbf6; }
 .account-avatar { display:grid; place-items:center; width:39px; height:39px; border-radius:12px; background:#deefdc; color:#438353; font-size:17px; font-weight:800; }
 .account-user { flex:1; min-width:0; }.account-user strong { display:block; font-size:12px; }.account-user small { display:block; margin-top:3px; overflow:hidden; text-overflow:ellipsis; color:#94a097; font-size:8px; }
@@ -988,6 +999,8 @@ body.modal-open { overflow:hidden; }
 .local-only-panel p { margin:6px 0 11px; color:#829187; font-size:9px; line-height:1.7; }
 .local-only-checklist { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:13px; }
 .local-only-checklist span { padding:4px 6px; border-radius:5px; background:#eaf4e7; color:#63916d; font-size:8px; }
+.local-only-legal { display:flex; justify-content:center; gap:6px; margin-top:10px; color:#a5b0a7; font-size:8px; }
+.local-only-legal a { color:#668e70; text-decoration:none; font-weight:750; }
 .quick-link { margin-left:auto; color:#698576; }
 .placement-link { display:block; margin:14px auto 0; border:0; background:transparent; color:#5e8f6a; font-size:9px; font-weight:800; padding:5px 8px; }
 .placement-link:hover { text-decoration:underline; }
@@ -1649,6 +1662,7 @@ button, input, select, textarea { font-family: inherit; }
         <p>课程、XP、每日任务和最佳成绩会保存在这台设备的浏览器中。跨设备登录同步需要启用 PianoPath 服务端。</p>
         <div class="local-only-checklist"><span>✓ 课程完整可用</span><span>✓ 离线可打开</span><span>✓ 本机自动保存</span></div>
         <button type="button" class="btn btn-primary full-width" id="continueLocal">继续今日练习</button>
+        <div class="local-only-legal"><a href="#privacy" data-legal-view="privacy">隐私政策</a><span>·</span><a href="#terms" data-legal-view="terms">服务条款</a></div>
       </div>
       <div class="account-tabs" id="accountTabs">
         <button type="button" class="account-tab active" data-account-mode="login">登录</button>
@@ -1658,6 +1672,10 @@ button, input, select, textarea { font-family: inherit; }
         <label class="account-name hidden" id="accountNameField"><span>昵称</span><input name="name" maxlength="60" autocomplete="nickname" placeholder="怎么称呼你"></label>
         <label><span>邮箱</span><input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
         <label><span>密码</span><input name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="至少 8 位"></label>
+        <label class="account-consent hidden" id="accountConsentField">
+          <input name="consent" type="checkbox" required>
+          <span>我已阅读并同意 <a href="#terms" data-legal-view="terms">服务条款</a> 与 <a href="#privacy" data-legal-view="privacy">隐私政策</a></span>
+        </label>
         <div class="account-error" id="accountError" role="alert"></div>
         <button type="submit" class="btn btn-primary full-width" id="accountSubmit">登录并同步</button>
       </form>
@@ -1670,7 +1688,7 @@ button, input, select, textarea { font-family: inherit; }
       </div>
       <div class="account-divider"><span>或</span></div>
       <button type="button" class="guest-button" id="continueGuest">继续以游客身份使用</button>
-      <p class="account-note">账户为可选功能。你的练习数据默认保存在本机，不会自动公开。</p>
+      <p class="account-note"><a href="#privacy" data-legal-view="privacy">隐私政策</a><span>·</span><a href="#terms" data-legal-view="terms">服务条款</a><span>·</span>练习数据默认保存在本机</p>
       <button type="button" class="text-button account-plan-link" id="accountPlanSettings">练习计划设置 →</button>
     </div>
   </div>
@@ -1966,7 +1984,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.20 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.21 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -2043,7 +2061,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.20.0",
+    "appVersion": "1.21.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -8124,6 +8142,14 @@ window.PIANO_DATA = {
 };
 
 </script>
+  <div class="modal-backdrop legal-view-modal hidden" id="legalViewModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="legalViewTitle">
+    <div class="account-card legal-view-card">
+      <button class="icon-button modal-close" id="closeLegalView" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <span class="eyebrow" id="legalViewEyebrow">PRIVACY</span>
+      <h2 id="legalViewTitle">隐私政策</h2>
+      <div class="legal-view-body" id="legalViewBody"></div>
+    </div>
+  </div>
   <div class="modal-backdrop hidden" id="confirmActionModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="confirmActionTitle" aria-describedby="confirmActionBody">
     <div class="account-card confirm-action-card">
       <button class="icon-button modal-close" id="closeConfirmAction" aria-label="取消"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
@@ -8834,6 +8860,31 @@ window.PIANO_DATA = {
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const RATING_LABELS = { 1: '需要帮助', 2: '有点卡', 3: '刚刚好', 4: '很顺' };
+  const LEGAL_VERSION = '2026-11-07';
+  const LEGAL_SUMMARIES = {
+    privacy: {
+      eyebrow: 'PRIVACY',
+      title: '隐私政策',
+      items: [
+        ['保存什么', '学习计划、进度、练习记录与可选账户信息。注册账户时，服务端保存邮箱、昵称和密码哈希，不保存明文密码。'],
+        ['保存在哪里', '游客数据默认保存在当前浏览器。只有注册并连接账户服务后，进度才会同步到服务端。'],
+        ['用于什么', '课程进度、跨设备同步、复习提醒、数据恢复与账户安全。不接入广告画像，不出售个人数据。'],
+        ['你能做什么', '随时导出备份、清除本机数据、退出登录或删除账户与云端进度。删除账户不会自动清除本机记录。'],
+        ['政策版本', '2026-11-07']
+      ]
+    },
+    terms: {
+      eyebrow: 'TERMS',
+      title: '服务条款',
+      items: [
+        ['服务范围', '琴阶提供钢琴学习路径、练习工具与资源索引，不替代合格教师、考级认证或医疗建议。'],
+        ['账户责任', '请妥善保管密码，并对账户下的操作负责。发现异常时立即退出登录并联系我们。'],
+        ['内容与版权', '不托管受版权保护的完整曲谱，只链接公共领域或官方来源。第三方内容由其权利人负责。'],
+        ['练习安全', '出现疼痛、麻木、眩晕或其他不适时立即停止，并寻求教师或医疗专业人员帮助。'],
+        ['条款版本', '2026-11-07']
+      ]
+    }
+  };
   const MASTERY_PASS_PERCENT = 67;
   const isNormalLesson = (item) => Boolean(item && !item.quick && !item.repertoireId);
   const masteryPassed = (sessionId) => Boolean(state.mastery?.[sessionId] && Number(state.mastery[sessionId].best) >= MASTERY_PASS_PERCENT);
@@ -10904,8 +10955,18 @@ window.PIANO_DATA = {
     $('#openAccount')?.addEventListener('click', openAccount);
     $('#profileButton')?.addEventListener('click', openAccount);
     document.querySelector('#accountPlanSettings')?.addEventListener('click', () => { closeAccount(); openSettings(); });
+    document.querySelectorAll('[data-legal-view]').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      openLegalView(link.dataset.legalView);
+    }));
+    document.querySelector('#closeLegalView')?.addEventListener('click', closeLegalView);
     document.querySelectorAll('.account-tab').forEach((button) => button.addEventListener('click', () => setAccountMode(button.dataset.accountMode)));
     document.querySelector('#accountForm')?.addEventListener('submit', submitAccount);
+    document.querySelector('#accountSubmit')?.addEventListener('click', () => {
+      if (accountState.mode !== 'register' || document.querySelector('#accountForm input[name="consent"]')?.checked) return;
+      const errorBox = document.querySelector('#accountError');
+      if (errorBox) errorBox.textContent = '创建账户前，请先阅读并同意服务条款与隐私政策。';
+    });
     document.querySelector('#closeAccount')?.addEventListener('click', closeAccount);
     document.querySelector('#continueGuest')?.addEventListener('click', closeAccount);
     document.querySelector('#continueLocal')?.addEventListener('click', closeAccount);
@@ -11148,6 +11209,7 @@ window.PIANO_DATA = {
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
         else if (backdrop.id === 'playAlongModal') closePlayAlong();
         else if (backdrop.id === 'rhythmPianoModal') closeRhythmPiano();
+        else if (backdrop.id === 'legalViewModal') closeLegalView();
         else if (backdrop.id === 'videoModal') closeVideo();
       });
     });
@@ -11156,6 +11218,7 @@ window.PIANO_DATA = {
       if (event.key === 'Escape') {
         if (document.querySelector('#confirmActionModal') && !document.querySelector('#confirmActionModal').classList.contains('hidden')) { closeConfirmAction(); return; }
         if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
+        if (document.querySelector('#legalViewModal') && !document.querySelector('#legalViewModal').classList.contains('hidden')) { closeLegalView(); return; }
         if (freePlayActive) { closeFreePiano(); return; }
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
@@ -11210,6 +11273,8 @@ window.PIANO_DATA = {
   APP.openRepertoirePiece = openRepertoirePiece;
   APP.startRepertoirePractice = startRepertoirePractice;
   APP.getAccountState = () => ({ ...accountState });
+  APP.openLegalView = openLegalView;
+  APP.closeLegalView = closeLegalView;
   APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;
 
@@ -11243,6 +11308,14 @@ window.PIANO_DATA = {
     document.querySelectorAll('.account-tab').forEach((button) => button.classList.toggle('active', button.dataset.accountMode === accountState.mode));
     const nameField = document.querySelector('#accountNameField');
     if (nameField) nameField.classList.toggle('hidden', accountState.mode !== 'register');
+    const consentField = document.querySelector('#accountConsentField');
+    const consentInput = consentField?.querySelector('input[name="consent"]');
+    if (consentField) consentField.classList.toggle('hidden', accountState.mode !== 'register');
+    if (consentInput) {
+      consentInput.required = accountState.mode === 'register';
+      consentInput.disabled = accountState.mode !== 'register';
+      if (accountState.mode !== 'register') consentInput.checked = false;
+    }
     const submit = document.querySelector('#accountSubmit');
     if (submit) submit.textContent = accountState.mode === 'register' ? '创建账户并同步' : '登录并同步';
     const password = document.querySelector('#accountForm input[name="password"]');
@@ -11342,9 +11415,16 @@ window.PIANO_DATA = {
     const email = form.email.value.trim();
     const password = form.password.value;
     const name = form.name?.value.trim() || '练琴人';
+    if (accountState.mode === 'register' && !form.consent?.checked) {
+      if (errorBox) errorBox.textContent = '创建账户前，请先阅读并同意服务条款与隐私政策。';
+      return;
+    }
     try {
       const path = accountState.mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-      const data = await accountRequest(path, accountState.mode === 'register' ? { email, password, name } : { email, password });
+      const payload = accountState.mode === 'register'
+        ? { email, password, name, consentVersion: LEGAL_VERSION, consentAccepted: true }
+        : { email, password };
+      const data = await accountRequest(path, payload);
       accountState.loggedIn = true;
       accountState.user = data.user;
       form.reset();
@@ -11497,6 +11577,22 @@ window.PIANO_DATA = {
 
   function closeDeleteAccountConfirm() {
     document.querySelector('#deleteAccountModal')?.classList.add('hidden');
+  }
+
+  function openLegalView(kind = 'privacy') {
+    const content = LEGAL_SUMMARIES[kind] || LEGAL_SUMMARIES.privacy;
+    const modal = document.querySelector('#legalViewModal');
+    if (!modal) return;
+    document.querySelector('#legalViewEyebrow').textContent = content.eyebrow;
+    document.querySelector('#legalViewTitle').textContent = content.title;
+    document.querySelector('#legalViewBody').innerHTML = content.items.map(([title, body]) => `<section><strong>${escapeUi(title)}</strong><p>${escapeUi(body)}</p></section>`).join('');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLegalView() {
+    document.querySelector('#legalViewModal')?.classList.add('hidden');
+    document.body.style.overflow = document.querySelector('.modal-backdrop:not(.hidden)') ? 'hidden' : '';
   }
 
   async function deleteAccount() {

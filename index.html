@@ -289,6 +289,7 @@
         <p>课程、XP、每日任务和最佳成绩会保存在这台设备的浏览器中。跨设备登录同步需要启用 PianoPath 服务端。</p>
         <div class="local-only-checklist"><span>✓ 课程完整可用</span><span>✓ 离线可打开</span><span>✓ 本机自动保存</span></div>
         <button type="button" class="btn btn-primary full-width" id="continueLocal">继续今日练习</button>
+        <div class="local-only-legal"><a href="privacy.html" data-legal-view="privacy">隐私政策</a><span>·</span><a href="terms.html" data-legal-view="terms">服务条款</a></div>
       </div>
       <div class="account-tabs" id="accountTabs">
         <button type="button" class="account-tab active" data-account-mode="login">登录</button>
@@ -298,6 +299,10 @@
         <label class="account-name hidden" id="accountNameField"><span>昵称</span><input name="name" maxlength="60" autocomplete="nickname" placeholder="怎么称呼你"></label>
         <label><span>邮箱</span><input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
         <label><span>密码</span><input name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="至少 8 位"></label>
+        <label class="account-consent hidden" id="accountConsentField">
+          <input name="consent" type="checkbox" required>
+          <span>我已阅读并同意 <a href="terms.html" data-legal-view="terms">服务条款</a> 与 <a href="privacy.html" data-legal-view="privacy">隐私政策</a></span>
+        </label>
         <div class="account-error" id="accountError" role="alert"></div>
         <button type="submit" class="btn btn-primary full-width" id="accountSubmit">登录并同步</button>
       </form>
@@ -310,7 +315,7 @@
       </div>
       <div class="account-divider"><span>或</span></div>
       <button type="button" class="guest-button" id="continueGuest">继续以游客身份使用</button>
-      <p class="account-note">账户为可选功能。你的练习数据默认保存在本机，不会自动公开。</p>
+      <p class="account-note"><a href="privacy.html" data-legal-view="privacy">隐私政策</a><span>·</span><a href="terms.html" data-legal-view="terms">服务条款</a><span>·</span>练习数据默认保存在本机</p>
       <button type="button" class="text-button account-plan-link" id="accountPlanSettings">练习计划设置 →</button>
     </div>
   </div>
@@ -606,7 +611,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.20 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.21 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -676,6 +681,14 @@
   </div>
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
   <script src="data.js"></script>
+  <div class="modal-backdrop legal-view-modal hidden" id="legalViewModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="legalViewTitle">
+    <div class="account-card legal-view-card">
+      <button class="icon-button modal-close" id="closeLegalView" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <span class="eyebrow" id="legalViewEyebrow">PRIVACY</span>
+      <h2 id="legalViewTitle">隐私政策</h2>
+      <div class="legal-view-body" id="legalViewBody"></div>
+    </div>
+  </div>
   <div class="modal-backdrop hidden" id="confirmActionModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="confirmActionTitle" aria-describedby="confirmActionBody">
     <div class="account-card confirm-action-card">
       <button class="icon-button modal-close" id="closeConfirmAction" aria-label="取消"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>

@@ -58,11 +58,22 @@ async function waitForServer(url) {
     await page.locator('#profileButton').click();
     await page.waitForTimeout(180);
     assert.equal(await page.locator('#accountModal').isVisible(), true, 'account modal missing');
+    await page.locator('.account-note a[data-legal-view="privacy"]').click();
+    await page.waitForTimeout(120);
+    assert.equal(await page.locator('#legalViewModal').isVisible(), true, 'server-mode privacy view missing');
+    assert.equal(await page.locator('#legalViewTitle').innerText(), '隐私政策', 'server-mode privacy title wrong');
+    await page.locator('#closeLegalView').click();
+    assert.equal(await page.locator('#legalViewModal').isVisible(), false, 'server-mode privacy view did not close');
     await page.locator('[data-account-mode="register"]').click();
     const email = `ui-${Date.now()}@example.com`;
     await page.locator('#accountForm input[name="name"]').fill('删除测试');
     await page.locator('#accountForm input[name="email"]').fill(email);
     await page.locator('#accountForm input[name="password"]').fill('PianoPath123!');
+    assert.equal(await page.locator('#accountConsentField').isVisible(), true, 'registration consent missing');
+    assert.equal(await page.locator('#accountForm input[name="consent"]').isChecked(), false, 'consent should start unchecked');
+    await page.locator('#accountSubmit').click();
+    assert.match(await page.locator('#accountError').innerText(), /服务条款|隐私政策|同意/, 'consent validation was not explained');
+    await page.locator('#accountForm input[name="consent"]').check();
     await page.locator('#accountSubmit').click();
     await page.waitForFunction(() => !document.querySelector('#accountLoggedIn').classList.contains('hidden'), null, { timeout: 10000 });
     assert.equal(await page.locator('#accountLoggedIn').isVisible(), true, 'account registration failed');
@@ -81,7 +92,7 @@ async function waitForServer(url) {
     await page.waitForFunction(() => document.querySelector('#accountModal').classList.contains('hidden'), null, { timeout: 10000 });
     assert.equal(await page.locator('#accountLoggedIn').isVisible(), false, 'deleted account still appears logged in');
     assert.equal(errors.length, 0, errors.join('; '));
-    console.log(JSON.stringify({ ok: true, checks: ['register-ui', 'delete-modal-focus', 'escape-cancel', 'confirm-cancel', 'delete-account'] }, null, 2));
+    console.log(JSON.stringify({ ok: true, checks: ['legal-modal', 'consent-required', 'register-ui', 'delete-modal-focus', 'escape-cancel', 'confirm-cancel', 'delete-account'] }, null, 2));
   } finally {
     if (browser) await browser.close();
     server.kill();

@@ -699,6 +699,31 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const RATING_LABELS = { 1: '需要帮助', 2: '有点卡', 3: '刚刚好', 4: '很顺' };
+  const LEGAL_VERSION = '2026-11-07';
+  const LEGAL_SUMMARIES = {
+    privacy: {
+      eyebrow: 'PRIVACY',
+      title: '隐私政策',
+      items: [
+        ['保存什么', '学习计划、进度、练习记录与可选账户信息。注册账户时，服务端保存邮箱、昵称和密码哈希，不保存明文密码。'],
+        ['保存在哪里', '游客数据默认保存在当前浏览器。只有注册并连接账户服务后，进度才会同步到服务端。'],
+        ['用于什么', '课程进度、跨设备同步、复习提醒、数据恢复与账户安全。不接入广告画像，不出售个人数据。'],
+        ['你能做什么', '随时导出备份、清除本机数据、退出登录或删除账户与云端进度。删除账户不会自动清除本机记录。'],
+        ['政策版本', '2026-11-07']
+      ]
+    },
+    terms: {
+      eyebrow: 'TERMS',
+      title: '服务条款',
+      items: [
+        ['服务范围', '琴阶提供钢琴学习路径、练习工具与资源索引，不替代合格教师、考级认证或医疗建议。'],
+        ['账户责任', '请妥善保管密码，并对账户下的操作负责。发现异常时立即退出登录并联系我们。'],
+        ['内容与版权', '不托管受版权保护的完整曲谱，只链接公共领域或官方来源。第三方内容由其权利人负责。'],
+        ['练习安全', '出现疼痛、麻木、眩晕或其他不适时立即停止，并寻求教师或医疗专业人员帮助。'],
+        ['条款版本', '2026-11-07']
+      ]
+    }
+  };
   const MASTERY_PASS_PERCENT = 67;
   const isNormalLesson = (item) => Boolean(item && !item.quick && !item.repertoireId);
   const masteryPassed = (sessionId) => Boolean(state.mastery?.[sessionId] && Number(state.mastery[sessionId].best) >= MASTERY_PASS_PERCENT);
@@ -2769,8 +2794,18 @@
     $('#openAccount')?.addEventListener('click', openAccount);
     $('#profileButton')?.addEventListener('click', openAccount);
     document.querySelector('#accountPlanSettings')?.addEventListener('click', () => { closeAccount(); openSettings(); });
+    document.querySelectorAll('[data-legal-view]').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      openLegalView(link.dataset.legalView);
+    }));
+    document.querySelector('#closeLegalView')?.addEventListener('click', closeLegalView);
     document.querySelectorAll('.account-tab').forEach((button) => button.addEventListener('click', () => setAccountMode(button.dataset.accountMode)));
     document.querySelector('#accountForm')?.addEventListener('submit', submitAccount);
+    document.querySelector('#accountSubmit')?.addEventListener('click', () => {
+      if (accountState.mode !== 'register' || document.querySelector('#accountForm input[name="consent"]')?.checked) return;
+      const errorBox = document.querySelector('#accountError');
+      if (errorBox) errorBox.textContent = '创建账户前，请先阅读并同意服务条款与隐私政策。';
+    });
     document.querySelector('#closeAccount')?.addEventListener('click', closeAccount);
     document.querySelector('#continueGuest')?.addEventListener('click', closeAccount);
     document.querySelector('#continueLocal')?.addEventListener('click', closeAccount);
@@ -3013,6 +3048,7 @@
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
         else if (backdrop.id === 'playAlongModal') closePlayAlong();
         else if (backdrop.id === 'rhythmPianoModal') closeRhythmPiano();
+        else if (backdrop.id === 'legalViewModal') closeLegalView();
         else if (backdrop.id === 'videoModal') closeVideo();
       });
     });
@@ -3021,6 +3057,7 @@
       if (event.key === 'Escape') {
         if (document.querySelector('#confirmActionModal') && !document.querySelector('#confirmActionModal').classList.contains('hidden')) { closeConfirmAction(); return; }
         if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
+        if (document.querySelector('#legalViewModal') && !document.querySelector('#legalViewModal').classList.contains('hidden')) { closeLegalView(); return; }
         if (freePlayActive) { closeFreePiano(); return; }
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
@@ -3075,6 +3112,8 @@
   APP.openRepertoirePiece = openRepertoirePiece;
   APP.startRepertoirePractice = startRepertoirePractice;
   APP.getAccountState = () => ({ ...accountState });
+  APP.openLegalView = openLegalView;
+  APP.closeLegalView = closeLegalView;
   APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;
 
@@ -3108,6 +3147,14 @@
     document.querySelectorAll('.account-tab').forEach((button) => button.classList.toggle('active', button.dataset.accountMode === accountState.mode));
     const nameField = document.querySelector('#accountNameField');
     if (nameField) nameField.classList.toggle('hidden', accountState.mode !== 'register');
+    const consentField = document.querySelector('#accountConsentField');
+    const consentInput = consentField?.querySelector('input[name="consent"]');
+    if (consentField) consentField.classList.toggle('hidden', accountState.mode !== 'register');
+    if (consentInput) {
+      consentInput.required = accountState.mode === 'register';
+      consentInput.disabled = accountState.mode !== 'register';
+      if (accountState.mode !== 'register') consentInput.checked = false;
+    }
     const submit = document.querySelector('#accountSubmit');
     if (submit) submit.textContent = accountState.mode === 'register' ? '创建账户并同步' : '登录并同步';
     const password = document.querySelector('#accountForm input[name="password"]');
@@ -3207,9 +3254,16 @@
     const email = form.email.value.trim();
     const password = form.password.value;
     const name = form.name?.value.trim() || '练琴人';
+    if (accountState.mode === 'register' && !form.consent?.checked) {
+      if (errorBox) errorBox.textContent = '创建账户前，请先阅读并同意服务条款与隐私政策。';
+      return;
+    }
     try {
       const path = accountState.mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-      const data = await accountRequest(path, accountState.mode === 'register' ? { email, password, name } : { email, password });
+      const payload = accountState.mode === 'register'
+        ? { email, password, name, consentVersion: LEGAL_VERSION, consentAccepted: true }
+        : { email, password };
+      const data = await accountRequest(path, payload);
       accountState.loggedIn = true;
       accountState.user = data.user;
       form.reset();
@@ -3362,6 +3416,22 @@
 
   function closeDeleteAccountConfirm() {
     document.querySelector('#deleteAccountModal')?.classList.add('hidden');
+  }
+
+  function openLegalView(kind = 'privacy') {
+    const content = LEGAL_SUMMARIES[kind] || LEGAL_SUMMARIES.privacy;
+    const modal = document.querySelector('#legalViewModal');
+    if (!modal) return;
+    document.querySelector('#legalViewEyebrow').textContent = content.eyebrow;
+    document.querySelector('#legalViewTitle').textContent = content.title;
+    document.querySelector('#legalViewBody').innerHTML = content.items.map(([title, body]) => `<section><strong>${escapeUi(title)}</strong><p>${escapeUi(body)}</p></section>`).join('');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLegalView() {
+    document.querySelector('#legalViewModal')?.classList.add('hidden');
+    document.body.style.overflow = document.querySelector('.modal-backdrop:not(.hidden)') ? 'hidden' : '';
   }
 
   async function deleteAccount() {

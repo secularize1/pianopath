@@ -21,6 +21,11 @@ def free_port():
         return s.getsockname()[1]
 
 
+def request_html(base, path):
+    with urllib.request.urlopen(base + path, timeout=10) as response:
+        return response.status, response.read().decode("utf-8")
+
+
 def request(base, path, method="GET", body=None, cookie=None):
     data = json.dumps(body).encode() if body is not None else None
     headers = {"Content-Type": "application/json"}
@@ -56,11 +61,24 @@ def main():
         else:
             raise RuntimeError("server did not start")
         assert health["accounts"] is True
+        assert health["legalVersion"] == "2026-11-07"
+        privacy_status, privacy_html = request_html(base, "/privacy.html")
+        terms_status, terms_html = request_html(base, "/terms.html")
+        assert privacy_status == 200 and "隐私政策" in privacy_html and "账户" in privacy_html
+        assert terms_status == 200 and "服务条款" in terms_html and "版权" in terms_html
         email = f"test-{time.time_ns()}@example.com"
-        status, created, cookie = request(base, "/api/auth/register", "POST", {"email": email, "password": "PianoPath123!", "name": "Test User"})
+        status, no_consent, _ = request(base, "/api/auth/register", "POST", {"email": email, "password": "PianoPath123!", "name": "Test User"})
+        assert status == 400 and "同意" in no_consent["error"]
+        status, stale_consent, _ = request(base, "/api/auth/register", "POST", {"email": email, "password": "PianoPath123!", "name": "Test User", "consentAccepted": True, "consentVersion": "old"})
+        assert status == 400
+        status, created, cookie = request(base, "/api/auth/register", "POST", {"email": email, "password": "PianoPath123!", "name": "Test User", "consentAccepted": True, "consentVersion": "2026-11-07"})
         assert status == 200, (status, created)
         assert created["user"]["name"] == "Test User"
         assert cookie and "HttpOnly" in cookie
+        import sqlite3
+        with sqlite3.connect(temp / "pianopath.db") as db:
+            consent = db.execute("SELECT consent_version, consent_at FROM users WHERE email = ?", (email,)).fetchone()
+        assert consent and consent[0] == "2026-11-07" and consent[1]
         cookie = cookie.split(";", 1)[0]
         status, me, _ = request(base, "/api/auth/me", cookie=cookie)
         assert status == 200 and me["authenticated"] is True
@@ -90,7 +108,7 @@ def main():
         assert status == 200 and unauthenticated["authenticated"] is False
         status, db_probe, _ = request(base, "/data/pianopath.db")
         assert status == 404
-        print(json.dumps({"ok": True, "checks": ["register", "session", "sync", "revision-conflict", "login", "delete-account", "logout", "private-db"]}, ensure_ascii=False))
+        print(json.dumps({"ok": True, "checks": ["legal-pages", "legal-consent-required", "register", "session", "sync", "revision-conflict", "login", "delete-account", "logout", "private-db"]}, ensure_ascii=False))
     finally:
         process.terminate()
         try:

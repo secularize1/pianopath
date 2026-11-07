@@ -394,6 +394,13 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('#profileButton').click();
     await page.waitForTimeout(200);
     assert.equal(await page.locator('#accountModal').isVisible(), true, `${name}: account modal did not open`);
+    assert.equal(await page.locator('.local-only-legal a[data-legal-view="privacy"]').count(), 1, `${name}: privacy link missing from account sheet`);
+    assert.equal(await page.locator('.local-only-legal a[data-legal-view="terms"]').count(), 1, `${name}: terms link missing from account sheet`);
+    await page.locator('.local-only-legal a[data-legal-view="privacy"]').click();
+    assert.equal(await page.locator('#legalViewModal').isVisible(), true, `${name}: embedded privacy view did not open`);
+    assert.match(await page.locator('#legalViewBody').innerText(), /保存在哪里|明文密码/, `${name}: privacy content missing`);
+    await page.locator('#closeLegalView').click();
+    assert.equal(await page.locator('#legalViewModal').isVisible(), false, `${name}: privacy view did not close`);
     await page.locator('#accountPlanSettings').click();
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#settingsModal').isVisible(), true, `${name}: plan settings did not open from account`);

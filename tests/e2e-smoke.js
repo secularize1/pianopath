@@ -258,6 +258,15 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
       window.PIANO_APP.persist();
       window.PIANO_APP.renderAll();
     }, historyBeforeGoals);
+    assert.equal(await page.locator('#profileButton').getAttribute('aria-label'), '账户与同步', `${name}: account button label is misleading`);
+    await page.locator('#profileButton').click();
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator('#accountModal').isVisible(), true, `${name}: account modal did not open`);
+    await page.locator('#accountPlanSettings').click();
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('#settingsModal').isVisible(), true, `${name}: plan settings did not open from account`);
+    await page.locator('#closeSettings').click();
+    await page.waitForTimeout(150);
     await page.locator('#quickPractice').click();
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: quick practice did not open`);

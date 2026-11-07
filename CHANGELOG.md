@@ -14,6 +14,7 @@
 - Failed mastery attempts now count as a completed lesson practice in the daily goal, while mastery and lesson completion remain locked.
 - Added a visible celebration state when all three daily goals are completed.
 - Completion now previews the streak after the current practice is saved, so first-day users no longer see a stale zero.
+- Clarified the mobile account entry and added direct access to plan settings from the account sheet.
 
 ## 1.12.0 — 2026-11-07
 

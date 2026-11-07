@@ -1319,6 +1319,8 @@ button, input, select, textarea { font-family: inherit; }
 .daily-quest-celebration strong { font-size:11px; }
 .daily-quest-celebration small { color:#718879; font-size:10px; }
 
+.account-plan-link { display:block; width:100%; margin-top:10px; padding:10px 12px; border:1px solid #d9e8da; border-radius:10px; background:#f7fbf5; color:#4e7c5b; text-align:center; font-size:10px; }
+
 </style>
 </head>
 <body>
@@ -1396,7 +1398,7 @@ button, input, select, textarea { font-family: inherit; }
             <span class="level-track"><i id="levelProgress"></i></span>
             <strong id="xpValue">0 XP</strong>
           </button>
-          <button class="avatar-button" id="profileButton" aria-label="打开个性化计划">C</button>
+          <button class="avatar-button" id="profileButton" aria-label="账户与同步">C</button>
           <div class="sync-status-bar" id="syncStatusBar" role="status" aria-live="polite"><span class="sync-dot"></span><span id="syncStatusText">本地保存</span></div>
         </div>
       </header>
@@ -1615,6 +1617,7 @@ button, input, select, textarea { font-family: inherit; }
       <div class="account-divider"><span>或</span></div>
       <button type="button" class="guest-button" id="continueGuest">继续以游客身份使用</button>
       <p class="account-note">账户为可选功能。你的练习数据默认保存在本机，不会自动公开。</p>
+      <button type="button" class="text-button account-plan-link" id="accountPlanSettings">练习计划设置 →</button>
     </div>
   </div>
 
@@ -10483,6 +10486,7 @@ window.PIANO_DATA = {
     $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
     $('#openAccount')?.addEventListener('click', openAccount);
     $('#profileButton')?.addEventListener('click', openAccount);
+    document.querySelector('#accountPlanSettings')?.addEventListener('click', () => { closeAccount(); openSettings(); });
     document.querySelectorAll('.account-tab').forEach((button) => button.addEventListener('click', () => setAccountMode(button.dataset.accountMode)));
     document.querySelector('#accountForm')?.addEventListener('submit', submitAccount);
     document.querySelector('#closeAccount')?.addEventListener('click', closeAccount);

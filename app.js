@@ -2457,6 +2457,7 @@
     $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
     $('#openAccount')?.addEventListener('click', openAccount);
     $('#profileButton')?.addEventListener('click', openAccount);
+    document.querySelector('#accountPlanSettings')?.addEventListener('click', () => { closeAccount(); openSettings(); });
     document.querySelectorAll('.account-tab').forEach((button) => button.addEventListener('click', () => setAccountMode(button.dataset.accountMode)));
     document.querySelector('#accountForm')?.addEventListener('submit', submitAccount);
     document.querySelector('#closeAccount')?.addEventListener('click', closeAccount);

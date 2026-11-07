@@ -1312,6 +1312,13 @@ button, input, select, textarea { font-family: inherit; }
   .note-mode, .choice-chip { min-height: 44px; }
 }
 
+/* === 1.13 daily goal completion === */
+.daily-quest-celebration { display:flex; align-items:center; gap:10px; margin-top:10px; padding:11px 12px; border:1px solid #cce6ce; border-radius:12px; background:linear-gradient(120deg,#edf9eb,#f8f8df); color:#3e784b; }
+.daily-quest-celebration > span:first-child { display:grid; place-items:center; width:28px; height:28px; flex:0 0 auto; border-radius:50%; background:#62b574; color:#fff; }
+.daily-quest-celebration > span:last-child { display:grid; gap:2px; }
+.daily-quest-celebration strong { font-size:11px; }
+.daily-quest-celebration small { color:#718879; font-size:10px; }
+
 </style>
 </head>
 <body>
@@ -1431,8 +1438,9 @@ button, input, select, textarea { font-family: inherit; }
           </div>
           <div class="week-trail" id="homeWeekTrail"></div>
           <div class="daily-quests">
-            <div class="daily-quests-head"><span>今日小目标</span><strong id="dailyQuestCount">0 / 3</strong></div>
+            <div class="daily-quests-head"><span>今天的小目标</span><strong id="dailyQuestCount">0 / 3</strong></div>
             <div class="daily-quest-list" id="dailyQuestList"></div>
+            <div class="daily-quest-celebration hidden" id="dailyQuestCelebration" role="status"><span>★</span><span><strong>今天三项都完成了</strong><small>明天回来，继续把这条学习线接上。</small></span></div>
           </div>
         </section>
 
@@ -8425,7 +8433,7 @@ window.PIANO_DATA = {
     const gameToday = (state.gameSessions || []).filter((item) => item.date === todayKey);
     const playAlongToday = state.history.filter((entry) => entry.date === todayKey && entry.type === 'playalong');
     const todayMinutes = minutesForDate(todayKey);
-    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice', 'playalong'].includes(entry.type));
+    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'playalong'].includes(entry.type));
     const todayGame = gameToday.length > 0 || playAlongToday.length > 0;
     const dueReviews = dueReviewItems();
     const quests = [
@@ -8437,7 +8445,9 @@ window.PIANO_DATA = {
     if (questList) {
       questList.innerHTML = quests.map((quest) => `<div class="daily-quest ${quest.done ? 'done' : ''}"><span class="quest-check">${quest.done ? '✓' : ''}</span><span><strong>${escapeHtml(quest.label)}</strong><small>${escapeHtml(quest.detail)}</small></span></div>`).join('');
       const questCount = document.querySelector('#dailyQuestCount');
-      if (questCount) questCount.textContent = `${quests.filter((quest) => quest.done).length} / 3`;
+      const completedQuests = quests.filter((quest) => quest.done).length;
+      if (questCount) questCount.textContent = `${completedQuests} / 3`;
+      document.querySelector('#dailyQuestCelebration')?.classList.toggle('hidden', completedQuests < quests.length);
     }
 
     const todayEntries = state.history.filter((entry) => entry.date === todayKey);

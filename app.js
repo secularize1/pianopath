@@ -727,18 +727,18 @@
   let noteGameMode = 'note';
   let activeRepertoirePiece = null;
   const PLAY_ALONG_PITCHES = [
-    { name: 'C', pc: 0, input: 'a', black: false },
-    { name: 'C♯', pc: 1, input: 'w', black: true },
-    { name: 'D', pc: 2, input: 's', black: false },
-    { name: 'D♯', pc: 3, input: 'e', black: true },
-    { name: 'E', pc: 4, input: 'd', black: false },
-    { name: 'F', pc: 5, input: 'f', black: false },
-    { name: 'F♯', pc: 6, input: 't', black: true },
-    { name: 'G', pc: 7, input: 'g', black: false },
-    { name: 'G♯', pc: 8, input: 'y', black: true },
-    { name: 'A', pc: 9, input: 'h', black: false },
-    { name: 'A♯', pc: 10, input: 'u', black: true },
-    { name: 'B', pc: 11, input: 'j', black: false }
+    { name: 'C', pc: 0, input: 'z', black: false },
+    { name: 'C♯', pc: 1, input: '2', black: true },
+    { name: 'D', pc: 2, input: 'x', black: false },
+    { name: 'D♯', pc: 3, input: '3', black: true },
+    { name: 'E', pc: 4, input: 'c', black: false },
+    { name: 'F', pc: 5, input: 'v', black: false },
+    { name: 'F♯', pc: 6, input: '5', black: true },
+    { name: 'G', pc: 7, input: 'b', black: false },
+    { name: 'G♯', pc: 8, input: '6', black: true },
+    { name: 'A', pc: 9, input: 'n', black: false },
+    { name: 'A♯', pc: 10, input: '7', black: true },
+    { name: 'B', pc: 11, input: 'm', black: false }
   ];
   const PLAY_ALONG_PATTERNS = [
     { id: 'c-five', title: 'C 五指位', cue: '右手 1–2–3–4–5，慢速弹准每个音', notes: [0, 2, 4, 5, 7, 5, 4, 2, 0, 0] },
@@ -754,8 +754,6 @@
   let playAlongStreak = 0;
   let playAlongBestStreak = 0;
   let playAlongActive = false;
-  let playAlongMidi = null;
-  let playAlongMidiAccess = null;
 
   function formatClock(seconds) {
     const safe = Math.max(0, Math.round(seconds));
@@ -1744,6 +1742,321 @@
     updateProgressDisplay();
   }
 
+
+  const RHYTHM_LEAD_BEATS = 3.5;
+  const RHYTHM_WHITE_KEYS = [
+    { note: 48, name: 'C3', pc: 0, key: 'z' },
+    { note: 50, name: 'D3', pc: 2, key: 'x' },
+    { note: 52, name: 'E3', pc: 4, key: 'c' },
+    { note: 53, name: 'F3', pc: 5, key: 'v' },
+    { note: 55, name: 'G3', pc: 7, key: 'b' },
+    { note: 57, name: 'A3', pc: 9, key: 'n' },
+    { note: 59, name: 'B3', pc: 11, key: 'm' },
+    { note: 60, name: 'C4', pc: 0, key: 'a' },
+    { note: 62, name: 'D4', pc: 2, key: 's' },
+    { note: 64, name: 'E4', pc: 4, key: 'd' },
+    { note: 65, name: 'F4', pc: 5, key: 'f' },
+    { note: 67, name: 'G4', pc: 7, key: 'g' },
+    { note: 69, name: 'A4', pc: 9, key: 'h' },
+    { note: 71, name: 'B4', pc: 11, key: 'j' },
+    { note: 72, name: 'C5', pc: 0, key: 'k' },
+    { note: 74, name: 'D5', pc: 2, key: 'l' }
+  ];
+  const RHYTHM_BLACK_KEYS = [
+    { note: 49, name: 'C#3', pc: 1, key: '2' },
+    { note: 51, name: 'D#3', pc: 3, key: '3' },
+    { note: 54, name: 'F#3', pc: 6, key: '5' },
+    { note: 56, name: 'G#3', pc: 8, key: '6' },
+    { note: 58, name: 'A#3', pc: 10, key: '7' },
+    { note: 61, name: 'C#4', pc: 1, key: 'w' },
+    { note: 63, name: 'D#4', pc: 3, key: 'e' },
+    { note: 66, name: 'F#4', pc: 6, key: 't' },
+    { note: 68, name: 'G#4', pc: 8, key: 'y' },
+    { note: 70, name: 'A#4', pc: 10, key: 'u' }
+  ];
+  const RHYTHM_SONGS = [
+    { id: 'twinkle', title: '小星星', composer: '法国民谣', difficulty: '入门', bpm: 82, color: '#5bbd78', notes: [[0, 60, .8], [.8, 60, .4], [1.2, 67, .8], [2, 67, .4], [2.4, 69, .8], [3.2, 69, .4], [3.6, 67, 1.2], [5.2, 65, .8], [6, 65, .4], [6.4, 64, .8], [7.2, 64, .4], [7.6, 62, .8], [8.4, 62, .4], [8.8, 60, 1.4]] },
+    { id: 'ode', title: '欢乐颂', composer: '贝多芬', difficulty: '入门', bpm: 88, color: '#e7b44f', notes: [[0, 64, .7], [.7, 64, .7], [1.4, 65, .7], [2.1, 67, .7], [2.8, 67, .7], [3.5, 65, .7], [4.2, 64, .7], [4.9, 62, .7], [5.6, 60, .7], [6.3, 60, .7], [7, 62, .7], [7.7, 64, .7], [8.4, 64, 1.2]] },
+    { id: 'mary', title: '玛丽有只小羔羊', composer: '美国民谣', difficulty: '入门', bpm: 76, color: '#8db9d6', notes: [[0, 64, .8], [.8, 62, .8], [1.6, 60, .8], [2.4, 62, .8], [3.2, 64, .8], [4, 64, .8], [4.8, 64, 1.2], [6.4, 62, .8], [7.2, 62, .8], [8, 62, 1.2]] },
+    { id: 'jingle', title: 'Jingle Bells', composer: 'James Lord Pierpont', difficulty: '进阶', bpm: 96, color: '#e58c77', notes: [[0, 64, .6], [.6, 64, .6], [1.2, 64, 1], [2.6, 64, .6], [3.2, 64, .6], [3.8, 64, 1], [5.2, 64, .6], [5.8, 67, .6], [6.4, 60, .8], [7.2, 62, .6], [7.8, 64, 1.4]] }
+  ];
+  let rhythmSong = null;
+  let rhythmEvents = [];
+  let rhythmStartedAt = 0;
+  let rhythmTimer = null;
+  let rhythmPaused = false;
+  let rhythmScore = 0;
+  let rhythmCombo = 0;
+  let rhythmMaxCombo = 0;
+  let rhythmHits = 0;
+  let rhythmMisses = 0;
+  let rhythmActive = false;
+  let rhythmJudgementTimer = null;
+  let rhythmCountdownTimer = null;
+  let rhythmPausedAt = 0;
+
+  function rhythmKeyboardMarkup() {
+    const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
+    const white = RHYTHM_WHITE_KEYS.map((key) => `<button type="button" class="rhythm-key white" data-note="${key.note}" data-key="${key.key}" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
+    const black = RHYTHM_BLACK_KEYS.map((key, index) => `<button type="button" class="rhythm-key black" data-note="${key.note}" data-key="${key.key}" style="left:${blackLeft[index]}%" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
+    return white + black;
+  }
+
+  function renderRhythmSongs() {
+    const grid = document.querySelector('#rhythmSongGrid');
+    if (!grid) return;
+    grid.innerHTML = RHYTHM_SONGS.map((song) => `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM</em></span><span class="rhythm-song-play">▶</span></button>`).join('');
+    grid.querySelectorAll('[data-rhythm-song]').forEach((button) => button.addEventListener('click', () => startRhythmPiano(button.dataset.rhythmSong)));
+  }
+
+  function openRhythmPiano() {
+    stopRhythmPiano();
+    document.querySelector('#rhythmPianoHome')?.classList.remove('hidden');
+    document.querySelector('#rhythmPianoStage')?.classList.add('hidden');
+    document.querySelector('#rhythmPianoResult')?.classList.add('hidden');
+    document.querySelector('#rhythmPianoModal')?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    renderRhythmSongs();
+  }
+
+  function closeRhythmPiano() {
+    stopRhythmPiano();
+    document.querySelector('#rhythmPianoModal')?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function stopRhythmPiano() {
+    rhythmActive = false;
+    rhythmPaused = false;
+    clearInterval(rhythmTimer);
+    clearInterval(rhythmCountdownTimer);
+    clearTimeout(rhythmJudgementTimer);
+    rhythmTimer = null;
+    rhythmCountdownTimer = null;
+    rhythmJudgementTimer = null;
+    document.querySelectorAll('.rhythm-note').forEach((note) => note.remove());
+    document.querySelectorAll('.rhythm-key.pressed').forEach((key) => key.classList.remove('pressed'));
+    document.querySelector('#rhythmPauseLayer')?.classList.add('hidden');
+    document.querySelector('#rhythmCountdown')?.classList.add('hidden');
+    const pauseButton = document.querySelector('#rhythmPause');
+    if (pauseButton) pauseButton.textContent = '暂停';
+  }
+
+  function startRhythmPiano(songId) {
+    stopRhythmPiano();
+    rhythmSong = RHYTHM_SONGS.find((song) => song.id === songId) || RHYTHM_SONGS[0];
+    rhythmEvents = rhythmSong.notes.map(([beat, note, duration], index) => ({ beat, note, duration, index, hit: false, missed: false, element: null }));
+    rhythmScore = 0;
+    rhythmCombo = 0;
+    rhythmMaxCombo = 0;
+    rhythmHits = 0;
+    rhythmMisses = 0;
+    rhythmPaused = false;
+    rhythmActive = false;
+    rhythmPausedAt = 0;
+    document.querySelector('#rhythmNowPlaying').textContent = rhythmSong.title;
+    document.querySelector('#rhythmScore').textContent = '0';
+    document.querySelector('#rhythmCombo').textContent = '0';
+    document.querySelector('#rhythmAccuracy').textContent = '100%';
+    document.querySelector('#rhythmJudgement').textContent = '';
+    const keyboard = document.querySelector('#rhythmKeyboard');
+    if (keyboard) keyboard.innerHTML = rhythmKeyboardMarkup();
+    const lanes = document.querySelector('#rhythmLanes');
+    if (!lanes) return;
+    lanes.innerHTML = RHYTHM_WHITE_KEYS.map((key) => `<div class="rhythm-lane" data-lane="${key.note}"><span class="rhythm-lane-key">${key.name.replace(/\d/, '')}</span></div>`).join('');
+    document.querySelector('#rhythmPianoHome')?.classList.add('hidden');
+    document.querySelector('#rhythmPianoResult')?.classList.add('hidden');
+    document.querySelector('#rhythmPianoStage')?.classList.remove('hidden');
+    startRhythmCountdown();
+  }
+
+  function startRhythmCountdown() {
+    let value = 3;
+    const layer = document.querySelector('#rhythmCountdown');
+    layer?.classList.remove('hidden');
+    if (layer) layer.textContent = String(value);
+    clearInterval(rhythmCountdownTimer);
+    rhythmCountdownTimer = setInterval(() => {
+      value -= 1;
+      if (value > 0) {
+        if (layer) layer.textContent = String(value);
+        return;
+      }
+      clearInterval(rhythmCountdownTimer);
+      rhythmCountdownTimer = null;
+      layer?.classList.add('hidden');
+      rhythmStartedAt = performance.now() + (RHYTHM_LEAD_BEATS / rhythmSong.bpm) * 60000;
+      rhythmActive = true;
+      beginRhythmClock();
+    }, 650);
+  }
+
+  function beginRhythmClock() {
+    clearInterval(rhythmTimer);
+    rhythmTimer = setInterval(() => {
+      if (!rhythmActive || rhythmPaused) return;
+      const elapsedBeats = ((performance.now() - rhythmStartedAt) / 60000) * rhythmSong.bpm;
+      for (const event of rhythmEvents) {
+        if (!event.element) {
+          const lane = document.querySelector(`.rhythm-lane[data-lane="${event.note}"]`) || document.querySelector(`.rhythm-lane[data-lane="${event.note - 1}"]`) || document.querySelector(`.rhythm-lane[data-lane="${event.note + 1}"]`);
+          if (!lane) continue;
+          const note = document.createElement('span');
+          const isSharp = RHYTHM_BLACK_KEYS.some((key) => key.note === event.note);
+          note.className = `rhythm-note ${isSharp ? 'sharp' : ''}`;
+          note.dataset.note = String(event.note);
+          note.dataset.eventIndex = String(event.index);
+          note.style.height = `${Math.min(48, 18 + event.duration * 15)}px`;
+          lane.appendChild(note);
+          event.element = note;
+        }
+        const hitLine = 88;
+        const position = hitLine - ((event.beat - elapsedBeats) / RHYTHM_LEAD_BEATS) * hitLine;
+        event.element.style.top = `${Math.max(-10, Math.min(100, position))}%`;
+        if (!event.hit && !event.missed && elapsedBeats > event.beat + 0.32) {
+          event.missed = true;
+          rhythmMisses += 1;
+          rhythmCombo = 0;
+          event.element.classList.add('missed');
+          updateRhythmHud('miss');
+        }
+      }
+      if (elapsedBeats > rhythmEvents[rhythmEvents.length - 1].beat + 1.2) finishRhythmPiano();
+    }, 36);
+  }
+
+  function updateRhythmHud(judgement = '') {
+    document.querySelector('#rhythmScore').textContent = String(rhythmScore);
+    document.querySelector('#rhythmCombo').textContent = String(rhythmCombo);
+    const total = rhythmHits + rhythmMisses;
+    document.querySelector('#rhythmAccuracy').textContent = `${total ? Math.round((rhythmHits / total) * 100) : 100}%`;
+    if (judgement) {
+      const label = document.querySelector('#rhythmJudgement');
+      if (label) {
+        label.textContent = judgement === 'perfect' ? 'PERFECT' : judgement === 'good' ? 'GOOD' : 'MISS';
+        label.className = `rhythm-judgement ${judgement} show`;
+        clearTimeout(rhythmJudgementTimer);
+        rhythmJudgementTimer = setTimeout(() => label.classList.remove('show'), 480);
+      }
+    }
+  }
+
+  function pressRhythmKey(note) {
+    if (!rhythmActive || rhythmPaused) return;
+    const key = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((candidate) => candidate.note === note);
+    if (!key) return;
+    const nowBeat = ((performance.now() - rhythmStartedAt) / 60000) * rhythmSong.bpm;
+    let target = null;
+    let best = Infinity;
+    for (const event of rhythmEvents) {
+      if (event.hit || event.missed || event.note !== note) continue;
+      const distance = Math.abs(event.beat - nowBeat);
+      if (distance < best && distance <= 0.52) {
+        best = distance;
+        target = event;
+      }
+    }
+    playTone(261.63 * Math.pow(2, (note - 60) / 12), .22);
+    const keyElement = document.querySelector(`.rhythm-key[data-note="${note}"]`);
+    keyElement?.classList.add('pressed');
+    setTimeout(() => keyElement?.classList.remove('pressed'), 130);
+    if (!target) {
+      rhythmCombo = 0;
+      updateRhythmHud('miss');
+      return;
+    }
+    target.hit = true;
+    rhythmHits += 1;
+    rhythmCombo += 1;
+    rhythmMaxCombo = Math.max(rhythmMaxCombo, rhythmCombo);
+    const perfect = best <= 0.16;
+    rhythmScore += perfect ? 100 : 65;
+    rhythmScore += Math.min(50, rhythmCombo * 2);
+    target.element?.classList.add('hit');
+    updateRhythmHud(perfect ? 'perfect' : 'good');
+  }
+
+  function finishRhythmPiano() {
+    if (!rhythmActive) return;
+    rhythmActive = false;
+    rhythmPaused = false;
+    clearInterval(rhythmTimer);
+    clearInterval(rhythmCountdownTimer);
+    rhythmTimer = null;
+    rhythmCountdownTimer = null;
+    document.querySelector('#rhythmPauseLayer')?.classList.add('hidden');
+    document.querySelector('#rhythmCountdown')?.classList.add('hidden');
+    const pauseButton = document.querySelector('#rhythmPause');
+    if (pauseButton) pauseButton.textContent = '暂停';
+    const total = rhythmEvents.length;
+    const accuracy = Math.round((rhythmHits / Math.max(1, total)) * 100);
+    const xp = Math.max(5, Math.round(accuracy / 10));
+    const stateKey = `rhythm-${rhythmSong.id}`;
+    const old = state.playAlong?.[stateKey] || { attempts: 0, bestAccuracy: 0, bestStreak: 0, xp: 0 };
+    state.playAlong = { ...(state.playAlong || {}), [stateKey]: { attempts: old.attempts + 1, bestAccuracy: Math.max(old.bestAccuracy, accuracy), bestStreak: Math.max(old.bestStreak, rhythmMaxCombo), lastAccuracy: accuracy, xp: Math.max(old.xp, xp), updatedAt: new Date().toISOString() } };
+    state.history = [{ id: `rhythm-${Date.now()}`, type: 'playalong', title: `节奏钢琴：${rhythmSong.title}`, week: session?.week || 0, date: localDateKey(new Date()), minutes: 2, rating: accuracy >= 85 ? 4 : accuracy >= 60 ? 3 : 2, ratingLabel: '节奏钢琴', notes: `${accuracy}% 准确率，最高连击 ${rhythmMaxCombo}`, sightDone: 0, completedAt: new Date().toISOString() }, ...state.history].slice(0, 400);
+    APP.persist();
+    APP.renderAll();
+    updateProgressDisplay();
+    document.querySelector('#rhythmPianoStage')?.classList.add('hidden');
+    document.querySelector('#rhythmPianoResult')?.classList.remove('hidden');
+    document.querySelector('#rhythmResultTitle').textContent = rhythmSong.title;
+    document.querySelector('#rhythmResultScore').textContent = String(rhythmScore);
+    document.querySelector('#rhythmResultCombo').textContent = String(rhythmMaxCombo);
+    document.querySelector('#rhythmResultAccuracy').textContent = `${accuracy}%`;
+    document.querySelector('#rhythmResultXp').textContent = `+${xp} XP`;
+    document.querySelector('#rhythmResultMessage').textContent = accuracy >= 90 ? '节奏非常稳，再来一遍挑战全连。' : accuracy >= 65 ? '旋律已经成形，下一次把落点接得更稳。' : '先慢速看清每条音轨，再来一次。';
+  }
+
+  function handleRhythmKeydown(event) {
+    const modal = document.querySelector('#rhythmPianoModal');
+    if (!rhythmActive || rhythmPaused || !modal || modal.classList.contains('hidden')) return;
+    if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+    if (event.code === 'Space') {
+      event.preventDefault();
+      toggleRhythmPause();
+      return;
+    }
+    const key = event.key;
+    const target = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((candidate) => candidate.key.toLowerCase() === key.toLowerCase());
+    if (!target) return;
+    event.preventDefault();
+    pressRhythmKey(target.note);
+  }
+
+  function toggleRhythmPause() {
+    if (!rhythmActive) return;
+    rhythmPaused = !rhythmPaused;
+    if (rhythmPaused) rhythmPausedAt = performance.now();
+    else if (rhythmPausedAt) {
+      rhythmStartedAt += performance.now() - rhythmPausedAt;
+      rhythmPausedAt = 0;
+    }
+    document.querySelector('#rhythmPauseLayer')?.classList.toggle('hidden', !rhythmPaused);
+    const pauseButton = document.querySelector('#rhythmPause');
+    if (pauseButton) pauseButton.textContent = rhythmPaused ? '继续' : '暂停';
+  }
+
+  function bindRhythmPianoEvents() {
+    document.querySelector('#startRhythmPianoHome')?.addEventListener('click', openRhythmPiano);
+    document.querySelector('#closeRhythmPiano')?.addEventListener('click', closeRhythmPiano);
+    document.querySelector('#rhythmKeyboard')?.addEventListener('pointerdown', (event) => {
+      const key = event.target.closest('.rhythm-key');
+      if (!key) return;
+      event.preventDefault();
+      pressRhythmKey(Number(key.dataset.note));
+    });
+    document.querySelector('#rhythmPlayAgain')?.addEventListener('click', () => startRhythmPiano(rhythmSong?.id));
+    document.querySelector('#rhythmChooseAnother')?.addEventListener('click', openRhythmPiano);
+    document.querySelector('#rhythmPause')?.addEventListener('click', toggleRhythmPause);
+    document.querySelector('#rhythmQuit')?.addEventListener('click', openRhythmPiano);
+    document.querySelector('#rhythmFullscreen')?.addEventListener('click', async () => {
+      try { await document.querySelector('#rhythmPianoCard')?.requestFullscreen?.(); } catch (error) {}
+    });
+    document.querySelector('#rhythmRotateHint')?.addEventListener('click', () => APP.showToast('横屏后键盘会更宽，左右手也更容易分开。'));
+    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('音符落到判定线时，点对应琴键。白键 Z X C V B N M，黑键 2 3 5 6 7。'));
+    document.addEventListener('keydown', handleRhythmKeydown);
+  }
+
   function playAlongKeyMarkup() {
     const white = PLAY_ALONG_PITCHES.filter((pitch) => !pitch.black);
     const black = PLAY_ALONG_PITCHES.filter((pitch) => pitch.black);
@@ -1936,31 +2249,6 @@
     document.querySelector('#playAlongResultMessage').textContent = accuracy >= 92 ? '每个音都听清了。' : accuracy >= 75 ? '节奏和音高已经稳定，再练一轮会更顺。' : '先把目标音看准，再慢速弹一次。';
   }
 
-  async function connectPlayAlongMidi() {
-    const note = document.querySelector('#playAlongInputNote');
-    if (!navigator.requestMIDIAccess) {
-      if (note) note.textContent = '此浏览器没有 MIDI 支持。仍可用电脑键盘或点击琴键。';
-      return;
-    }
-    try {
-      playAlongMidiAccess = await navigator.requestMIDIAccess();
-      const inputs = Array.from(playAlongMidiAccess.inputs.values());
-      if (!inputs.length) {
-        if (note) note.textContent = '没有检测到 MIDI 键盘。插上设备后重试。';
-        return;
-      }
-      playAlongMidi = inputs[0];
-      playAlongMidi.onmidimessage = (event) => {
-        const [command, noteNumber, velocity] = event.data;
-        if ((command & 0xf0) === 0x90 && velocity > 0) answerPlayAlong(noteNumber % 12, 'midi');
-      };
-      if (note) note.textContent = `已连接：${playAlongMidi.name}。直接弹下对应琴键。`;
-      document.querySelector('#playAlongDevice').textContent = 'MIDI 已连接';
-    } catch (error) {
-      if (note) note.textContent = 'MIDI 连接被浏览器拦截。检查权限后再试，或使用键盘。';
-    }
-  }
-
   function handlePlayAlongKeydown(event) {
     if (!playAlongActive || !document.querySelector('#playAlongModal') || document.querySelector('#playAlongModal').classList.contains('hidden')) return;
     if (event.ctrlKey || event.metaKey || event.altKey) return;
@@ -2116,7 +2404,6 @@
     document.querySelector('#closePlayAlong')?.addEventListener('click', closePlayAlong);
     document.querySelector('#playAlongStart')?.addEventListener('click', startPlayAlong);
     document.querySelector('#playAlongListen')?.addEventListener('click', listenPlayAlongPattern);
-    document.querySelector('#playAlongMidiConnect')?.addEventListener('click', connectPlayAlongMidi);
     document.querySelector('#playAlongRetry')?.addEventListener('click', startPlayAlong);
     document.querySelector('#playAlongReturn')?.addEventListener('click', closePlayAlong);
     document.querySelector('#playAlongKeyboard')?.addEventListener('click', (event) => {
@@ -2124,6 +2411,7 @@
       if (key) answerPlayAlong(Number(key.dataset.playalongPc), 'pointer');
     });
     document.addEventListener('keydown', handlePlayAlongKeydown);
+    bindRhythmPianoEvents();
     document.querySelector('#openCheckpoint')?.addEventListener('click', openCheckpoint);
     document.querySelector('#closeCheckpoint')?.addEventListener('click', closeCheckpoint);
     document.querySelector('#checkpointNext')?.addEventListener('click', nextCheckpoint);
@@ -2275,11 +2563,13 @@
         else if (backdrop.id === 'warmupModal') closeWarmup();
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
         else if (backdrop.id === 'playAlongModal') closePlayAlong();
+        else if (backdrop.id === 'rhythmPianoModal') closeRhythmPiano();
         else if (backdrop.id === 'videoModal') closeVideo();
       });
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
         if (!$('#accountModal').classList.contains('hidden')) closeAccount();
         else if (!$('#onboardingModal').classList.contains('hidden')) closeOnboarding();
@@ -2292,6 +2582,19 @@
   }
 
   APP.openPlayAlong = openPlayAlong;
+  APP.openRhythmPiano = openRhythmPiano;
+  APP.finishRhythmPiano = finishRhythmPiano;
+  APP.getRhythmSnapshot = () => ({
+    active: rhythmActive,
+    paused: rhythmPaused,
+    songId: rhythmSong?.id || null,
+    currentBeat: rhythmActive && rhythmSong ? ((performance.now() - rhythmStartedAt) / 60000) * rhythmSong.bpm : null,
+    hits: rhythmHits,
+    misses: rhythmMisses,
+    score: rhythmScore,
+    combo: rhythmCombo,
+    events: rhythmEvents.map(({ beat, note, hit, missed }) => ({ beat, note, hit, missed }))
+  });
   APP.openSession = openSession;
   window.PIANO_OPEN_SESSION = openSession;
   APP.openSettings = openSettings;

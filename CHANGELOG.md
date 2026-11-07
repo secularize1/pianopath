@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.12.0 — 2026-11-07
+
+- Added a two-octave virtual rhythm piano with four public-domain melodies and per-song note charts.
+- Added a landscape-first touch stage for phones and tablets with 16 aligned lanes, a judgement line and responsive on-screen keys.
+- Added non-conflicting two-row computer keyboard controls: `Z X C V B N M` / `2 3 5 6 7` for the lower octave and `A S D F G H J K L` / `W E T Y U` for the upper octave.
+- Added pause, countdown, pre-roll, hit judgement, combo, accuracy, XP, results and practice history.
+- Removed the MIDI capability and permissions from the current product.
+- Expanded regression coverage for mapped keyboard hits, pause/resume, results, phone landscape clipping and lane/key alignment.
+
 ## 1.11.0 — 2026-11-06
 
 - Added a persisted adaptive review queue with due dates and 1/3/7/14/30 day progression.
@@ -12,7 +21,7 @@
 ## 1.10.0 — 2026-11-06
 
 - Added interactive play-along drills with target-note highlighting, instant pitch feedback, streak tracking and three-star scoring.
-- Added pointer, computer-keyboard and optional Web MIDI input for hands-on practice.
+- Added pointer and computer-keyboard input for hands-on practice.
 - Added play-along demonstrations, home entry, XP, skill-profile contribution and practice history.
 - Expanded automated desktop/mobile regression coverage for wrong-note recovery, keyboard input and persistent results.
 - Completed the 1.9 learning-path, mastery gate and native-font improvements.

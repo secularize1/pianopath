@@ -53,7 +53,7 @@ def load_curriculum() -> dict:
 
 
 CURRICULUM = load_curriculum()
-APP_VERSION = str(CURRICULUM.get("meta", {}).get("appVersion", "1.11.0"))
+APP_VERSION = str(CURRICULUM.get("meta", {}).get("appVersion", "1.12.0"))
 
 
 def now_iso() -> str:
@@ -157,7 +157,7 @@ def public_path(path: str) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "PianoPath/1.11"
+    server_version = "PianoPath/1.12"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -324,7 +324,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("X-Frame-Options", "SAMEORIGIN")
             self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
-            self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), midi=(self)")
+            self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
             self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; frame-src https://player.bilibili.com https://www.youtube-nocookie.com; connect-src 'self'; font-src 'self' data:; base-uri 'self'; form-action 'self'")
             self._pianopath_security_end_headers = True
         super().end_headers()

@@ -144,6 +144,11 @@
             <span>每局 2–3 分钟</span>
           </div>
           <div class="game-lab-grid">
+            <button class="game-tile rhythm-game-tile" id="startRhythmPianoHome" type="button">
+              <span class="game-tile-icon">♬</span>
+              <span><small>节奏钢琴</small><strong>内置电子琴 · 小星星、欢乐颂</strong></span>
+              <span class="game-tile-best">立即弹</span>
+            </button>
             <button class="game-tile note-game-tile" id="startRhythmGame" type="button">
               <span class="game-tile-icon">♪</span>
               <span><small>音名闪现</small><strong>看键或听音，连对 10 题</strong></span>
@@ -151,7 +156,7 @@
             </button>
             <button class="game-tile play-game-tile" id="startPlayAlongHome" type="button">
               <span class="game-tile-icon">⌨</span>
-              <span><small>跟弹挑战</small><strong>键盘、点击或 MIDI 都能练</strong></span>
+              <span><small>跟弹挑战</small><strong>电脑键盘与触屏都能练</strong></span>
               <span class="game-tile-best">2 分钟</span>
             </button>
           </div>
@@ -418,7 +423,7 @@
   <div class="modal-backdrop hidden" id="playAlongModal" role="dialog" aria-modal="true" aria-labelledby="playAlongTitle">
     <div class="playalong-card" id="playAlongCard" data-total="10">
       <button class="icon-button modal-close" id="closePlayAlong" aria-label="关闭跟弹练习"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-      <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">键盘 A–J 可用</span></div>
+      <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">白键 Z–M 可用</span></div>
       <h2 id="playAlongTitle">跟着亮起的音弹</h2>
       <p class="playalong-subtitle" id="playAlongSubtitle">先听一次示范，再按你的速度弹；错音不会中断整段。</p>
       <div class="playalong-listen-row">
@@ -432,10 +437,9 @@
           <strong id="playAlongPatternTitle">C 五指位</strong>
           <span id="playAlongPatternCue">右手 1–2–3–4–5，慢速弹准每个音</span>
         </div>
-        <div class="playalong-input-note" id="playAlongInputNote">连接 MIDI 可获得真实琴键反馈；没有设备也能用电脑键盘或点击琴键。</div>
+        <div class="playalong-input-note" id="playAlongInputNote">白键 Z X C V B N M；黑键 2 3 5 6 7。</div>
         <div class="playalong-ready-actions">
           <button class="btn btn-primary" id="playAlongStart" type="button">开始 10 音跟弹</button>
-          <button class="btn btn-soft" id="playAlongMidiConnect" type="button">连接 MIDI 键盘</button>
         </div>
       </div>
 
@@ -453,7 +457,7 @@
         </div>
         <div class="playalong-keyboard" id="playAlongKeyboard" aria-label="跟弹钢琴键盘"></div>
         <div class="playalong-feedback" id="playAlongFeedback" aria-live="polite">慢一点，弹准比弹快重要。</div>
-        <div class="playalong-key-hint">电脑键盘：A W S E D F T G Y H U J（对应 C 到 B）</div>
+        <div class="playalong-key-hint">白键 Z X C V B N M · 黑键 2 3 5 6 7</div>
       </div>
 
       <div class="playalong-result hidden" id="playAlongResult">
@@ -463,6 +467,60 @@
         <div class="playalong-result-stats"><span><small>弹对</small><strong id="playAlongCorrect">10</strong></span><span><small>重试</small><strong id="playAlongMistakes">0</strong></span><span><small>奖励</small><strong id="playAlongXp">+15 XP</strong></span></div>
         <div class="playalong-result-actions"><button class="btn btn-primary" id="playAlongRetry" type="button">再练一次</button><button class="btn btn-soft" id="playAlongReturn" type="button">回到课程</button></div>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden rhythm-piano-modal" id="rhythmPianoModal" role="dialog" aria-modal="true" aria-labelledby="rhythmPianoTitle">
+    <div class="rhythm-piano-card" id="rhythmPianoCard">
+      <header class="rhythm-piano-top">
+        <button class="icon-button light" id="closeRhythmPiano" aria-label="退出节奏钢琴"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        <div class="rhythm-piano-title-wrap"><span class="eyebrow">RHYTHM PIANO</span><strong id="rhythmPianoTitle">节奏钢琴</strong></div>
+        <div class="rhythm-piano-actions">
+          <button class="rhythm-top-button" id="rhythmFullscreen" type="button">全屏</button>
+          <button class="rhythm-top-button" id="rhythmRotateHint" type="button">横屏提示</button>
+        </div>
+      </header>
+
+      <section class="rhythm-piano-home" id="rhythmPianoHome">
+        <div class="rhythm-home-intro">
+          <span class="rhythm-mini-label">PLAY A SONG</span>
+          <h2>跟着节奏，弹会一首歌</h2>
+          <p>选一首短曲。音符会从上方落下，在判定线接住它。</p>
+        </div>
+        <div class="rhythm-song-grid" id="rhythmSongGrid"></div>
+        <div class="rhythm-home-foot"><span>公共领域短曲 · 双八度虚拟钢琴</span><button class="text-button" id="rhythmHowTo" type="button">怎么玩 →</button></div>
+      </section>
+
+      <section class="rhythm-piano-stage hidden" id="rhythmPianoStage">
+        <div class="rhythm-hud">
+          <span><small>曲目</small><strong id="rhythmNowPlaying">小星星</strong></span>
+          <span><small>分数</small><strong id="rhythmScore">0</strong></span>
+          <span><small>连击</small><strong id="rhythmCombo">0</strong></span>
+          <span><small>准确率</small><strong id="rhythmAccuracy">100%</strong></span>
+        </div>
+        <div class="rhythm-highway" id="rhythmHighway">
+          <div class="rhythm-hit-line" aria-hidden="true"></div>
+          <div class="rhythm-judgement" id="rhythmJudgement" aria-live="polite"></div>
+          <div class="rhythm-lanes" id="rhythmLanes"></div>
+          <div class="rhythm-countdown hidden" id="rhythmCountdown">3</div>
+          <div class="rhythm-pause-layer hidden" id="rhythmPauseLayer"><strong>已暂停</strong><span>回到舞台继续</span></div>
+        </div>
+        <div class="rhythm-keyboard" id="rhythmKeyboard" aria-label="节奏钢琴键盘"></div>
+        <div class="rhythm-stage-footer">
+          <button class="rhythm-stage-button" id="rhythmPause" type="button">暂停</button>
+          <span id="rhythmKeyHint">触摸琴键，或按琴键标注的电脑按键</span>
+          <button class="rhythm-stage-button" id="rhythmQuit" type="button">退出本曲</button>
+        </div>
+      </section>
+
+      <section class="rhythm-piano-result hidden" id="rhythmPianoResult">
+        <div class="rhythm-result-badge">CLEAR</div>
+        <h2 id="rhythmResultTitle">小星星</h2>
+        <div class="rhythm-result-score"><strong id="rhythmResultScore">0</strong><span>分</span></div>
+        <p id="rhythmResultMessage">节奏已经接住了。</p>
+        <div class="rhythm-result-stats"><span><small>最高连击</small><strong id="rhythmResultCombo">0</strong></span><span><small>准确率</small><strong id="rhythmResultAccuracy">100%</strong></span><span><small>获得</small><strong id="rhythmResultXp">+0 XP</strong></span></div>
+        <div class="rhythm-result-actions"><button class="btn btn-primary" id="rhythmPlayAgain" type="button">再弹一次</button><button class="btn btn-soft" id="rhythmChooseAnother" type="button">换一首</button></div>
+      </section>
     </div>
   </div>
 
@@ -501,7 +559,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.11 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.12 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

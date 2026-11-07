@@ -12,7 +12,7 @@ const assert = require('assert');
 const ROOT = path.resolve(__dirname, '..');
 const INDEX = 'file:///' + path.join(ROOT, 'index.html').replace(/\\/g, '/');
 const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const PLAY_ALONG_KEYS = { '0': 'a', '1': 'w', '2': 's', '3': 'e', '4': 'd', '5': 'f', '6': 't', '7': 'g', '8': 'y', '9': 'h', '10': 'u', '11': 'j' };
+const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5': 'v', '6': '5', '7': 'b', '8': '6', '9': 'n', '10': '7', '11': 'm' };
 
 (async () => {
   const browser = await chromium.launch({ executablePath, headless: true });
@@ -70,7 +70,6 @@ const PLAY_ALONG_KEYS = { '0': 'a', '1': 'w', '2': 's', '3': 'e', '4': 'd', '5':
     await page.locator('#closePlayAlong').click();
     await page.waitForTimeout(180);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: play-along did not return to lesson`);
-
     await page.locator('#openCheckpoint').click();
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#checkpointPanel').isVisible(), true, `${name}: mastery checkpoint missing`);
@@ -132,10 +131,88 @@ const PLAY_ALONG_KEYS = { '0': 'a', '1': 'w', '2': 's', '3': 'e', '4': 'd', '5':
     assert.equal(await page.locator('.home-route span').count(), 3, `${name}: learning route incomplete`);
     assert.equal(await page.locator('.home-route span.active').count(), 1, `${name}: active route step missing`);
     assert.equal(await page.locator('.home-route #routeCheck').innerText(), '2\n掌握检查', `${name}: mastery route step changed`);
-    assert.equal(await page.locator('.game-lab-grid .game-tile').count(), 2, `${name}: game lab incomplete`);
+    assert.equal(await page.locator('.game-lab-grid .game-tile').count(), 3, `${name}: game lab incomplete`);
     assert.equal(await page.locator('#startRhythmGame').isVisible(), true, `${name}: note game missing`);
     assert.equal(await page.locator('#startPlayAlongHome').isVisible(), true, `${name}: play-along home entry missing`);
-    assert.equal(await page.locator('#quickPractice').isVisible(), true, `${name}: quick practice shortcut missing`);
+    assert.equal(await page.locator('#startRhythmPianoHome').isVisible(), true, `${name}: rhythm piano entry missing`);
+    await page.locator('#startRhythmPianoHome').click();
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('#rhythmPianoModal').isVisible(), true, `${name}: rhythm piano modal missing`);
+    assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 4, `${name}: rhythm song picker incomplete`);
+    await page.locator('[data-rhythm-song="twinkle"]').click();
+    await page.waitForTimeout(2200);
+    assert.equal(await page.locator('#rhythmPianoStage').isVisible(), true, `${name}: rhythm stage missing`);
+    assert.equal(await page.locator('.rhythm-key').count(), 26, `${name}: rhythm keyboard should have two octaves`);
+    assert.equal(await page.locator('.rhythm-lane').count(), 16, `${name}: rhythm lanes should align with white keys`);
+    assert.equal(await page.locator('.rhythm-key[data-note="60"]').getAttribute('data-key'), 'a', `${name}: upper C keyboard mapping wrong`);
+    assert.equal(await page.locator('.rhythm-key[data-note="49"]').getAttribute('data-key'), '2', `${name}: lower sharp keyboard mapping wrong`);
+    await page.locator('#rhythmPause').click();
+    assert.equal(await page.locator('#rhythmPauseLayer').isVisible(), true, `${name}: rhythm pause layer missing`);
+    assert.equal(await page.locator('#rhythmPause').innerText(), '继续', `${name}: rhythm pause label wrong`);
+    await page.locator('#rhythmPause').click();
+    assert.equal(await page.locator('#rhythmPauseLayer').isVisible(), false, `${name}: rhythm pause did not resume`);
+    // Hit the first falling note with its mapped keyboard key.
+    const firstNote = await page.evaluate(() => window.PIANO_APP.getRhythmSnapshot().events.find((event) => !event.hit && !event.missed));
+    assert.ok(firstNote, `${name}: rhythm chart has no playable notes`);
+    await page.waitForFunction((beat) => {
+      const snapshot = window.PIANO_APP.getRhythmSnapshot();
+      return Number.isFinite(snapshot.currentBeat) && Math.abs(snapshot.currentBeat - beat) < 0.12;
+    }, firstNote.beat, { timeout: 7000, polling: 25 });
+    const firstKey = await page.locator(`.rhythm-key[data-note="${firstNote.note}"]`).getAttribute('data-key');
+    await page.keyboard.press(firstKey);
+    await page.waitForTimeout(80);
+    const hitSnapshot = await page.evaluate(() => window.PIANO_APP.getRhythmSnapshot());
+    assert.ok(hitSnapshot.hits >= 1, `${name}: mapped keyboard key did not register a rhythm hit`);
+    assert.ok(hitSnapshot.score > 0, `${name}: successful rhythm hit did not score`);
+    assert.ok(hitSnapshot.combo >= 1, `${name}: successful rhythm hit did not build combo`);
+    await page.evaluate(() => window.PIANO_APP.finishRhythmPiano());
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('#rhythmPianoResult').isVisible(), true, `${name}: rhythm result missing`);
+    assert.equal(await page.locator('#rhythmResultTitle').innerText(), '小星星', `${name}: rhythm result title wrong`);
+    assert.match(await page.locator('#rhythmResultXp').innerText(), /^\+\d+ XP$/, `${name}: rhythm result XP missing`);
+    await page.locator('#closeRhythmPiano').click();
+    await page.waitForTimeout(150);
+    if (name === 'mobile') {
+      await page.setViewportSize({ width: 844, height: 390 });
+      await page.evaluate(() => window.PIANO_APP.openRhythmPiano());
+      await page.locator('[data-rhythm-song="twinkle"]').click();
+      await page.waitForTimeout(2200);
+      const landscape = await page.evaluate(() => {
+        const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+        const card = rect('#rhythmPianoCard');
+        const highway = rect('#rhythmHighway');
+        const keyboard = rect('#rhythmKeyboard');
+        const lane = rect('.rhythm-lane');
+        const white = rect('.rhythm-key.white');
+        return {
+          cardWidth: card.width,
+          cardHeight: card.height,
+          keyboardBottom: keyboard.bottom,
+          highwayHeight: highway.height,
+          keyboardHeight: keyboard.height,
+          laneLeft: lane.left,
+          laneWidth: lane.width,
+          whiteLeft: white.left,
+          whiteWidth: white.width,
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+        };
+      });
+      assert.equal(landscape.cardWidth, 844, `${name}: landscape stage should use full width`);
+      assert.equal(landscape.cardHeight, 390, `${name}: landscape stage should use full height`);
+      assert.ok(landscape.keyboardBottom <= 390, `${name}: landscape piano is clipped`);
+      assert.ok(landscape.highwayHeight >= 96, `${name}: landscape highway is too short`);
+      assert.ok(landscape.keyboardHeight >= 100, `${name}: landscape keys are too short`);
+      assert.ok(Math.abs(landscape.laneLeft - landscape.whiteLeft) <= 1, `${name}: rhythm lanes are not aligned with piano keys`);
+      assert.ok(Math.abs(landscape.laneWidth - landscape.whiteWidth) <= 1, `${name}: rhythm lane widths do not match keys`);
+      assert.equal(landscape.overflow, 0, `${name}: landscape horizontal overflow`);
+      await page.screenshot({ path: path.join(ROOT, 'tests', 'smoke-landscape.png'), fullPage: false });
+      await page.locator('#closeRhythmPiano').click();
+      await page.setViewportSize({ width, height });
+      await page.waitForTimeout(180);
+      assert.equal(await page.locator('#quickPractice').isVisible(), true, `${name}: quick practice shortcut missing after landscape check`);
+    } else {
+      assert.equal(await page.locator('#quickPractice').isVisible(), true, `${name}: quick practice shortcut missing`);
+    }
     await page.locator('#quickPractice').click();
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: quick practice did not open`);

@@ -119,6 +119,7 @@ npm run check
 npm run test:api
 npm run test:e2e
 npm run test:offline
+npm run test:content
 ```
 
 前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 会检查线上 Service Worker 缓存，并在断网后刷新首页。

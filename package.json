@@ -6,12 +6,13 @@
   "scripts": {
     "start": "python server.py",
     "serve": "python -m http.server 8787",
-    "check": "node --check app.js && node --check data.js && python -m py_compile server.py && node tests/dom-audit.js",
+    "check": "node --check app.js && node --check data.js && python -m py_compile server.py && node tests/dom-audit.js && node tests/content-audit.js",
     "build:standalone": "python tools/build-standalone.py",
+    "test:content": "node tests/content-audit.js",
     "test:e2e": "node tests/e2e-smoke.js",
     "test:offline": "node tests/offline-smoke.js",
     "test:api": "python tests/api-integration.py",
-    "test": "npm run test:e2e && npm run test:offline && npm run test:api"
+    "test": "npm run check && npm run test:e2e && npm run test:offline && npm run test:api"
   },
   "keywords": ["piano", "learning", "pwa", "education", "music"],
   "license": "MIT"

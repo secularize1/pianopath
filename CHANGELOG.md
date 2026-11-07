@@ -10,6 +10,7 @@
 - Added an automated offline smoke test that verifies the complete Service Worker app shell and restores the home screen after disconnecting the network.
 - Added a static DOM audit for duplicate IDs and unnamed buttons; added accessible names to both search fields and a pressed state to the theme toggle.
 - The home learning route now reflects today's real lesson and mastery progress instead of resetting when the next lesson opens.
+- Added a content integrity audit for all 48 lessons, 336 steps, source references, total timing, repertoire phases and score links.
 
 ## 1.12.0 — 2026-11-07
 

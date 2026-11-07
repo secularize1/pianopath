@@ -2,7 +2,7 @@
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
-| 课程完整度 | 12 周 / 48 次 / 每次 60 分钟 | `data.js` 数据校验 |
+| 课程完整度 | 12 周 / 48 次 / 336 步 / 每次 60 分钟 | `tests/content-audit.js` |
 | 国内资源 | 13 个国内可用 / 官方来源 | `resources.videos.region` |
 | 海外依赖 | 48 节课来源引用 0 个 YouTube | `sessions.sources` 校验 |
 | 首次引导 | 三步选择，保存后进入第一课 | Playwright |

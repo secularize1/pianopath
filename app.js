@@ -422,10 +422,11 @@
       if (questCount) questCount.textContent = `${quests.filter((quest) => quest.done).length} / 3`;
     }
 
-    const currentId = current?.id;
-    const currentMastery = currentId ? state.mastery?.[currentId] : null;
-    const mainDone = Boolean(currentId && isComplete(currentId));
-    const checkDone = Boolean(mainDone && currentMastery && Number(currentMastery.best) >= MASTERY_PASS_PERCENT);
+    const todayEntries = state.history.filter((entry) => entry.date === todayKey);
+    const todayLessonAttempts = todayEntries.filter((entry) => entry.type !== 'quick' && entry.type !== 'playalong' && entry.type !== 'game' && entry.type !== 'repertoire');
+    const todayMasteryEntry = todayLessonAttempts.find((entry) => Number(state.mastery?.[entry.id]?.best || 0) >= MASTERY_PASS_PERCENT);
+    const mainDone = todayLessonAttempts.length > 0;
+    const checkDone = Boolean(todayMasteryEntry);
     const routeMain = document.querySelector('#routeMain');
     const routeCheck = document.querySelector('#routeCheck');
     const routeDone = document.querySelector('#routeDone');

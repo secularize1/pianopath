@@ -147,7 +147,9 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
     assert.equal(await page.locator('#homeWeekTrail .week-trail-item.locked').count(), 2, `${name}: sequential locks incorrect`);
     assert.equal(await page.locator('.home-route span').count(), 3, `${name}: learning route incomplete`);
     assert.equal(await page.locator('.home-route span.active').count(), 1, `${name}: active route step missing`);
-    assert.equal(await page.locator('.home-route #routeCheck').innerText(), '2\n掌握检查', `${name}: mastery route step changed`);
+    assert.equal(await page.locator('.home-route #routeMain').getAttribute('class'), 'done', `${name}: completed lesson not reflected in daily route`);
+    assert.equal(await page.locator('.home-route #routeCheck').getAttribute('class'), 'done', `${name}: passed mastery not reflected in daily route`);
+    assert.equal(await page.locator('.home-route #routeDone').getAttribute('class'), 'done active', `${name}: daily completion not reflected in route`);
     assert.equal(await page.locator('.game-lab-grid .game-tile').count(), 3, `${name}: game lab incomplete`);
     assert.equal(await page.locator('#startRhythmGame').isVisible(), true, `${name}: note game missing`);
     assert.equal(await page.locator('#startPlayAlongHome').isVisible(), true, `${name}: play-along home entry missing`);

@@ -9,6 +9,7 @@
 - Improved dialog labels for completion and settings views.
 - Added an automated offline smoke test that verifies the complete Service Worker app shell and restores the home screen after disconnecting the network.
 - Added a static DOM audit for duplicate IDs and unnamed buttons; added accessible names to both search fields and a pressed state to the theme toggle.
+- The home learning route now reflects today's real lesson and mastery progress instead of resetting when the next lesson opens.
 
 ## 1.12.0 — 2026-11-07
 

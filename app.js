@@ -2075,7 +2075,7 @@
       try { await document.querySelector('#rhythmPianoCard')?.requestFullscreen?.(); } catch (error) {}
     });
     document.querySelector('#rhythmRotateHint')?.addEventListener('click', () => APP.showToast('横屏后键盘会更宽，左右手也更容易分开。'));
-    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U，黑键 2 3 5 6 7。'));
+    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U I O，黑键 2 3 5 6 7。'));
     document.addEventListener('keydown', handleRhythmKeydown);
   }
 

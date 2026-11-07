@@ -173,6 +173,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('[data-rhythm-song="twinkle"]').click();
     await page.waitForTimeout(2200);
     assert.equal(await page.locator('#rhythmPianoStage').isVisible(), true, `${name}: rhythm stage missing`);
+    assert.equal(await page.locator('#rhythmKeyHint').innerText(), '电脑：Z–M / S D G H J + Q–O / 2 3 5 6 7', `${name}: rhythm keyboard hint drifted`);
     assert.equal(await page.locator('.rhythm-key').count(), 26, `${name}: rhythm keyboard should have two octaves`);
     assert.equal(await page.locator('.rhythm-lane').count(), 16, `${name}: rhythm lanes should align with white keys`);
     assert.equal(await page.locator('.rhythm-key[data-note="60"]').getAttribute('data-key'), 'q', `${name}: upper C keyboard mapping wrong`);

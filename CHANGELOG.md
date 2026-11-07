@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.0 — 2026-11-07
+
+- Added a free-play virtual piano alongside the rhythm-song mode.
+- Kept the touch-friendly two-octave keybed while adding five octave positions covering `C1–D7`.
+- Added live note feedback, octave navigation, keyboard input and responsive landscape layouts.
+
 ## 1.16.0 — 2026-11-07
 
 - Replaced native browser confirms for clearing all local data and practice records with an accessible in-app confirmation sheet.

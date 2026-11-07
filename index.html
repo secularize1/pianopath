@@ -501,7 +501,35 @@
           <p>选一首短曲。音符会从上方落下，在判定线接住它。</p>
         </div>
         <div class="rhythm-song-grid" id="rhythmSongGrid"></div>
+        <button class="rhythm-free-play-entry" id="startFreePiano" type="button">
+          <span class="rhythm-free-play-icon">♬</span>
+          <span class="rhythm-free-play-copy"><strong>自由弹</strong><small>双八度电子琴 · 可切换音域</small></span>
+          <span class="rhythm-free-play-arrow">→</span>
+        </button>
         <div class="rhythm-home-foot"><span>公共领域短曲 · 双八度虚拟钢琴</span><button class="text-button" id="rhythmHowTo" type="button">怎么玩 →</button></div>
+      </section>
+
+      <section class="rhythm-free-play hidden" id="rhythmFreePlay">
+        <div class="rhythm-free-play-head">
+          <button class="text-button" id="freePlayBack" type="button">← 曲目</button>
+          <span class="rhythm-mini-label">FREE PLAY</span>
+        </div>
+        <div class="rhythm-free-play-display">
+          <small>现在弹</small>
+          <strong id="freePlayNote">—</strong>
+          <span id="freePlayLastNote">按下琴键开始</span>
+        </div>
+        <div class="rhythm-free-play-controls">
+          <button class="rhythm-top-button" id="freeOctaveDown" type="button" aria-label="降低一个八度">−</button>
+          <strong id="freePlayOctaveLabel">C3–D5</strong>
+          <button class="rhythm-top-button" id="freeOctaveUp" type="button" aria-label="升高一个八度">+</button>
+          <span>八度</span>
+        </div>
+        <div class="rhythm-keyboard free-play-keyboard" id="freePlayKeyboard" aria-label="自由弹钢琴键盘"></div>
+        <div class="rhythm-stage-footer">
+          <span id="freePlayHint">触屏点击，或用电脑双排键演奏</span>
+          <button class="rhythm-stage-button" id="freePlayBackBottom" type="button">回到曲目</button>
+        </div>
       </section>
 
       <section class="rhythm-piano-stage hidden" id="rhythmPianoStage">
@@ -572,7 +600,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.16 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.17 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

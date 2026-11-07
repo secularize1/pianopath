@@ -1796,6 +1796,18 @@
     { note: 68, name: 'G#4', pc: 8, key: '6' },
     { note: 70, name: 'A#4', pc: 10, key: '7' }
   ];
+  const FREE_PLAY_MIN_OFFSET = -2;
+  const FREE_PLAY_MAX_OFFSET = 2;
+
+  function rhythmKeysForOffset(offset = 0) {
+    const delta = offset * 12;
+    const rename = (name) => name.replace(/\d+/, (octave) => String(Number(octave) + offset));
+    return {
+      white: RHYTHM_WHITE_KEYS.map((key) => ({ ...key, note: key.note + delta, name: rename(key.name) })),
+      black: RHYTHM_BLACK_KEYS.map((key) => ({ ...key, note: key.note + delta, name: rename(key.name) }))
+    };
+  }
+
   const RHYTHM_SONGS = [
     { id: 'twinkle', title: '小星星', composer: '法国民谣', difficulty: '入门', bpm: 82, color: '#5bbd78', notes: [[0, 60, .8], [.8, 60, .4], [1.2, 67, .8], [2, 67, .4], [2.4, 69, .8], [3.2, 69, .4], [3.6, 67, 1.2], [5.2, 65, .8], [6, 65, .4], [6.4, 64, .8], [7.2, 64, .4], [7.6, 62, .8], [8.4, 62, .4], [8.8, 60, 1.4]] },
     { id: 'ode', title: '欢乐颂', composer: '贝多芬', difficulty: '入门', bpm: 88, color: '#e7b44f', notes: [[0, 64, .7], [.7, 64, .7], [1.4, 65, .7], [2.1, 67, .7], [2.8, 67, .7], [3.5, 65, .7], [4.2, 64, .7], [4.9, 62, .7], [5.6, 60, .7], [6.3, 60, .7], [7, 62, .7], [7.7, 64, .7], [8.4, 64, 1.2]] },
@@ -1816,12 +1828,18 @@
   let rhythmJudgementTimer = null;
   let rhythmCountdownTimer = null;
   let rhythmPausedAt = 0;
+  let freePlayActive = false;
+  let freePlayOctaveOffset = 0;
+
+  function pianoKeyboardMarkup(whiteKeys, blackKeys) {
+    const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
+    const white = whiteKeys.map((key) => `<button type="button" class="rhythm-key white" data-note="${key.note}" data-key="${key.key}" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
+    const black = blackKeys.map((key, index) => `<button type="button" class="rhythm-key black" data-note="${key.note}" data-key="${key.key}" style="left:${blackLeft[index]}%" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
+    return white + black;
+  }
 
   function rhythmKeyboardMarkup() {
-    const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
-    const white = RHYTHM_WHITE_KEYS.map((key) => `<button type="button" class="rhythm-key white" data-note="${key.note}" data-key="${key.key}" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
-    const black = RHYTHM_BLACK_KEYS.map((key, index) => `<button type="button" class="rhythm-key black" data-note="${key.note}" data-key="${key.key}" style="left:${blackLeft[index]}%" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
-    return white + black;
+    return pianoKeyboardMarkup(RHYTHM_WHITE_KEYS, RHYTHM_BLACK_KEYS);
   }
 
   function renderRhythmSongs() {
@@ -1831,8 +1849,79 @@
     grid.querySelectorAll('[data-rhythm-song]').forEach((button) => button.addEventListener('click', () => startRhythmPiano(button.dataset.rhythmSong)));
   }
 
+  function freePlayRangeLabel() {
+    return `C${3 + freePlayOctaveOffset}–D${5 + freePlayOctaveOffset}`;
+  }
+
+  function renderFreePlayKeyboard() {
+    const keyboard = document.querySelector('#freePlayKeyboard');
+    if (!keyboard) return;
+    const keys = rhythmKeysForOffset(freePlayOctaveOffset);
+    keyboard.innerHTML = pianoKeyboardMarkup(keys.white, keys.black);
+    const label = document.querySelector('#freePlayOctaveLabel');
+    if (label) label.textContent = freePlayRangeLabel();
+    const down = document.querySelector('#freeOctaveDown');
+    const up = document.querySelector('#freeOctaveUp');
+    if (down) down.disabled = freePlayOctaveOffset <= FREE_PLAY_MIN_OFFSET;
+    if (up) up.disabled = freePlayOctaveOffset >= FREE_PLAY_MAX_OFFSET;
+  }
+
+  function playFreePianoNote(note) {
+    const keys = rhythmKeysForOffset(freePlayOctaveOffset);
+    const key = [...keys.white, ...keys.black].find((candidate) => candidate.note === note);
+    if (!key) return;
+    playTone(261.63 * Math.pow(2, (note - 60) / 12), .34);
+    const keyElement = document.querySelector(`#freePlayKeyboard .rhythm-key[data-note="${note}"]`);
+    keyElement?.classList.add('pressed');
+    setTimeout(() => keyElement?.classList.remove('pressed'), 130);
+    const noteLabel = document.querySelector('#freePlayNote');
+    const lastLabel = document.querySelector('#freePlayLastNote');
+    if (noteLabel) noteLabel.textContent = key.name;
+    if (lastLabel) lastLabel.textContent = `刚刚弹了 ${key.name}`;
+  }
+
+  function openFreePiano() {
+    stopRhythmPiano();
+    stopFreePlay();
+    freePlayActive = true;
+    document.querySelector('#rhythmPianoHome')?.classList.add('hidden');
+    document.querySelector('#rhythmPianoStage')?.classList.add('hidden');
+    document.querySelector('#rhythmPianoResult')?.classList.add('hidden');
+    document.querySelector('#rhythmFreePlay')?.classList.remove('hidden');
+    const noteLabel = document.querySelector('#freePlayNote');
+    const lastLabel = document.querySelector('#freePlayLastNote');
+    if (noteLabel) noteLabel.textContent = '—';
+    if (lastLabel) lastLabel.textContent = '按下琴键开始';
+    renderFreePlayKeyboard();
+  }
+
+  function closeFreePiano() {
+    stopFreePlay();
+    document.querySelector('#rhythmFreePlay')?.classList.add('hidden');
+    document.querySelector('#rhythmPianoHome')?.classList.remove('hidden');
+    return false;
+  }
+
+  function stopFreePlay() {
+    freePlayActive = false;
+    document.querySelectorAll('#freePlayKeyboard .rhythm-key.pressed').forEach((key) => key.classList.remove('pressed'));
+  }
+
+  function changeFreePlayOctave(delta) {
+    const next = Math.max(FREE_PLAY_MIN_OFFSET, Math.min(FREE_PLAY_MAX_OFFSET, freePlayOctaveOffset + delta));
+    if (next === freePlayOctaveOffset) return;
+    freePlayOctaveOffset = next;
+    renderFreePlayKeyboard();
+    const noteLabel = document.querySelector('#freePlayNote');
+    const lastLabel = document.querySelector('#freePlayLastNote');
+    if (noteLabel) noteLabel.textContent = '—';
+    if (lastLabel) lastLabel.textContent = `音域 ${freePlayRangeLabel()}`;
+  }
+
   function openRhythmPiano() {
     stopRhythmPiano();
+    stopFreePlay();
+    document.querySelector('#rhythmFreePlay')?.classList.add('hidden');
     document.querySelector('#rhythmPianoHome')?.classList.remove('hidden');
     document.querySelector('#rhythmPianoStage')?.classList.add('hidden');
     document.querySelector('#rhythmPianoResult')?.classList.add('hidden');
@@ -1843,6 +1932,7 @@
 
   function closeRhythmPiano() {
     stopRhythmPiano();
+    stopFreePlay();
     document.querySelector('#rhythmPianoModal')?.classList.add('hidden');
     document.body.style.overflow = '';
   }
@@ -2045,6 +2135,17 @@
     pressRhythmKey(target.note);
   }
 
+  function handleFreePianoKeydown(event) {
+    const modal = document.querySelector('#rhythmPianoModal');
+    if (!freePlayActive || !modal || modal.classList.contains('hidden')) return;
+    if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+    const keys = rhythmKeysForOffset(freePlayOctaveOffset);
+    const target = [...keys.white, ...keys.black].find((candidate) => candidate.key.toLowerCase() === event.key.toLowerCase());
+    if (!target) return;
+    event.preventDefault();
+    playFreePianoNote(target.note);
+  }
+
   function toggleRhythmPause() {
     if (!rhythmActive) return;
     rhythmPaused = !rhythmPaused;
@@ -2061,6 +2162,18 @@
   function bindRhythmPianoEvents() {
     document.querySelector('#startRhythmPianoHome')?.addEventListener('click', openRhythmPiano);
     document.querySelector('#closeRhythmPiano')?.addEventListener('click', closeRhythmPiano);
+    document.querySelector('#startFreePiano')?.addEventListener('click', openFreePiano);
+    document.querySelector('#freePlayBack')?.addEventListener('click', closeFreePiano);
+    document.querySelector('#freePlayBackBottom')?.addEventListener('click', closeFreePiano);
+    document.querySelector('#freePlayKeyboard')?.addEventListener('pointerdown', (event) => {
+      const key = event.target.closest('.rhythm-key');
+      if (!key) return;
+      event.preventDefault();
+      playFreePianoNote(Number(key.dataset.note));
+    });
+    document.querySelector('#freeOctaveDown')?.addEventListener('click', () => changeFreePlayOctave(-1));
+    document.querySelector('#freeOctaveUp')?.addEventListener('click', () => changeFreePlayOctave(1));
+    document.addEventListener('keydown', handleFreePianoKeydown);
     document.querySelector('#rhythmKeyboard')?.addEventListener('pointerdown', (event) => {
       const key = event.target.closest('.rhythm-key');
       if (!key) return;
@@ -2747,6 +2860,7 @@
       if (event.key === 'Escape') {
         if (document.querySelector('#confirmActionModal') && !document.querySelector('#confirmActionModal').classList.contains('hidden')) { closeConfirmAction(); return; }
         if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
+        if (freePlayActive) { closeFreePiano(); return; }
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
         if (!$('#accountModal').classList.contains('hidden')) closeAccount();
@@ -2763,6 +2877,13 @@
   APP.getModalFocusState = () => ({ currentModal: modalFocusState.currentModal?.id || null, lastTrigger: modalFocusState.lastTrigger?.id || null });
   APP.openRhythmPiano = openRhythmPiano;
   APP.finishRhythmPiano = finishRhythmPiano;
+  APP.openFreePiano = openFreePiano;
+  APP.getFreePianoSnapshot = () => ({
+    active: freePlayActive,
+    octaveOffset: freePlayOctaveOffset,
+    range: freePlayRangeLabel(),
+    lastNote: document.querySelector('#freePlayLastNote')?.textContent || ''
+  });
   APP.getRhythmSnapshot = () => ({
     active: rhythmActive,
     paused: rhythmPaused,

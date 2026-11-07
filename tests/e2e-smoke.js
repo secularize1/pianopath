@@ -170,20 +170,50 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#rhythmPianoModal').isVisible(), true, `${name}: rhythm piano modal missing`);
     assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 4, `${name}: rhythm song picker incomplete`);
+    assert.equal(await page.locator('#startFreePiano').isVisible(), true, `${name}: free-play entry missing`);
+    await page.locator('#startFreePiano').click();
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator('#rhythmFreePlay').isVisible(), true, `${name}: free-play panel missing`);
+    assert.equal(await page.locator('#freePlayKeyboard .rhythm-key').count(), 26, `${name}: free-play keyboard should stay touch-sized`);
+    assert.equal(await page.locator('#freePlayKeyboard .rhythm-key.white').count(), 16, `${name}: free-play white-key count wrong`);
+    assert.deepEqual(await page.evaluate(() => window.PIANO_APP.getFreePianoSnapshot()), {
+      active: true,
+      octaveOffset: 0,
+      range: 'C3–D5',
+      lastNote: '按下琴键开始'
+    }, `${name}: free-play initial state wrong`);
+    await page.locator('#freePlayKeyboard .rhythm-key[data-note="60"]').click();
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('#freePlayNote').innerText(), 'C4', `${name}: free-play touch note feedback wrong`);
+    await page.locator('#freeOctaveUp').click();
+    await page.waitForTimeout(80);
+    assert.equal(await page.locator('#freePlayOctaveLabel').innerText(), 'C4–D6', `${name}: free-play octave-up range wrong`);
+    await page.keyboard.press('q');
+    await page.waitForTimeout(80);
+    assert.equal(await page.locator('#freePlayNote').innerText(), 'C5', `${name}: free-play computer keyboard did not transpose`);
+    await page.locator('#freeOctaveUp').click();
+    assert.equal(await page.locator('#freePlayOctaveLabel').innerText(), 'C5–D7', `${name}: free-play high range wrong`);
+    assert.equal(await page.locator('#freeOctaveUp').isDisabled(), true, `${name}: free-play high octave should stop at range limit`);
+    for (let i = 0; i < 2; i += 1) await page.locator('#freeOctaveDown').click();
+    assert.equal(await page.locator('#freePlayOctaveLabel').innerText(), 'C3–D5', `${name}: free-play octave-down range wrong`);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(120);
+    assert.equal(await page.locator('#rhythmFreePlay').isVisible(), false, `${name}: Escape did not close free-play mode`);
+    assert.equal(await page.locator('#rhythmPianoHome').isVisible(), true, `${name}: free-play Escape did not return to songs`);
     await page.locator('[data-rhythm-song="twinkle"]').click();
     await page.waitForTimeout(2200);
     assert.equal(await page.locator('#rhythmPianoStage').isVisible(), true, `${name}: rhythm stage missing`);
     assert.equal(await page.locator('#rhythmKeyHint').innerText(), '电脑：Z–M / S D G H J + Q–O / 2 3 5 6 7', `${name}: rhythm keyboard hint drifted`);
-    assert.equal(await page.locator('.rhythm-key').count(), 26, `${name}: rhythm keyboard should have two octaves`);
-    assert.equal(await page.locator('.rhythm-lane').count(), 16, `${name}: rhythm lanes should align with white keys`);
-    assert.equal(await page.locator('.rhythm-key[data-note="60"]').getAttribute('data-key'), 'q', `${name}: upper C keyboard mapping wrong`);
-    assert.equal(await page.locator('.rhythm-key[data-note="49"]').getAttribute('data-key'), 's', `${name}: lower C sharp keyboard mapping wrong`);
-    assert.equal(await page.locator('.rhythm-key[data-note="49"]').getAttribute('data-key'), 's', `${name}: lower sharp keyboard mapping wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key').count(), 26, `${name}: rhythm keyboard should have two octaves`);
+    assert.equal(await page.locator('#rhythmLanes .rhythm-lane').count(), 16, `${name}: rhythm lanes should align with white keys`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="60"]').getAttribute('data-key'), 'q', `${name}: upper C keyboard mapping wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="49"]').getAttribute('data-key'), 's', `${name}: lower C sharp keyboard mapping wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="49"]').getAttribute('data-key'), 's', `${name}: lower sharp keyboard mapping wrong`);
     const rhythmKeyGroups = await page.evaluate(() => ({
-      lowerWhite: [...document.querySelectorAll('.rhythm-key.white[data-note="48"], .rhythm-key.white[data-note="50"], .rhythm-key.white[data-note="52"], .rhythm-key.white[data-note="53"], .rhythm-key.white[data-note="55"], .rhythm-key.white[data-note="57"], .rhythm-key.white[data-note="59"]')].map((key) => key.dataset.key),
-      lowerBlack: [...document.querySelectorAll('.rhythm-key.black[data-note="49"], .rhythm-key.black[data-note="51"], .rhythm-key.black[data-note="54"], .rhythm-key.black[data-note="56"], .rhythm-key.black[data-note="58"]')].map((key) => key.dataset.key),
-      upperWhite: [...document.querySelectorAll('.rhythm-key.white[data-note="60"], .rhythm-key.white[data-note="62"], .rhythm-key.white[data-note="64"], .rhythm-key.white[data-note="65"], .rhythm-key.white[data-note="67"], .rhythm-key.white[data-note="69"], .rhythm-key.white[data-note="71"], .rhythm-key.white[data-note="72"], .rhythm-key.white[data-note="74"]')].map((key) => key.dataset.key),
-      upperBlack: [...document.querySelectorAll('.rhythm-key.black[data-note="61"], .rhythm-key.black[data-note="63"], .rhythm-key.black[data-note="66"], .rhythm-key.black[data-note="68"], .rhythm-key.black[data-note="70"]')].map((key) => key.dataset.key)
+      lowerWhite: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key.white[data-note="48"], #rhythmKeyboard .rhythm-key.white[data-note="50"], #rhythmKeyboard .rhythm-key.white[data-note="52"], #rhythmKeyboard .rhythm-key.white[data-note="53"], #rhythmKeyboard .rhythm-key.white[data-note="55"], #rhythmKeyboard .rhythm-key.white[data-note="57"], #rhythmKeyboard .rhythm-key.white[data-note="59"]')].map((key) => key.dataset.key),
+      lowerBlack: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key.black[data-note="49"], #rhythmKeyboard .rhythm-key.black[data-note="51"], #rhythmKeyboard .rhythm-key.black[data-note="54"], #rhythmKeyboard .rhythm-key.black[data-note="56"], #rhythmKeyboard .rhythm-key.black[data-note="58"]')].map((key) => key.dataset.key),
+      upperWhite: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key.white[data-note="60"], #rhythmKeyboard .rhythm-key.white[data-note="62"], #rhythmKeyboard .rhythm-key.white[data-note="64"], #rhythmKeyboard .rhythm-key.white[data-note="65"], #rhythmKeyboard .rhythm-key.white[data-note="67"], #rhythmKeyboard .rhythm-key.white[data-note="69"], #rhythmKeyboard .rhythm-key.white[data-note="71"], #rhythmKeyboard .rhythm-key.white[data-note="72"], #rhythmKeyboard .rhythm-key.white[data-note="74"]')].map((key) => key.dataset.key),
+      upperBlack: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key.black[data-note="61"], #rhythmKeyboard .rhythm-key.black[data-note="63"], #rhythmKeyboard .rhythm-key.black[data-note="66"], #rhythmKeyboard .rhythm-key.black[data-note="68"], #rhythmKeyboard .rhythm-key.black[data-note="70"]')].map((key) => key.dataset.key)
     }));
     assert.deepEqual(rhythmKeyGroups, EXPECTED_RHYTHM_KEYS, `${name}: computer keyboard mapping drifted`);
     await page.locator('#rhythmPause').click();
@@ -198,7 +228,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       const snapshot = window.PIANO_APP.getRhythmSnapshot();
       return Number.isFinite(snapshot.currentBeat) && Math.abs(snapshot.currentBeat - beat) < 0.12;
     }, firstNote.beat, { timeout: 7000, polling: 25 });
-    const firstKey = await page.locator(`.rhythm-key[data-note="${firstNote.note}"]`).getAttribute('data-key');
+    const firstKey = await page.locator(`#rhythmKeyboard .rhythm-key[data-note="${firstNote.note}"]`).getAttribute('data-key');
     await page.keyboard.press(firstKey);
     await page.waitForTimeout(80);
     const hitSnapshot = await page.evaluate(() => window.PIANO_APP.getRhythmSnapshot());
@@ -222,8 +252,8 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
         const card = rect('#rhythmPianoCard');
         const highway = rect('#rhythmHighway');
         const keyboard = rect('#rhythmKeyboard');
-        const lane = rect('.rhythm-lane');
-        const white = rect('.rhythm-key.white');
+        const lane = rect('#rhythmLanes .rhythm-lane');
+        const white = rect('#rhythmKeyboard .rhythm-key.white');
         return {
           cardWidth: card.width,
           cardHeight: card.height,
@@ -246,6 +276,31 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       assert.ok(Math.abs(landscape.laneWidth - landscape.whiteWidth) <= 1, `${name}: rhythm lane widths do not match keys`);
       assert.equal(landscape.overflow, 0, `${name}: landscape horizontal overflow`);
       await page.screenshot({ path: path.join(ROOT, 'tests', 'smoke-landscape.png'), fullPage: false });
+      await page.locator('#closeRhythmPiano').click();
+      await page.evaluate(() => window.PIANO_APP.openRhythmPiano());
+      await page.locator('#startFreePiano').click();
+      await page.waitForTimeout(180);
+      const freeLandscape = await page.evaluate(() => {
+        const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+        const card = rect('#rhythmPianoCard');
+        const keyboard = rect('#freePlayKeyboard');
+        const white = rect('#freePlayKeyboard .rhythm-key.white');
+        return {
+          cardWidth: card.width,
+          cardHeight: card.height,
+          keyboardBottom: keyboard.bottom,
+          keyboardHeight: keyboard.height,
+          whiteWidth: white.width,
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+        };
+      });
+      assert.equal(freeLandscape.cardWidth, 844, `${name}: free-play landscape width wrong`);
+      assert.equal(freeLandscape.cardHeight, 390, `${name}: free-play landscape height wrong`);
+      assert.ok(freeLandscape.keyboardBottom <= 390, `${name}: free-play landscape keyboard clipped`);
+      assert.ok(freeLandscape.keyboardHeight >= 90, `${name}: free-play landscape keys too short`);
+      assert.ok(freeLandscape.whiteWidth >= 30, `${name}: free-play landscape keys too narrow`);
+      assert.equal(freeLandscape.overflow, 0, `${name}: free-play landscape overflow`);
+      await page.locator('#freePlayBack').click();
       await page.locator('#closeRhythmPiano').click();
       await page.setViewportSize({ width, height });
       await page.waitForTimeout(180);

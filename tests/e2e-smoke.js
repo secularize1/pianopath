@@ -108,6 +108,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
     assert.equal(await page.locator('#completeModal').isVisible(), true, `${name}: failed completion modal missing`);
     assert.match(await page.locator('#completeSummary').innerText(), /67%/, `${name}: mastery pass threshold not explained`);
     assert.equal(await page.locator('#completeXp').innerText(), '+0', `${name}: failed mastery awarded lesson XP`);
+    assert.equal(await page.locator('#completeStreak').innerText(), '1', `${name}: completion did not preview the saved streak`);
     await page.locator('#saveCompletion').click();
     await page.waitForTimeout(900);
     assert.equal(errors.length, 0, `${name}: failed-review runtime errors: ${errors.join('; ')}`);

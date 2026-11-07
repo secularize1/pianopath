@@ -9344,7 +9344,18 @@ window.PIANO_DATA = {
         ? `${session.title} 已完成 · 完成后本周还剩 ${remaining} 次练习`
         : `${session.title} 已完成 · 这是本周最后一次练习`;
     }
-    $('#completeStreak').textContent = APP.streakCount();
+    const projectedDays = new Set([...APP.state.history.map((entry) => entry.date), localDateKey(new Date())]);
+    $('#completeStreak').textContent = (() => {
+      let cursor = new Date();
+      cursor.setHours(12, 0, 0, 0);
+      if (!projectedDays.has(localDateKey(cursor))) cursor.setDate(cursor.getDate() - 1);
+      let count = 0;
+      while (projectedDays.has(localDateKey(cursor))) {
+        count += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      return count;
+    })();
     $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : passed ? '+20' : '+0';
     const saveButton = document.querySelector('#saveCompletion');
     if (saveButton) saveButton.textContent = !passed ? '保存练习，继续巩固' : session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';

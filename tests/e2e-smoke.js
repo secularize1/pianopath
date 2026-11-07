@@ -171,6 +171,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('#rhythmPianoModal').isVisible(), true, `${name}: rhythm piano modal missing`);
     assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 4, `${name}: rhythm song picker incomplete`);
     const reviewsBeforeFreePlay = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews || {});
+    const practiceMinutesBeforeFreePlay = await page.evaluate(() => window.PIANO_APP.totalXp());
     const completedBeforeFreePlay = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('pianopath-state-v1')).completed || {}).length);
     assert.equal(await page.locator('#startFreePiano').isVisible(), true, `${name}: free-play entry missing`);
     await page.locator('#startFreePiano').click();
@@ -217,6 +218,8 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(completedAfterFreePlay, completedBeforeFreePlay, `${name}: free-play incorrectly completed a main lesson`);
     const reviewsAfterFreePlay = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews || {});
     assert.deepEqual(reviewsAfterFreePlay, reviewsBeforeFreePlay, `${name}: free-play polluted the review queue`);
+    assert.ok(freePractice.durationSeconds > 0, `${name}: free-play duration seconds were not saved`);
+    assert.ok(freePractice.durationSeconds < 60, `${name}: short free-play should not be stored as a whole minute`);
     await page.locator('[data-rhythm-song="twinkle"]').click();
     await page.waitForTimeout(2200);
     assert.equal(await page.locator('#rhythmPianoStage').isVisible(), true, `${name}: rhythm stage missing`);
@@ -256,6 +259,9 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#rhythmPianoResult').isVisible(), true, `${name}: rhythm result missing`);
     assert.equal(await page.locator('#rhythmResultTitle').innerText(), '小星星', `${name}: rhythm result title wrong`);
+    await page.locator('#rhythmChooseAnother').click();
+    await page.waitForTimeout(180);
+    assert.ok(Number(await page.locator('[data-rhythm-song="twinkle"]').getAttribute('data-best')) > 0, `${name}: rhythm song best score was not shown`);
     assert.match(await page.locator('#rhythmResultXp').innerText(), /^\+\d+ XP$/, `${name}: rhythm result XP missing`);
     await page.locator('#closeRhythmPiano').click();
     await page.waitForTimeout(150);

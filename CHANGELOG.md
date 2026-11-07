@@ -6,6 +6,8 @@
 - Completed free-play sessions now save to practice history with duration and note metrics.
 - Free play contributes to short-practice daily goals and total minutes without completing a main lesson.
 - Added desktop and mobile regression coverage for persistence and lesson classification.
+- Added per-song best accuracy badges and context-aware labels in practice history.
+- Free play now stores exact duration seconds while keeping minute totals backward compatible.
 
 ## 1.17.0 — 2026-11-07
 

@@ -642,7 +642,7 @@
     if (!state.history.length) {
       $('#historyList').innerHTML = `<div class="empty-history">完成第一次练习后，这里会留下你的声音记录。</div>`;
     } else {
-      $('#historyList').innerHTML = state.history.slice(0, 12).map((entry) => `<div class="history-item"><span class="history-icon">♪</span><div><strong>${escapeHtml(entry.title)}</strong><small>${entry.week ? `第 ${entry.week} 周` : '自由练习'} · ${entry.date} · ${entry.ratingLabel || '已记录'}${entry.notes ? ` · ${escapeHtml(entry.notes)}` : ''}</small></div><span>${entry.minutes} 分钟</span></div>`).join('');
+      $('#historyList').innerHTML = state.history.slice(0, 12).map((entry) => { const duration = entry.durationSeconds && Number(entry.durationSeconds) < 60 ? `${entry.durationSeconds} 秒` : `${entry.minutes} 分钟`; const context = entry.week ? `第 ${entry.week} 周` : entry.type === 'freeplay' ? '自由练习' : entry.type === 'playalong' ? '跟弹练习' : entry.type === 'game' ? '音乐游戏' : entry.type === 'quick' ? '短练' : entry.type === 'repertoire' ? '曲目训练' : '自主练习'; return `<div class="history-item"><span class="history-icon">♪</span><div><strong>${escapeHtml(entry.title)}</strong><small>${context} · ${entry.date} · ${entry.ratingLabel || '已记录'}${entry.notes ? ` · ${escapeHtml(entry.notes)}` : ''}</small></div><span>${duration}</span></div>`; }).join('');
     }
   }
 
@@ -1850,7 +1850,12 @@
   function renderRhythmSongs() {
     const grid = document.querySelector('#rhythmSongGrid');
     if (!grid) return;
-    grid.innerHTML = RHYTHM_SONGS.map((song) => `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM</em></span><span class="rhythm-song-play">▶</span></button>`).join('');
+    grid.innerHTML = RHYTHM_SONGS.map((song) => {
+      const progress = state.playAlong?.[`rhythm-${song.id}`];
+      const best = Math.max(0, Math.min(100, Number(progress?.bestAccuracy) || 0));
+      const bestText = progress ? `最佳 ${best}%` : '开始';
+      return `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" data-best="${best}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM</em></span><span class="rhythm-song-best">${bestText}</span><span class="rhythm-song-play">▶</span></button>`;
+    }).join('');
     grid.querySelectorAll('[data-rhythm-song]').forEach((button) => button.addEventListener('click', () => startRhythmPiano(button.dataset.rhythmSong)));
   }
 
@@ -1917,7 +1922,8 @@
   function saveFreePlaySession() {
     if (freePlaySaved || !freePlayStartedAt) return;
     freePlaySaved = true;
-    const elapsedMinutes = Math.max(1, Math.min(30, Math.round((performance.now() - freePlayStartedAt) / 60000) || 1));
+    const durationSeconds = Math.max(1, Math.min(1800, Math.round((performance.now() - freePlayStartedAt) / 1000) || 1));
+    const elapsedMinutes = Math.floor(durationSeconds / 60);
     if (!freePlayKeyCount) return;
     const uniqueNotes = freePlayNotes.size;
     const today = localDateKey(new Date());
@@ -1929,9 +1935,10 @@
       week: 0,
       date: today,
       minutes: elapsedMinutes,
+      durationSeconds,
       rating: 3,
       ratingLabel: '自由弹',
-      notes: `${freePlayKeyCount} 次触键 · ${uniqueNotes} 个不同音`,
+      notes: `${freePlayKeyCount} 次触键 · ${uniqueNotes} 个不同音 · ${durationSeconds} 秒`,
       sightDone: 0,
       freePlayKeys: freePlayKeyCount,
       freePlayUniqueNotes: uniqueNotes,

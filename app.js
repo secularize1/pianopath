@@ -1840,6 +1840,8 @@
   let freePlayKeyCount = 0;
   let freePlayNotes = new Set();
   let freePlaySaved = false;
+  let pianoLandscapeRequested = false;
+  let pianoFullscreenOwned = false;
 
   function pianoKeyboardMarkup(whiteKeys, blackKeys) {
     const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
@@ -1907,6 +1909,68 @@
     if (lastLabel) lastLabel.textContent = `刚刚弹了 ${key.name}`;
   }
 
+  function pianoIsLandscape() {
+    return window.matchMedia?.('(orientation: landscape)').matches || document.querySelector('#rhythmPianoModal')?.classList.contains('piano-force-landscape');
+  }
+
+  function syncPianoLandscapeState() {
+    const modal = document.querySelector('#rhythmPianoModal');
+    const button = document.querySelector('#freePlayLandscape');
+    if (!modal || !button) return;
+    if (pianoLandscapeRequested && !window.matchMedia?.('(orientation: landscape)').matches) modal.classList.add('piano-force-landscape');
+    else modal.classList.remove('piano-force-landscape');
+    const active = pianoLandscapeRequested || pianoIsLandscape();
+    button.textContent = active ? '退出横屏' : '横屏弹奏';
+    button.setAttribute('aria-pressed', String(active));
+  }
+
+  async function exitPianoLandscape() {
+    const modal = document.querySelector('#rhythmPianoModal');
+    pianoLandscapeRequested = false;
+    modal?.classList.remove('piano-force-landscape');
+    try { screen.orientation?.unlock?.(); } catch (error) {}
+    if (pianoFullscreenOwned && document.fullscreenElement) {
+      try { await document.exitFullscreen?.(); } catch (error) {}
+    }
+    pianoFullscreenOwned = false;
+    syncPianoLandscapeState();
+  }
+
+  async function enterPianoLandscape() {
+    const modal = document.querySelector('#rhythmPianoModal');
+    const card = document.querySelector('#rhythmPianoCard');
+    if (!modal || !card) return;
+    if (pianoLandscapeRequested) {
+      await exitPianoLandscape();
+      APP.showToast('已退出横屏弹奏。');
+      return;
+    }
+    pianoLandscapeRequested = true;
+    let orientationLocked = false;
+    const canLockOrientation = typeof screen.orientation?.lock === 'function';
+    try {
+      if (canLockOrientation && !document.fullscreenElement && card.requestFullscreen) {
+        await card.requestFullscreen({ navigationUI: 'hide' });
+        pianoFullscreenOwned = true;
+      }
+    } catch (error) {}
+    try {
+      if (canLockOrientation) {
+        await screen.orientation.lock('landscape');
+        orientationLocked = true;
+      }
+    } catch (error) {}
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    // Fullscreen applies a fixed viewport-sized box. If orientation lock failed,
+    // release it before using the rotated fallback; otherwise the two layouts fight.
+    if (!orientationLocked && !window.matchMedia?.('(orientation: landscape)').matches && pianoFullscreenOwned && document.fullscreenElement) {
+      try { await document.exitFullscreen?.(); } catch (error) {}
+      pianoFullscreenOwned = false;
+    }
+    syncPianoLandscapeState();
+    if (modal.classList.contains('piano-force-landscape')) APP.showToast('横屏模式已开启；请把手机横过来弹奏。');
+  }
+
   function openFreePiano() {
     stopRhythmPiano();
     stopFreePlay();
@@ -1928,6 +1992,7 @@
     if (noteLabel) noteLabel.textContent = '—';
     if (lastLabel) lastLabel.textContent = '按下琴键开始';
     renderFreePlayKeyboard();
+    syncPianoLandscapeState();
   }
 
   function saveFreePlaySession() {
@@ -1965,8 +2030,15 @@
   function closeFreePiano() {
     saveFreePlaySession();
     stopFreePlay();
+    pianoLandscapeRequested = false;
+    const modal = document.querySelector('#rhythmPianoModal');
+    modal?.classList.remove('piano-force-landscape');
+    try { screen.orientation?.unlock?.(); } catch (error) {}
+    if (pianoFullscreenOwned && document.fullscreenElement) document.exitFullscreen?.().catch?.(() => {});
+    pianoFullscreenOwned = false;
     document.querySelector('#rhythmFreePlay')?.classList.add('hidden');
     document.querySelector('#rhythmPianoHome')?.classList.remove('hidden');
+    syncPianoLandscapeState();
     return false;
   }
 
@@ -2003,6 +2075,11 @@
     if (freePlayActive) saveFreePlaySession();
     stopRhythmPiano();
     stopFreePlay();
+    pianoLandscapeRequested = false;
+    document.querySelector('#rhythmPianoModal')?.classList.remove('piano-force-landscape');
+    try { screen.orientation?.unlock?.(); } catch (error) {}
+    if (pianoFullscreenOwned && document.fullscreenElement) document.exitFullscreen?.().catch?.(() => {});
+    pianoFullscreenOwned = false;
     document.querySelector('#rhythmPianoModal')?.classList.add('hidden');
     document.body.style.overflow = '';
   }
@@ -2232,9 +2309,13 @@
   function bindRhythmPianoEvents() {
     document.querySelector('#startRhythmPianoHome')?.addEventListener('click', openRhythmPiano);
     document.querySelector('#closeRhythmPiano')?.addEventListener('click', closeRhythmPiano);
-    document.querySelector('#startFreePiano')?.addEventListener('click', openFreePiano);
+    document.querySelector('#startFreePiano')?.addEventListener('click', () => {
+      openFreePiano();
+      if (window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
+    });
     document.querySelector('#freePlayBack')?.addEventListener('click', closeFreePiano);
     document.querySelector('#freePlayBackBottom')?.addEventListener('click', closeFreePiano);
+    document.querySelector('#freePlayLandscape')?.addEventListener('click', enterPianoLandscape);
     document.querySelector('#freePlayKeyboard')?.addEventListener('pointerdown', (event) => {
       const key = event.target.closest('.rhythm-key');
       if (!key) return;
@@ -2257,7 +2338,6 @@
     document.querySelector('#rhythmFullscreen')?.addEventListener('click', async () => {
       try { await document.querySelector('#rhythmPianoCard')?.requestFullscreen?.(); } catch (error) {}
     });
-    document.querySelector('#rhythmRotateHint')?.addEventListener('click', () => APP.showToast('横屏后键盘会更宽，左右手也更容易分开。'));
     document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U I O，黑键 2 3 5 6 7。'));
     document.querySelectorAll('[data-rhythm-filter]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -2266,6 +2346,11 @@
       });
     });
     document.addEventListener('keydown', handleRhythmKeydown);
+    window.addEventListener('orientationchange', syncPianoLandscapeState);
+    window.addEventListener('resize', syncPianoLandscapeState);
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) pianoFullscreenOwned = false;
+    });
   }
 
   function playAlongKeyMarkup() {
@@ -2954,6 +3039,13 @@
   APP.openRhythmPiano = openRhythmPiano;
   APP.finishRhythmPiano = finishRhythmPiano;
   APP.openFreePiano = openFreePiano;
+  APP.enterPianoLandscape = enterPianoLandscape;
+  APP.exitPianoLandscape = exitPianoLandscape;
+  APP.getPianoLandscapeSnapshot = () => ({
+    requested: pianoLandscapeRequested,
+    fallback: document.querySelector('#rhythmPianoModal')?.classList.contains('piano-force-landscape') || false,
+    orientation: window.matchMedia?.('(orientation: landscape)').matches ? 'landscape' : 'portrait'
+  });
   APP.getFreePianoSnapshot = () => ({
     active: freePlayActive,
     octaveOffset: freePlayOctaveOffset,

@@ -1277,6 +1277,25 @@ button, input, select, textarea { font-family: inherit; }
   background:linear-gradient(150deg,#1d2b23 0%,#17211b 62%,#242b20 100%); color:#f4f7ed;
   box-shadow:0 30px 120px rgba(0,0,0,.45);
 }
+#rhythmPianoModal.piano-force-landscape { background:#121a15; }
+#rhythmPianoModal.piano-force-landscape .rhythm-piano-card { position:absolute; top:50%; left:50%; width:100dvh; height:100vw; max-width:none; max-height:none; transform:translate(-50%,-50%) rotate(90deg); transform-origin:center; border:0; border-radius:0; }
+#rhythmPianoModal.piano-force-landscape .rhythm-piano-home { padding:13px 20px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-home-intro h2 { font-size:26px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-song-grid { grid-template-columns:repeat(4,1fr); margin-top:11px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-song-card { display:grid; grid-template-columns:39px 1fr; min-height:78px; padding:7px; gap:7px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-song-art { width:39px; height:54px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-song-play { display:none; }
+#rhythmPianoModal.piano-force-landscape .rhythm-piano-stage { padding:5px 9px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-highway { min-height:120px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-keyboard { height:100px; margin-top:4px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-key.black { height:59px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-stage-footer { margin-top:4px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-free-play { padding:5px 10px 4px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-free-play-head { min-height:28px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-free-play-display { min-height:32px; margin:2px 0; }
+#rhythmPianoModal.piano-force-landscape .rhythm-free-play-display strong { font-size:25px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-free-play .rhythm-keyboard { height:104px; margin-top:3px; }
+#rhythmPianoModal.piano-force-landscape .rhythm-free-play .rhythm-key.black { height:60px; }
 .rhythm-piano-top { display:flex; align-items:center; gap:14px; min-height:68px; padding:0 20px; border-bottom:1px solid rgba(255,255,255,.1); }
 .rhythm-piano-title-wrap { display:grid; gap:3px; flex:1; min-width:0; }.rhythm-piano-title-wrap .eyebrow { color:#c7dca7; }.rhythm-piano-title-wrap strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:17px; letter-spacing:-.02em; }
 .rhythm-piano-actions { display:flex; gap:7px; }.rhythm-top-button { padding:7px 10px; border:1px solid rgba(255,255,255,.18); border-radius:8px; background:rgba(255,255,255,.06); color:#d9e8d7; font-size:10px; font-weight:800; }.rhythm-top-button:hover { background:rgba(255,255,255,.14); }
@@ -1307,7 +1326,7 @@ button, input, select, textarea { font-family: inherit; }
 .rhythm-keyboard { position:relative; display:flex; align-items:stretch; height:152px; margin-top:10px; padding:5px; border-radius:10px; background:#202922; box-shadow:inset 0 -7px 0 #111814; }.rhythm-key { position:relative; border:0; cursor:pointer; touch-action:none; user-select:none; }.rhythm-key.white { height:100%; border-radius:3px 3px 6px 6px; background:linear-gradient(#fdfcf4,#e9ebdf); box-shadow:0 4px 0 #aab3a8; color:#738174; }.rhythm-key.white:hover { background:#fff; }.rhythm-key.black { position:absolute; z-index:2; top:5px; width:4.5%; height:88px; border-radius:3px 3px 5px 5px; background:linear-gradient(#46534a,#1e2922); box-shadow:0 4px 0 #0b110d; color:#dbe9dc; }.rhythm-key span { position:absolute; bottom:8px; left:0; right:0; font-size:10px; font-weight:850; }.rhythm-keyboard .rhythm-key.white { flex:1; }.rhythm-key small { position:absolute; bottom:26px; left:0; right:0; opacity:.55; font-size:8px; }.rhythm-key.black span { bottom:7px; }.rhythm-key.black small { bottom:22px; }.rhythm-key.pressed { transform:translateY(3px); background:#b6e595 !important; }.rhythm-key.black.pressed { background:#72aa76 !important; }
 .rhythm-stage-footer { display:flex; align-items:center; gap:9px; margin-top:9px; color:#93a797; font-size:10px; }.rhythm-stage-footer > span { flex:1; text-align:center; }.rhythm-stage-button { padding:7px 10px; border:1px solid rgba(255,255,255,.16); border-radius:7px; background:rgba(255,255,255,.06); color:#dbe8d8; font-size:10px; font-weight:750; }
 .rhythm-piano-result { flex:1; display:grid; place-content:center; justify-items:center; text-align:center; padding:30px; }.rhythm-result-badge { padding:5px 9px; border-radius:6px; background:#a6cf7a; color:#24371f; font-size:10px; font-weight:900; letter-spacing:.13em; }.rhythm-piano-result h2 { margin:15px 0 0; font-size:29px; }.rhythm-result-score { margin-top:12px; color:#d8eda9; }.rhythm-result-score strong { font-size:56px; line-height:1; }.rhythm-result-score span { margin-left:4px; font-size:13px; }.rhythm-piano-result p { margin:9px 0 18px; color:#aebfaf; font-size:12px; }.rhythm-result-stats { display:flex; gap:35px; padding:14px 0; border-top:1px solid rgba(255,255,255,.12); border-bottom:1px solid rgba(255,255,255,.12); }.rhythm-result-stats small { display:block; color:#93a896; font-size:9px; }.rhythm-result-stats strong { display:block; margin-top:3px; color:#ebf5d5; font-size:18px; }.rhythm-result-actions { display:flex; gap:9px; margin-top:19px; }
-@media(max-width:820px){ .rhythm-piano-card{height:100dvh;border-radius:0;border:0}.rhythm-piano-home{padding:22px 18px}.rhythm-song-grid{grid-template-columns:1fr;gap:8px}.rhythm-song-card{min-height:87px;padding:10px}.rhythm-song-art{width:56px;height:62px}.rhythm-piano-stage{padding:8px 9px 7px}.rhythm-hud{grid-template-columns:1fr repeat(3,minmax(52px,.7fr));gap:4px}.rhythm-hud span{padding:5px 6px}.rhythm-hud strong{font-size:12px}.rhythm-keyboard{height:126px}.rhythm-key.black{height:75px}.rhythm-stage-footer > span{display:none}.rhythm-piano-top{padding:0 10px;min-height:54px}.rhythm-piano-actions{gap:4px}.rhythm-top-button{padding:6px 7px;font-size:9px} }
+@media(max-width:820px){ .rhythm-piano-card{height:100dvh;border-radius:0;border:0}.rhythm-piano-home{padding:22px 18px}.rhythm-song-grid{grid-template-columns:1fr;gap:8px}.rhythm-song-card{min-height:87px;padding:10px}.rhythm-song-art{width:56px;height:62px}.rhythm-piano-stage{padding:8px 9px 7px}.rhythm-hud{grid-template-columns:1fr repeat(3,minmax(52px,.7fr));gap:4px}.rhythm-hud span{padding:5px 6px}.rhythm-hud strong{font-size:12px}.rhythm-keyboard{height:126px}.rhythm-key.black{height:75px}.rhythm-stage-footer > span{display:none}.rhythm-piano-top{padding:0 10px;min-height:54px}.rhythm-piano-actions{gap:4px}.rhythm-top-button{padding:6px 7px;font-size:9px}.free-play-landscape{margin-left:auto} }
 @media(max-height:500px) and (orientation:landscape){ .rhythm-piano-modal{padding:0}.rhythm-piano-card{width:100vw;height:100dvh;max-height:none;border-radius:0}.rhythm-piano-stage{min-height:0}.rhythm-highway{min-height:96px}.rhythm-key span{font-size:9px}.rhythm-key small{font-size:8px}.rhythm-piano-top{min-height:45px}.rhythm-piano-home{padding:13px 20px;overflow:auto}.rhythm-home-intro h2{font-size:26px}.rhythm-song-grid{grid-template-columns:repeat(4,1fr);margin-top:11px}.rhythm-song-card{display:grid;grid-template-columns:39px 1fr;min-height:78px;padding:7px;gap:7px}.rhythm-song-art{width:39px;height:54px}.rhythm-song-art b{font-size:21px}.rhythm-song-copy strong{font-size:12px}.rhythm-song-copy em,.rhythm-song-copy small{font-size:8px}.rhythm-song-play{display:none}.rhythm-piano-stage{padding:5px 9px}.rhythm-hud{margin-bottom:4px}.rhythm-hud span{padding:3px 6px}.rhythm-hud small{font-size:8px}.rhythm-hud strong{font-size:11px}.rhythm-highway{min-height:120px}.rhythm-keyboard{height:100px;margin-top:4px}.rhythm-key.black{height:59px}.rhythm-stage-footer{margin-top:4px}.rhythm-stage-button{padding:4px 8px}.rhythm-piano-result{padding:10px}.rhythm-piano-result h2{font-size:21px;margin-top:5px}.rhythm-result-score strong{font-size:35px}.rhythm-piano-result p{margin:4px 0 7px}.rhythm-result-stats{padding:6px 0;gap:22px}.rhythm-result-actions{margin-top:8px} }
 
 /* === 1.13 accessible focus and touch ergonomics === */
@@ -1831,7 +1850,6 @@ button, input, select, textarea { font-family: inherit; }
         <div class="rhythm-piano-title-wrap"><span class="eyebrow">RHYTHM PIANO</span><strong id="rhythmPianoTitle">节奏钢琴</strong></div>
         <div class="rhythm-piano-actions">
           <button class="rhythm-top-button" id="rhythmFullscreen" type="button">全屏</button>
-          <button class="rhythm-top-button" id="rhythmRotateHint" type="button">横屏提示</button>
         </div>
       </header>
 
@@ -1859,6 +1877,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="rhythm-free-play-head">
           <button class="text-button" id="freePlayBack" type="button">← 曲目</button>
           <span class="rhythm-mini-label">FREE PLAY</span>
+          <button class="rhythm-top-button free-play-landscape" id="freePlayLandscape" type="button" aria-pressed="false">横屏弹奏</button>
         </div>
         <div class="rhythm-free-play-display">
           <small>现在弹</small>
@@ -1947,7 +1966,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.19 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.20 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -2024,7 +2043,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.19.0",
+    "appVersion": "1.20.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -9956,6 +9975,8 @@ window.PIANO_DATA = {
   let freePlayKeyCount = 0;
   let freePlayNotes = new Set();
   let freePlaySaved = false;
+  let pianoLandscapeRequested = false;
+  let pianoFullscreenOwned = false;
 
   function pianoKeyboardMarkup(whiteKeys, blackKeys) {
     const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
@@ -10023,6 +10044,68 @@ window.PIANO_DATA = {
     if (lastLabel) lastLabel.textContent = `刚刚弹了 ${key.name}`;
   }
 
+  function pianoIsLandscape() {
+    return window.matchMedia?.('(orientation: landscape)').matches || document.querySelector('#rhythmPianoModal')?.classList.contains('piano-force-landscape');
+  }
+
+  function syncPianoLandscapeState() {
+    const modal = document.querySelector('#rhythmPianoModal');
+    const button = document.querySelector('#freePlayLandscape');
+    if (!modal || !button) return;
+    if (pianoLandscapeRequested && !window.matchMedia?.('(orientation: landscape)').matches) modal.classList.add('piano-force-landscape');
+    else modal.classList.remove('piano-force-landscape');
+    const active = pianoLandscapeRequested || pianoIsLandscape();
+    button.textContent = active ? '退出横屏' : '横屏弹奏';
+    button.setAttribute('aria-pressed', String(active));
+  }
+
+  async function exitPianoLandscape() {
+    const modal = document.querySelector('#rhythmPianoModal');
+    pianoLandscapeRequested = false;
+    modal?.classList.remove('piano-force-landscape');
+    try { screen.orientation?.unlock?.(); } catch (error) {}
+    if (pianoFullscreenOwned && document.fullscreenElement) {
+      try { await document.exitFullscreen?.(); } catch (error) {}
+    }
+    pianoFullscreenOwned = false;
+    syncPianoLandscapeState();
+  }
+
+  async function enterPianoLandscape() {
+    const modal = document.querySelector('#rhythmPianoModal');
+    const card = document.querySelector('#rhythmPianoCard');
+    if (!modal || !card) return;
+    if (pianoLandscapeRequested) {
+      await exitPianoLandscape();
+      APP.showToast('已退出横屏弹奏。');
+      return;
+    }
+    pianoLandscapeRequested = true;
+    let orientationLocked = false;
+    const canLockOrientation = typeof screen.orientation?.lock === 'function';
+    try {
+      if (canLockOrientation && !document.fullscreenElement && card.requestFullscreen) {
+        await card.requestFullscreen({ navigationUI: 'hide' });
+        pianoFullscreenOwned = true;
+      }
+    } catch (error) {}
+    try {
+      if (canLockOrientation) {
+        await screen.orientation.lock('landscape');
+        orientationLocked = true;
+      }
+    } catch (error) {}
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    // Fullscreen applies a fixed viewport-sized box. If orientation lock failed,
+    // release it before using the rotated fallback; otherwise the two layouts fight.
+    if (!orientationLocked && !window.matchMedia?.('(orientation: landscape)').matches && pianoFullscreenOwned && document.fullscreenElement) {
+      try { await document.exitFullscreen?.(); } catch (error) {}
+      pianoFullscreenOwned = false;
+    }
+    syncPianoLandscapeState();
+    if (modal.classList.contains('piano-force-landscape')) APP.showToast('横屏模式已开启；请把手机横过来弹奏。');
+  }
+
   function openFreePiano() {
     stopRhythmPiano();
     stopFreePlay();
@@ -10044,6 +10127,7 @@ window.PIANO_DATA = {
     if (noteLabel) noteLabel.textContent = '—';
     if (lastLabel) lastLabel.textContent = '按下琴键开始';
     renderFreePlayKeyboard();
+    syncPianoLandscapeState();
   }
 
   function saveFreePlaySession() {
@@ -10081,8 +10165,15 @@ window.PIANO_DATA = {
   function closeFreePiano() {
     saveFreePlaySession();
     stopFreePlay();
+    pianoLandscapeRequested = false;
+    const modal = document.querySelector('#rhythmPianoModal');
+    modal?.classList.remove('piano-force-landscape');
+    try { screen.orientation?.unlock?.(); } catch (error) {}
+    if (pianoFullscreenOwned && document.fullscreenElement) document.exitFullscreen?.().catch?.(() => {});
+    pianoFullscreenOwned = false;
     document.querySelector('#rhythmFreePlay')?.classList.add('hidden');
     document.querySelector('#rhythmPianoHome')?.classList.remove('hidden');
+    syncPianoLandscapeState();
     return false;
   }
 
@@ -10119,6 +10210,11 @@ window.PIANO_DATA = {
     if (freePlayActive) saveFreePlaySession();
     stopRhythmPiano();
     stopFreePlay();
+    pianoLandscapeRequested = false;
+    document.querySelector('#rhythmPianoModal')?.classList.remove('piano-force-landscape');
+    try { screen.orientation?.unlock?.(); } catch (error) {}
+    if (pianoFullscreenOwned && document.fullscreenElement) document.exitFullscreen?.().catch?.(() => {});
+    pianoFullscreenOwned = false;
     document.querySelector('#rhythmPianoModal')?.classList.add('hidden');
     document.body.style.overflow = '';
   }
@@ -10348,9 +10444,13 @@ window.PIANO_DATA = {
   function bindRhythmPianoEvents() {
     document.querySelector('#startRhythmPianoHome')?.addEventListener('click', openRhythmPiano);
     document.querySelector('#closeRhythmPiano')?.addEventListener('click', closeRhythmPiano);
-    document.querySelector('#startFreePiano')?.addEventListener('click', openFreePiano);
+    document.querySelector('#startFreePiano')?.addEventListener('click', () => {
+      openFreePiano();
+      if (window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
+    });
     document.querySelector('#freePlayBack')?.addEventListener('click', closeFreePiano);
     document.querySelector('#freePlayBackBottom')?.addEventListener('click', closeFreePiano);
+    document.querySelector('#freePlayLandscape')?.addEventListener('click', enterPianoLandscape);
     document.querySelector('#freePlayKeyboard')?.addEventListener('pointerdown', (event) => {
       const key = event.target.closest('.rhythm-key');
       if (!key) return;
@@ -10373,7 +10473,6 @@ window.PIANO_DATA = {
     document.querySelector('#rhythmFullscreen')?.addEventListener('click', async () => {
       try { await document.querySelector('#rhythmPianoCard')?.requestFullscreen?.(); } catch (error) {}
     });
-    document.querySelector('#rhythmRotateHint')?.addEventListener('click', () => APP.showToast('横屏后键盘会更宽，左右手也更容易分开。'));
     document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U I O，黑键 2 3 5 6 7。'));
     document.querySelectorAll('[data-rhythm-filter]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -10382,6 +10481,11 @@ window.PIANO_DATA = {
       });
     });
     document.addEventListener('keydown', handleRhythmKeydown);
+    window.addEventListener('orientationchange', syncPianoLandscapeState);
+    window.addEventListener('resize', syncPianoLandscapeState);
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) pianoFullscreenOwned = false;
+    });
   }
 
   function playAlongKeyMarkup() {
@@ -11070,6 +11174,13 @@ window.PIANO_DATA = {
   APP.openRhythmPiano = openRhythmPiano;
   APP.finishRhythmPiano = finishRhythmPiano;
   APP.openFreePiano = openFreePiano;
+  APP.enterPianoLandscape = enterPianoLandscape;
+  APP.exitPianoLandscape = exitPianoLandscape;
+  APP.getPianoLandscapeSnapshot = () => ({
+    requested: pianoLandscapeRequested,
+    fallback: document.querySelector('#rhythmPianoModal')?.classList.contains('piano-force-landscape') || false,
+    orientation: window.matchMedia?.('(orientation: landscape)').matches ? 'landscape' : 'portrait'
+  });
   APP.getFreePianoSnapshot = () => ({
     active: freePlayActive,
     octaveOffset: freePlayOctaveOffset,

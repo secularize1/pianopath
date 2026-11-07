@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.20.0 — 2026-11-07
+
+- Added a real landscape control to free-play piano mode instead of a hint-only button.
+- Requests fullscreen and locks the system orientation where the browser supports it.
+- Added a rotated landscape fallback for iPhone and other browsers that do not support orientation lock.
+- Restores orientation and fullscreen state when leaving free play or closing the piano.
+
 ## 1.19.0 — 2026-11-07
 
 - Expanded the rhythm-piano library from four to eight public-domain melodies.

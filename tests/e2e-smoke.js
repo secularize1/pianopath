@@ -25,7 +25,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
   const browser = await chromium.launch({ executablePath, headless: true });
   const results = [];
   for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 844]]) {
-    const context = await browser.newContext({ viewport: { width, height }, locale: 'zh-CN', colorScheme: 'light' });
+    const context = await browser.newContext({ viewport: { width, height }, locale: 'zh-CN', colorScheme: 'light', ...(name === 'mobile' ? { hasTouch: true, isMobile: true } : {}) });
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -184,6 +184,36 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('#startFreePiano').click();
     await page.waitForTimeout(200);
     assert.equal(await page.locator('#rhythmFreePlay').isVisible(), true, `${name}: free-play panel missing`);
+    assert.equal(await page.locator('#freePlayLandscape').isVisible(), true, `${name}: free-play landscape control missing`);
+    if (name === 'mobile') {
+      if (!(await page.evaluate(() => window.PIANO_APP.getPianoLandscapeSnapshot().requested))) {
+        await page.evaluate(() => window.PIANO_APP.enterPianoLandscape());
+      }
+      await page.waitForTimeout(350);
+      const landscapeMode = await page.evaluate(() => {
+        const modal = document.querySelector('#rhythmPianoModal');
+        const card = document.querySelector('#rhythmPianoCard');
+        const keyboard = document.querySelector('#freePlayKeyboard');
+        return {
+          snapshot: window.PIANO_APP.getPianoLandscapeSnapshot(),
+          forced: modal.classList.contains('piano-force-landscape'),
+          card: { width: card.offsetWidth, height: card.offsetHeight },
+          keyboard: { width: keyboard.offsetWidth, height: keyboard.offsetHeight },
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          button: document.querySelector('#freePlayLandscape').innerText
+        };
+      });
+      assert.equal(landscapeMode.snapshot.requested, true, `${name}: landscape request not recorded`);
+      assert.equal(landscapeMode.forced, true, `${name}: portrait phone should use rotated landscape fallback`);
+      assert.ok(landscapeMode.card.width > landscapeMode.card.height, `${name}: rotated piano card is not horizontal`);
+      assert.ok(landscapeMode.keyboard.width > 500, `${name}: landscape piano keys are not wide enough`);
+      assert.ok(landscapeMode.keyboard.height >= 90, `${name}: landscape piano keys are too short`);
+      assert.equal(landscapeMode.overflow, 0, `${name}: landscape fallback creates horizontal overflow`);
+      assert.match(landscapeMode.button, /退出横屏/, `${name}: landscape control state did not update`);
+      await page.evaluate(() => window.PIANO_APP.exitPianoLandscape());
+      await page.waitForTimeout(220);
+      assert.equal(await page.evaluate(() => window.PIANO_APP.getPianoLandscapeSnapshot().requested), false, `${name}: landscape mode did not exit`);
+    }
     assert.equal(await page.locator('#freePlayKeyboard .rhythm-key').count(), 26, `${name}: free-play keyboard should stay touch-sized`);
     assert.equal(await page.locator('#freePlayKeyboard .rhythm-key.white').count(), 16, `${name}: free-play white-key count wrong`);
     assert.deepEqual(await page.evaluate(() => window.PIANO_APP.getFreePianoSnapshot()), {

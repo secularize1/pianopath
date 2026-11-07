@@ -407,7 +407,7 @@
     const gameToday = (state.gameSessions || []).filter((item) => item.date === todayKey);
     const playAlongToday = state.history.filter((entry) => entry.date === todayKey && entry.type === 'playalong');
     const todayMinutes = minutesForDate(todayKey);
-    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'lesson-practice', 'playalong'].includes(entry.type));
+    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'playalong'].includes(entry.type));
     const todayGame = gameToday.length > 0 || playAlongToday.length > 0;
     const dueReviews = dueReviewItems();
     const quests = [
@@ -419,7 +419,9 @@
     if (questList) {
       questList.innerHTML = quests.map((quest) => `<div class="daily-quest ${quest.done ? 'done' : ''}"><span class="quest-check">${quest.done ? '✓' : ''}</span><span><strong>${escapeHtml(quest.label)}</strong><small>${escapeHtml(quest.detail)}</small></span></div>`).join('');
       const questCount = document.querySelector('#dailyQuestCount');
-      if (questCount) questCount.textContent = `${quests.filter((quest) => quest.done).length} / 3`;
+      const completedQuests = quests.filter((quest) => quest.done).length;
+      if (questCount) questCount.textContent = `${completedQuests} / 3`;
+      document.querySelector('#dailyQuestCelebration')?.classList.toggle('hidden', completedQuests < quests.length);
     }
 
     const todayEntries = state.history.filter((entry) => entry.date === todayKey);

@@ -1295,3 +1295,10 @@ button, input, select, textarea { font-family: inherit; }
   .modal-close { width: 44px; height: 44px; }
   .note-mode, .choice-chip { min-height: 44px; }
 }
+
+/* === 1.13 daily goal completion === */
+.daily-quest-celebration { display:flex; align-items:center; gap:10px; margin-top:10px; padding:11px 12px; border:1px solid #cce6ce; border-radius:12px; background:linear-gradient(120deg,#edf9eb,#f8f8df); color:#3e784b; }
+.daily-quest-celebration > span:first-child { display:grid; place-items:center; width:28px; height:28px; flex:0 0 auto; border-radius:50%; background:#62b574; color:#fff; }
+.daily-quest-celebration > span:last-child { display:grid; gap:2px; }
+.daily-quest-celebration strong { font-size:11px; }
+.daily-quest-celebration small { color:#718879; font-size:10px; }

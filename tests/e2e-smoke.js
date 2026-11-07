@@ -115,6 +115,9 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
     assert.equal(await page.locator('#lessonTitle').innerText(), '找到中央 C', `${name}: failed mastery unlocked next lesson`);
     const completedAfterFail = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).completed || {});
     assert.equal(Object.keys(completedAfterFail).length, 0, `${name}: failed mastery was marked complete`);
+    assert.equal(await page.locator('#dailyQuestList .daily-quest').first().getAttribute('class'), 'daily-quest done', `${name}: failed mastery attempt did not count as lesson practice`);
+    assert.equal(await page.locator('.home-route #routeMain').getAttribute('class'), 'done', `${name}: failed mastery attempt did not complete the main route step`);
+    assert.equal(await page.locator('.home-route #routeCheck').getAttribute('class'), 'active', `${name}: failed mastery did not make the check the current step`);
     const queuedReview = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews?.['w1d1']);
     assert.ok(queuedReview?.dueAt, `${name}: failed mastery was not scheduled for review`);
 
@@ -229,9 +232,31 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': '2', '2': 'x', '3': '3', '4': 'c', '5':
       await page.setViewportSize({ width, height });
       await page.waitForTimeout(180);
       assert.equal(await page.locator('#quickPractice').isVisible(), true, `${name}: quick practice shortcut missing after landscape check`);
-    } else {
-      assert.equal(await page.locator('#quickPractice').isVisible(), true, `${name}: quick practice shortcut missing`);
     }
+      const historyBeforeGoals = await page.evaluate(() => {
+      const current = JSON.parse(localStorage.getItem('pianopath-state-v1'));
+      return { history: current.history, gameSessions: current.gameSessions };
+    });
+    await page.evaluate(() => {
+      const current = JSON.parse(localStorage.getItem('pianopath-state-v1'));
+      const today = new Date();
+      const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      current.history = [{ id: 'goal-check', type: 'lesson-practice', title: '目标检查', week: 0, date: key, minutes: 20, rating: 3, ratingLabel: '练习', notes: '', sightDone: 0, completedAt: new Date().toISOString() }, ...current.history];
+      current.gameSessions = [{ date: key, mode: 'note', score: 10, completedAt: new Date().toISOString() }, ...(current.gameSessions || [])];
+      window.PIANO_APP.replaceState(current);
+      window.PIANO_APP.persist();
+      window.PIANO_APP.renderAll();
+    });
+    assert.equal(await page.locator('#dailyQuestCount').innerText(), '3 / 3', `${name}: daily goals did not reach completion`);
+    assert.equal(await page.locator('#dailyQuestCelebration').isVisible(), true, `${name}: daily goal completion feedback missing`);
+    await page.evaluate((saved) => {
+      const current = JSON.parse(localStorage.getItem('pianopath-state-v1'));
+      current.history = saved.history;
+      current.gameSessions = saved.gameSessions;
+      window.PIANO_APP.replaceState(current);
+      window.PIANO_APP.persist();
+      window.PIANO_APP.renderAll();
+    }, historyBeforeGoals);
     await page.locator('#quickPractice').click();
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: quick practice did not open`);

@@ -11,6 +11,8 @@
 - Added a static DOM audit for duplicate IDs and unnamed buttons; added accessible names to both search fields and a pressed state to the theme toggle.
 - The home learning route now reflects today's real lesson and mastery progress instead of resetting when the next lesson opens.
 - Added a content integrity audit for all 48 lessons, 336 steps, source references, total timing, repertoire phases and score links.
+- Failed mastery attempts now count as a completed lesson practice in the daily goal, while mastery and lesson completion remain locked.
+- Added a visible celebration state when all three daily goals are completed.
 
 ## 1.12.0 — 2026-11-07
 

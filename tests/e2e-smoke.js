@@ -170,6 +170,8 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#rhythmPianoModal').isVisible(), true, `${name}: rhythm piano modal missing`);
     assert.equal(await page.locator('#rhythmSongGrid .rhythm-song-card').count(), 4, `${name}: rhythm song picker incomplete`);
+    const reviewsBeforeFreePlay = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews || {});
+    const completedBeforeFreePlay = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('pianopath-state-v1')).completed || {}).length);
     assert.equal(await page.locator('#startFreePiano').isVisible(), true, `${name}: free-play entry missing`);
     await page.locator('#startFreePiano').click();
     await page.waitForTimeout(200);
@@ -180,11 +182,15 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       active: true,
       octaveOffset: 0,
       range: 'C3–D5',
-      lastNote: '按下琴键开始'
+      lastNote: '按下琴键开始',
+      keyCount: 0,
+      uniqueNotes: 0
     }, `${name}: free-play initial state wrong`);
     await page.locator('#freePlayKeyboard .rhythm-key[data-note="60"]').click();
     await page.waitForTimeout(100);
     assert.equal(await page.locator('#freePlayNote').innerText(), 'C4', `${name}: free-play touch note feedback wrong`);
+    assert.equal(await page.locator('#freePlayKeyCount').innerText(), '1 次触键', `${name}: free-play key counter wrong`);
+    assert.equal(await page.locator('#freePlayUniqueCount').innerText(), '1 个音', `${name}: free-play unique-note counter wrong`);
     await page.locator('#freeOctaveUp').click();
     await page.waitForTimeout(80);
     assert.equal(await page.locator('#freePlayOctaveLabel').innerText(), 'C4–D6', `${name}: free-play octave-up range wrong`);
@@ -197,9 +203,20 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     for (let i = 0; i < 2; i += 1) await page.locator('#freeOctaveDown').click();
     assert.equal(await page.locator('#freePlayOctaveLabel').innerText(), 'C3–D5', `${name}: free-play octave-down range wrong`);
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(120);
+    await page.waitForTimeout(180);
     assert.equal(await page.locator('#rhythmFreePlay').isVisible(), false, `${name}: Escape did not close free-play mode`);
     assert.equal(await page.locator('#rhythmPianoHome').isVisible(), true, `${name}: free-play Escape did not return to songs`);
+    const freePractice = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).history.find((entry) => entry.type === 'freeplay'));
+    assert.ok(freePractice, `${name}: free-play session was not saved`);
+    assert.equal(freePractice.freePlayKeys, 2, `${name}: free-play saved key count wrong`);
+    assert.equal(freePractice.freePlayUniqueNotes, 2, `${name}: free-play saved unique note count wrong`);
+    assert.equal(freePractice.week, 0, `${name}: free-play should not attach to a lesson week`);
+    assert.equal(freePractice.ratingLabel, '自由弹', `${name}: free-play history label wrong`);
+    assert.match(freePractice.notes, /2 次触键.*2 个不同音/, `${name}: free-play history metrics wrong`);
+    const completedAfterFreePlay = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('pianopath-state-v1')).completed || {}).length);
+    assert.equal(completedAfterFreePlay, completedBeforeFreePlay, `${name}: free-play incorrectly completed a main lesson`);
+    const reviewsAfterFreePlay = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews || {});
+    assert.deepEqual(reviewsAfterFreePlay, reviewsBeforeFreePlay, `${name}: free-play polluted the review queue`);
     await page.locator('[data-rhythm-song="twinkle"]').click();
     await page.waitForTimeout(2200);
     assert.equal(await page.locator('#rhythmPianoStage').isVisible(), true, `${name}: rhythm stage missing`);

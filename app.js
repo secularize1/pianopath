@@ -406,13 +406,14 @@
     const todayKey = localDateKey(new Date());
     const gameToday = (state.gameSessions || []).filter((item) => item.date === todayKey);
     const playAlongToday = state.history.filter((entry) => entry.date === todayKey && entry.type === 'playalong');
+    const freePlayToday = state.history.filter((entry) => entry.date === todayKey && entry.type === 'freeplay');
     const todayMinutes = minutesForDate(todayKey);
-    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'playalong'].includes(entry.type));
-    const todayGame = gameToday.length > 0 || playAlongToday.length > 0;
+    const todayLesson = state.history.some((entry) => entry.date === todayKey && !['game', 'playalong', 'freeplay'].includes(entry.type));
+    const todayGame = gameToday.length > 0 || playAlongToday.length > 0 || freePlayToday.length > 0;
     const dueReviews = dueReviewItems();
     const quests = [
       { done: todayLesson, label: '完成 1 次课程练习', detail: todayLesson ? '已完成' : '开始今日课程' },
-      { done: todayGame, label: '完成一次听辨或跟弹', detail: gameToday.length || playAlongToday.length ? `今日 ${gameToday.length + playAlongToday.length} 局` : '约 2 分钟' },
+      { done: todayGame, label: '完成一次短练或音乐游戏', detail: gameToday.length || playAlongToday.length || freePlayToday.length ? `今日 ${gameToday.length + playAlongToday.length + freePlayToday.length} 次` : '约 2 分钟' },
       { done: todayMinutes >= 20, label: '累计练习 20 分钟', detail: `${Math.min(todayMinutes, 20)} / 20 分钟` }
     ];
     const questList = document.querySelector('#dailyQuestList');
@@ -425,7 +426,7 @@
     }
 
     const todayEntries = state.history.filter((entry) => entry.date === todayKey);
-    const todayLessonAttempts = todayEntries.filter((entry) => entry.type !== 'quick' && entry.type !== 'playalong' && entry.type !== 'game' && entry.type !== 'repertoire');
+    const todayLessonAttempts = todayEntries.filter((entry) => !['quick', 'playalong', 'game', 'repertoire', 'freeplay'].includes(entry.type));
     const todayMasteryEntry = todayLessonAttempts.find((entry) => Number(state.mastery?.[entry.id]?.best || 0) >= MASTERY_PASS_PERCENT);
     const mainDone = todayLessonAttempts.length > 0;
     const checkDone = Boolean(todayMasteryEntry);
@@ -556,7 +557,7 @@
     const gameSessions = (state.gameSessions || []).length;
     const playAlongSessions = Object.values(state.playAlong || {}).length;
     const playAlongAccuracy = Object.values(state.playAlong || {}).reduce((sum, item) => sum + (Number(item.bestAccuracy) || 0), 0) / Math.max(1, playAlongSessions);
-    const reviewEntries = (state.history || []).filter((entry) => entry.type !== 'game' && (entry.rating <= 2 || entry.notes)).length;
+    const reviewEntries = (state.history || []).filter((entry) => !['game', 'freeplay'].includes(entry.type) && (entry.rating <= 2 || entry.notes)).length;
     const read = Math.min(100, Math.round(sightEntries * 4 + avgMastery * 0.35 + completedLessons * 1.5));
     const technique = Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45 + playAlongSessions * 2));
     const repertoire = Math.min(100, Math.round(repertoirePhases * 12 + completedLessons * 2));
@@ -641,7 +642,7 @@
     if (!state.history.length) {
       $('#historyList').innerHTML = `<div class="empty-history">完成第一次练习后，这里会留下你的声音记录。</div>`;
     } else {
-      $('#historyList').innerHTML = state.history.slice(0, 12).map((entry) => `<div class="history-item"><span class="history-icon">♪</span><div><strong>${escapeHtml(entry.title)}</strong><small>第 ${entry.week} 周 · ${entry.date} · ${entry.ratingLabel || '已记录'}${entry.notes ? ` · ${escapeHtml(entry.notes)}` : ''}</small></div><span>${entry.minutes} 分钟</span></div>`).join('');
+      $('#historyList').innerHTML = state.history.slice(0, 12).map((entry) => `<div class="history-item"><span class="history-icon">♪</span><div><strong>${escapeHtml(entry.title)}</strong><small>${entry.week ? `第 ${entry.week} 周` : '自由练习'} · ${entry.date} · ${entry.ratingLabel || '已记录'}${entry.notes ? ` · ${escapeHtml(entry.notes)}` : ''}</small></div><span>${entry.minutes} 分钟</span></div>`).join('');
     }
   }
 
@@ -1830,6 +1831,10 @@
   let rhythmPausedAt = 0;
   let freePlayActive = false;
   let freePlayOctaveOffset = 0;
+  let freePlayStartedAt = 0;
+  let freePlayKeyCount = 0;
+  let freePlayNotes = new Set();
+  let freePlaySaved = false;
 
   function pianoKeyboardMarkup(whiteKeys, blackKeys) {
     const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
@@ -1871,6 +1876,12 @@
     const key = [...keys.white, ...keys.black].find((candidate) => candidate.note === note);
     if (!key) return;
     playTone(261.63 * Math.pow(2, (note - 60) / 12), .34);
+    freePlayKeyCount += 1;
+    freePlayNotes.add(note);
+    const keyCountLabel = document.querySelector('#freePlayKeyCount');
+    const uniqueCountLabel = document.querySelector('#freePlayUniqueCount');
+    if (keyCountLabel) keyCountLabel.textContent = `${freePlayKeyCount} 次触键`;
+    if (uniqueCountLabel) uniqueCountLabel.textContent = `${freePlayNotes.size} 个音`;
     const keyElement = document.querySelector(`#freePlayKeyboard .rhythm-key[data-note="${note}"]`);
     keyElement?.classList.add('pressed');
     setTimeout(() => keyElement?.classList.remove('pressed'), 130);
@@ -1884,6 +1895,14 @@
     stopRhythmPiano();
     stopFreePlay();
     freePlayActive = true;
+    freePlayStartedAt = performance.now();
+    freePlayKeyCount = 0;
+    freePlayNotes = new Set();
+    freePlaySaved = false;
+    const keyCountLabel = document.querySelector('#freePlayKeyCount');
+    const uniqueCountLabel = document.querySelector('#freePlayUniqueCount');
+    if (keyCountLabel) keyCountLabel.textContent = '0 次触键';
+    if (uniqueCountLabel) uniqueCountLabel.textContent = '0 个音';
     document.querySelector('#rhythmPianoHome')?.classList.add('hidden');
     document.querySelector('#rhythmPianoStage')?.classList.add('hidden');
     document.querySelector('#rhythmPianoResult')?.classList.add('hidden');
@@ -1895,7 +1914,38 @@
     renderFreePlayKeyboard();
   }
 
+  function saveFreePlaySession() {
+    if (freePlaySaved || !freePlayStartedAt) return;
+    freePlaySaved = true;
+    const elapsedMinutes = Math.max(1, Math.min(30, Math.round((performance.now() - freePlayStartedAt) / 60000) || 1));
+    if (!freePlayKeyCount) return;
+    const uniqueNotes = freePlayNotes.size;
+    const today = localDateKey(new Date());
+    const reviewsBeforeFreePlay = JSON.stringify(state.reviews || {});
+    state.history = [{
+      id: `free-play-${Date.now()}`,
+      type: 'freeplay',
+      title: '自由弹电子琴',
+      week: 0,
+      date: today,
+      minutes: elapsedMinutes,
+      rating: 3,
+      ratingLabel: '自由弹',
+      notes: `${freePlayKeyCount} 次触键 · ${uniqueNotes} 个不同音`,
+      sightDone: 0,
+      freePlayKeys: freePlayKeyCount,
+      freePlayUniqueNotes: uniqueNotes,
+      completedAt: new Date().toISOString()
+    }, ...state.history].slice(0, 400);
+    state.reviews = JSON.parse(reviewsBeforeFreePlay);
+    APP.persist();
+    APP.renderAll();
+    updateProgressDisplay();
+    APP.showToast('自由弹练习已记入学习记录。');
+  }
+
   function closeFreePiano() {
+    saveFreePlaySession();
     stopFreePlay();
     document.querySelector('#rhythmFreePlay')?.classList.add('hidden');
     document.querySelector('#rhythmPianoHome')?.classList.remove('hidden');
@@ -1904,6 +1954,7 @@
 
   function stopFreePlay() {
     freePlayActive = false;
+    freePlayStartedAt = 0;
     document.querySelectorAll('#freePlayKeyboard .rhythm-key.pressed').forEach((key) => key.classList.remove('pressed'));
   }
 
@@ -1931,6 +1982,7 @@
   }
 
   function closeRhythmPiano() {
+    if (freePlayActive) saveFreePlaySession();
     stopRhythmPiano();
     stopFreePlay();
     document.querySelector('#rhythmPianoModal')?.classList.add('hidden');
@@ -2882,7 +2934,9 @@
     active: freePlayActive,
     octaveOffset: freePlayOctaveOffset,
     range: freePlayRangeLabel(),
-    lastNote: document.querySelector('#freePlayLastNote')?.textContent || ''
+    lastNote: document.querySelector('#freePlayLastNote')?.textContent || '',
+    keyCount: freePlayKeyCount,
+    uniqueNotes: freePlayNotes.size
   });
   APP.getRhythmSnapshot = () => ({
     active: rhythmActive,

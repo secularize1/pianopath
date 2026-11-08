@@ -22,18 +22,22 @@ for (const file of runtimeFiles) {
 const app = fs.readFileSync('app.js', 'utf8');
 const expected = {
   playAlongLowerBlack: "input: 's'",
-  lowerKeyboardRow: "keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';'",
-  upperKeyboardRow: "keys: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']'",
+  whiteKeyboardRow: "keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';'",
+  blackKeyboardRow: "keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']",
   keyboardGuide: 'function keyboardGuideMarkup()',
   keyboardGuidePreview: 'function previewKeyboardGuideKey(note, key)',
-  lowerPhysicalCodes: "codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote', 'Enter']",
-  upperPhysicalCodes: "codes: ['KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash']"
+  whitePhysicalCodes: "codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote', 'Enter', 'NumpadDecimal', 'NumpadEnter', 'NumpadAdd']",
+  blackPhysicalCodes: "codes: ['Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9', 'Numpad0']",
+  pianoSampleEngine: 'PIANO_SAMPLE_SOURCES',
+  pianoSynthFallback: 'function playSynthPiano(freq, duration)'
 };
 for (const [label, fragment] of Object.entries(expected)) {
   if (!app.includes(fragment)) issues.push(`app.js: missing ${label} keyboard mapping`);
 }
 if (!app.includes('data-key="${key.key}"')) issues.push('app.js: rhythm keys must expose data-key');
 if (!app.includes('data-code="${key.code}"')) issues.push('app.js: rhythm keys must expose physical key codes');
+if (!app.includes('function blackKeyGeometry(')) issues.push('app.js: black keys must use piano geometry');
+if (!fs.existsSync('assets/audio/piano/C4.mp3')) issues.push('assets: piano samples missing');
 if (!fs.readFileSync('index.html', 'utf8').includes('id="keyboardGuideModal"')) issues.push('index.html: keyboard guide modal missing');
-console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'two-row-chromatic', issues }, null, 2));
+console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', issues }, null, 2));
 assert.deepEqual(issues, []);

@@ -116,6 +116,32 @@
     return Boolean(item && item.dueAt && item.dueAt <= localDateKey(new Date()));
   }
 
+  function reviewSource(sourceId) {
+    const lesson = window.PIANO_APP.findSession(sourceId);
+    const piece = (window.PIANO_APP.DATA.repertoire || []).find((candidate) => candidate.id === sourceId);
+    return lesson || piece || null;
+  }
+
+  function reviewSessionFor(item) {
+    if (!item?.sourceId) return null;
+    const source = reviewSource(item.sourceId);
+    if (!source) return null;
+    return {
+      ...source,
+      id: `${source.id}-review-${Date.now()}`,
+      sourceId: source.id,
+      title: `复习：${source.title}`,
+      duration: 10,
+      quick: true,
+      steps: [
+        { start: 0, end: 2, minutes: 2, title: '旧问题定位', category: '复习', detail: item.notes || item.reason || '先找到上次最不稳的两小节。', cue: '不从头弹' },
+        { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: source.steps?.[2]?.detail || source.goal, cue: '分手、慢速、连续三次正确' },
+        { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
+        { start: 9, end: 10, minutes: 1, title: '记录新状态', category: '反馈', detail: '再听/再弹一次，写下现在的感受。', cue: '只记一个变化' }
+      ]
+    };
+  }
+
   function completeReviewItem(sourceId, success) {
     const previous = state.reviews?.[sourceId];
     if (!previous) return;
@@ -771,20 +797,11 @@
       document.querySelector('#reviewCount').textContent = `${reviewItems.length} 项`;
       reviewList.querySelectorAll('[data-review-id]').forEach((button) => button.addEventListener('click', () => {
         const item = reviewItems.find((candidate) => candidate.sourceId === button.dataset.reviewId);
-        if (!item) return;
-        const found = window.PIANO_APP.findSession(item.sourceId);
-        const piece = (window.PIANO_APP.DATA.repertoire || []).find((candidate) => candidate.id === item.sourceId);
-        const source = found || piece;
-        if (!source) {
+        const reviewSession = APP.reviewSessionFor?.(item);
+        if (!reviewSession) {
           APP.showToast('这项复习的原始课程暂时找不到。');
           return;
         }
-        const reviewSession = { ...source, id: `${source.id}-review-${Date.now()}`, sourceId: source.id, title: `复习：${source.title}`, duration: 10, quick: true, steps: [
-          { start: 0, end: 2, minutes: 2, title: '旧问题定位', category: '复习', detail: item.notes || item.reason || '先找到上次最不稳的两小节。', cue: '不从头弹' },
-          { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: found?.steps?.[2]?.detail || source.goal, cue: '分手、慢速、连续三次正确' },
-          { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
-          { start: 9, end: 10, minutes: 1, title: '记录新状态', category: '反馈', detail: '再听/再弹一次，写下现在的感受。', cue: '只记一个变化' }
-        ] };
         window.PIANO_OPEN_SESSION?.(reviewSession);
       }));
     }
@@ -850,7 +867,7 @@
   window.PIANO_APP = {
     state, DATA, persist, renderAll, updateNav, showToast, findSession,
     sessionsForWeek, currentWeekData, currentSessionData, streakCount,
-    addReviewItem, completeReviewItem, dueReviewItems,
+    addReviewItem, completeReviewItem, dueReviewItems, reviewSessionFor,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
     getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar, startStagePractice,
     replaceState(nextState) {
@@ -1886,22 +1903,180 @@
     $$('.install-button').forEach((button) => button.classList.add('hidden'));
   }
 
-  function playTone(freq=440, duration=.24) {
+  const PIANO_SAMPLE_SOURCES = [
+    ['C3', 'assets/audio/piano/C3.mp3', 48], ['Db3', 'assets/audio/piano/Db3.mp3', 49],
+    ['D3', 'assets/audio/piano/D3.mp3', 50], ['Eb3', 'assets/audio/piano/Eb3.mp3', 51],
+    ['E3', 'assets/audio/piano/E3.mp3', 52], ['F3', 'assets/audio/piano/F3.mp3', 53],
+    ['Gb3', 'assets/audio/piano/Gb3.mp3', 54], ['G3', 'assets/audio/piano/G3.mp3', 55],
+    ['Ab3', 'assets/audio/piano/Ab3.mp3', 56], ['A3', 'assets/audio/piano/A3.mp3', 57],
+    ['Bb3', 'assets/audio/piano/Bb3.mp3', 58], ['B3', 'assets/audio/piano/B3.mp3', 59],
+    ['C4', 'assets/audio/piano/C4.mp3', 60], ['Db4', 'assets/audio/piano/Db4.mp3', 61],
+    ['D4', 'assets/audio/piano/D4.mp3', 62], ['Eb4', 'assets/audio/piano/Eb4.mp3', 63],
+    ['E4', 'assets/audio/piano/E4.mp3', 64], ['F4', 'assets/audio/piano/F4.mp3', 65],
+    ['Gb4', 'assets/audio/piano/Gb4.mp3', 66], ['G4', 'assets/audio/piano/G4.mp3', 67],
+    ['Ab4', 'assets/audio/piano/Ab4.mp3', 68], ['A4', 'assets/audio/piano/A4.mp3', 69],
+    ['Bb4', 'assets/audio/piano/Bb4.mp3', 70], ['B4', 'assets/audio/piano/B4.mp3', 71],
+    ['C5', 'assets/audio/piano/C5.mp3', 72], ['D5', 'assets/audio/piano/D5.mp3', 74]
+  ];
+  let pianoAudioContext = null;
+  let pianoMasterGain = null;
+  const pianoSampleBuffers = new Map();
+  const pianoSampleLoading = new Map();
+  let pianoSamplesPreloading = false;
+  let sampledPlaybackCount = 0;
+  let synthPlaybackCount = 0;
+  let lastPlaybackEngine = 'none';
+
+  function getPianoAudioContext() {
+    if (pianoAudioContext) return pianoAudioContext;
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
+      if (!AudioCtx) return null;
+      pianoAudioContext = new AudioCtx();
+      const compressor = pianoAudioContext.createDynamicsCompressor();
+      compressor.threshold.value = -20;
+      compressor.knee.value = 14;
+      compressor.ratio.value = 5;
+      compressor.attack.value = .004;
+      compressor.release.value = .22;
+      pianoMasterGain = pianoAudioContext.createGain();
+      pianoMasterGain.gain.value = .72;
+      pianoMasterGain.connect(compressor).connect(pianoAudioContext.destination);
+      return pianoAudioContext;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function canLoadPianoSamples(path = '') {
+    return location.protocol !== 'file:' || String(path).startsWith('data:');
+  }
+
+  function loadPianoSample(source) {
+    const [name, path, midi] = source;
+    if (pianoSampleBuffers.has(midi)) return Promise.resolve(pianoSampleBuffers.get(midi));
+    if (pianoSampleLoading.has(midi)) return pianoSampleLoading.get(midi);
+    const ctx = getPianoAudioContext();
+    if (!ctx || !canLoadPianoSamples(path)) return Promise.resolve(null);
+    const loading = fetch(path)
+      .then((response) => {
+        if (!response.ok) throw new Error('sample unavailable');
+        return response.arrayBuffer();
+      })
+      .then((buffer) => new Promise((resolve, reject) => ctx.decodeAudioData(buffer, resolve, reject)))
+      .then((buffer) => {
+        pianoSampleBuffers.set(midi, buffer);
+        return buffer;
+      })
+      .catch(() => null)
+      .finally(() => pianoSampleLoading.delete(midi));
+    pianoSampleLoading.set(midi, loading);
+    return loading;
+  }
+
+  function preloadPianoSamples() {
+    if (pianoSamplesPreloading) return Promise.resolve([...pianoSampleBuffers.values()]);
+    pianoSamplesPreloading = true;
+    return Promise.all(PIANO_SAMPLE_SOURCES.map(loadPianoSample)).then((buffers) => buffers.filter(Boolean));
+  }
+
+  function refreshPianoSoundHint() {
+    const hint = document.querySelector('#freePlayHint');
+    if (!hint) return;
+    const sampled = pianoSampleBuffers.size > 0;
+    hint.textContent = sampled ? '三角钢琴采样 · 触屏或键盘演奏' : '合成钢琴 · 触屏或键盘演奏';
+  }
+
+  function nearestPianoSample(midi) {
+    return PIANO_SAMPLE_SOURCES.reduce((best, source) => Math.abs(source[2] - midi) < Math.abs(best[2] - midi) ? source : best, PIANO_SAMPLE_SOURCES[0]);
+  }
+
+  function playSampledPiano(midi, duration) {
+    const ctx = getPianoAudioContext();
+    if (!ctx) return false;
+    const sample = nearestPianoSample(midi);
+    const buffer = pianoSampleBuffers.get(sample[2]);
+    if (!buffer) return false;
+    ctx.resume?.().catch?.(() => {});
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    const tail = Math.max(.75, Math.min(2.8, Number(buffer.duration) || 1.6));
+    source.buffer = buffer;
+    source.playbackRate.value = Math.pow(2, (midi - sample[2]) / 12);
+    gain.gain.setValueAtTime(.30, now);
+    gain.gain.exponentialRampToValueAtTime(.11, now + Math.min(.35, tail * .3));
+    gain.gain.exponentialRampToValueAtTime(.0008, now + tail);
+    source.connect(gain).connect(pianoMasterGain);
+    source.start(now);
+    source.stop(now + tail + .03);
+    sampledPlaybackCount += 1;
+    lastPlaybackEngine = 'sample';
+    return true;
+  }
+
+  function playSynthPiano(freq, duration) {
+    const ctx = getPianoAudioContext();
+    if (!ctx) return;
+    ctx.resume?.().catch?.(() => {});
+    const now = ctx.currentTime;
+    const envelope = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(Math.min(5200, freq * 12), now);
+    filter.Q.value = .7;
+    envelope.gain.setValueAtTime(.0001, now);
+    envelope.gain.exponentialRampToValueAtTime(.16, now + .012);
+    envelope.gain.exponentialRampToValueAtTime(.075, now + .09);
+    envelope.gain.exponentialRampToValueAtTime(.001, now + Math.max(duration, .34));
+    envelope.connect(filter).connect(pianoMasterGain);
+    [
+      { type: 'triangle', ratio: 1, level: .62, detune: 0 },
+      { type: 'sine', ratio: 2, level: .24, detune: 2 },
+      { type: 'sine', ratio: 3, level: .10, detune: -2 }
+    ].forEach((voice) => {
       const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(.07, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + duration);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + duration + .01);
-      osc.onended = () => ctx.close();
+      const voiceGain = ctx.createGain();
+      osc.type = voice.type;
+      osc.frequency.value = freq * voice.ratio;
+      osc.detune.value = voice.detune;
+      voiceGain.gain.value = voice.level;
+      osc.connect(voiceGain).connect(envelope);
+      osc.start(now);
+      osc.stop(now + Math.max(duration, .4));
+    });
+    const clickBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * .045), ctx.sampleRate);
+    const clickData = clickBuffer.getChannelData(0);
+    for (let index = 0; index < clickData.length; index += 1) clickData[index] = (Math.random() * 2 - 1) * (1 - index / clickData.length);
+    const click = ctx.createBufferSource();
+    const clickGain = ctx.createGain();
+    click.buffer = clickBuffer;
+    clickGain.gain.setValueAtTime(.055, now);
+    clickGain.gain.exponentialRampToValueAtTime(.001, now + .045);
+    click.connect(clickGain).connect(pianoMasterGain);
+    click.start(now);
+    synthPlaybackCount += 1;
+    lastPlaybackEngine = 'synth';
+  }
+
+  function playTone(freq=440, duration=.24, midiOverride=null) {
+    try {
+      const midi = Number.isFinite(Number(midiOverride)) ? Number(midiOverride) : Math.round(69 + 12 * Math.log2(freq / 440));
+      if (!playSampledPiano(midi, duration)) {
+        playSynthPiano(freq, duration);
+        if (PIANO_SAMPLE_SOURCES.some(([, path]) => canLoadPianoSamples(path))) {
+          loadPianoSample(nearestPianoSample(midi)).then((buffer) => {
+            if (buffer && !freePlayActive && !rhythmActive) playSampledPiano(midi, duration);
+          });
+        }
+      }
     } catch (error) {}
+  }
+
+  function ensurePianoSamplesLoaded() {
+    const hint = document.querySelector('#freePlayHint');
+    if (hint && pianoSampleBuffers.size === 0) hint.textContent = '三角钢琴音色加载中…';
+    preloadPianoSamples().then(refreshPianoSoundHint);
   }
 
   function updateNoteGame() {
@@ -2018,21 +2193,21 @@
 
 
   const RHYTHM_LEAD_BEATS = 3.5;
-  // Two physical keyboard rows. Each row is a continuous chromatic run from low to high.
-  // Lower row: C3-C4 (Z X C V B N M , . / ; ' Enter)
-  // Upper row: C#4-D5 (Q W E R T Y U I O P [ ] \)
+  // Two performance layers: white keys below, black keys on the numeric keypad above.
   const RHYTHM_KEYBOARD_ROWS = [
     {
-      label: '下排 · 低音 C3–C4',
-      keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';', "'", 'Enter'],
-      codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote', 'Enter'],
-      notes: [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60]
+      type: 'white',
+      label: '下排 · 白键 C3–D5',
+      keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';', "'", 'Enter', '.', 'Enter', '+'],
+      codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote', 'Enter', 'NumpadDecimal', 'NumpadEnter', 'NumpadAdd'],
+      notes: [48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74]
     },
     {
-      label: '上排 · 高音 C#4–D5',
-      keys: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
-      codes: ['KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash'],
-      notes: [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 74]
+      type: 'black',
+      label: '上排 · 黑键 C#3–A#4',
+      keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+      codes: ['Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9', 'Numpad0'],
+      notes: [49, 51, 54, 56, 58, 61, 63, 66, 68, 70]
     }
   ];
   const RHYTHM_KEY_BY_NOTE = new Map(RHYTHM_KEYBOARD_ROWS.flatMap((row) => row.notes.map((note, index) => [note, row.keys[index]])));
@@ -2108,31 +2283,44 @@
 
   const RHYTHM_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-  function computerKeyLabel(value) {
+  function computerKeyLabel(value, code = '') {
+    if (code.startsWith('Numpad')) {
+      const suffix = code === 'NumpadEnter' ? '↵' : code === 'NumpadAdd' ? '+' : code === 'NumpadDecimal' ? '.' : code.replace('Numpad', '');
+      return `N${suffix}`;
+    }
     return value === 'Enter' ? '↵' : value === '\\' ? '\\' : value.toUpperCase();
   }
 
+  function blackKeyGeometry(note, whiteKeys) {
+    const whiteWidth = 100 / Math.max(1, whiteKeys.length);
+    const whiteIndex = whiteKeys.filter((key) => key.note < note).length;
+    const width = whiteWidth * 0.62;
+    return { left: whiteIndex * whiteWidth - width / 2, width };
+  }
+
   function pianoKeyboardMarkup(whiteKeys, blackKeys) {
-    const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
-    const keyMarkup = (key, extra = '') => `<button type="button" class="rhythm-key ${key.black ? 'black' : 'white'}" data-note="${key.note}" data-key="${key.key}" data-code="${key.code}" ${extra} aria-label="${key.name}，键盘 ${computerKeyLabel(key.key)}" aria-keyshortcuts="${computerKeyLabel(key.key)}"><span>${key.name.replace(/\d/, '')}</span><small>${computerKeyLabel(key.key)}</small></button>`;
-    const white = whiteKeys.map((key) => keyMarkup(key)).join('');
-    const black = blackKeys.map((key, index) => keyMarkup({ ...key, black: true }, `style="left:${blackLeft[index]}%"`)).join('');
-    return white + black;
+    const keyMarkup = (key, extra = '') => `<button type="button" class="rhythm-key ${key.black ? 'black' : 'white'}" data-note="${key.note}" data-key="${key.key}" data-code="${key.code}" ${extra} aria-label="${key.name}，键盘 ${computerKeyLabel(key.key, key.code)}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\\d/, '')}</span><small>${computerKeyLabel(key.key, key.code)}</small></button>`;
+    const whiteWidth = 100 / Math.max(1, whiteKeys.length);
+    const white = whiteKeys.map((key, index) => keyMarkup(key, `style="left:${index * whiteWidth}%;width:${whiteWidth}%"`)).join('');
+    const black = blackKeys.map((key) => {
+      const geometry = blackKeyGeometry(key.note, whiteKeys);
+      return keyMarkup({ ...key, black: true }, `style="left:${geometry.left}%;width:${geometry.width}%"`);
+    }).join('');
+    return `<div class="rhythm-keybed">${white}${black}</div>`;
   }
 
   function keyboardGuideMarkup() {
-    return RHYTHM_KEYBOARD_ROWS.map((row) => {
-      const keys = row.keys.map((key, index) => {
-        const note = row.notes[index];
-        const code = row.codes[index];
-        const black = [1, 3, 6, 8, 10].includes(note % 12);
-        const noteName = `${RHYTHM_NOTE_NAMES[note % 12]}${Math.floor(note / 12) - 1}`;
-        return `<button type="button" class="keyboard-guide-key ${black ? 'black' : 'white'}" data-guide-note="${note}" data-guide-code="${code}" aria-label="${noteName}，键盘 ${computerKeyLabel(key)}"><b>${computerKeyLabel(key)}</b><small>${noteName}</small></button>`;
-      }).join('');
-      return `<div class="keyboard-guide-row"><header><strong>${row.label.split(' · ')[0]}</strong><span>${row.label.split(' · ')[1]}</span></header><div class="keyboard-guide-keys">${keys}</div></div>`;
+    const guideKeyMarkup = (key, extra = '') => {
+      const noteName = `${RHYTHM_NOTE_NAMES[key.note % 12]}${Math.floor(key.note / 12) - 1}`;
+      return `<button type="button" class="keyboard-guide-key ${key.black ? 'black' : 'white'}" data-guide-note="${key.note}" data-guide-code="${key.code}" ${extra} aria-label="${noteName}，键盘 ${computerKeyLabel(key.key, key.code)}"><b>${computerKeyLabel(key.key, key.code)}</b><small>${noteName}</small></button>`;
+    };
+    const white = RHYTHM_WHITE_KEYS.map((key) => guideKeyMarkup(key)).join('');
+    const black = RHYTHM_BLACK_KEYS.map((key) => {
+      const geometry = blackKeyGeometry(key.note, RHYTHM_WHITE_KEYS);
+      return guideKeyMarkup({ ...key, black: true }, `style="left:${geometry.left}%;width:${geometry.width}%"`);
     }).join('');
+    return `<div class="keyboard-guide-piano"><div class="keyboard-guide-keybed"><div class="keyboard-guide-blacks">${black}</div><div class="keyboard-guide-whites">${white}</div></div></div>`;
   }
-
   function guideKeyForEvent(event) {
     return RHYTHM_KEYBOARD_ROWS.flatMap((row) => row.keys.map((key, index) => ({
       key,
@@ -2147,11 +2335,11 @@
     document.querySelectorAll('.keyboard-guide-key').forEach((key) => key.classList.toggle('target', Number(key.dataset.guideNote) === expected));
     const instrumentKey = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((key) => key.note === expected);
     const status = document.querySelector('#keyboardGuideStatus');
-    if (status && instrumentKey && keyboardGuideStep < KEYBOARD_GUIDE_SEQUENCE.length) status.textContent = `先找 ${instrumentKey.name} · 按 ${computerKeyLabel(instrumentKey.key)}`;
+    if (status && instrumentKey && keyboardGuideStep < KEYBOARD_GUIDE_SEQUENCE.length) status.textContent = `先找 ${instrumentKey.name} · 按 ${computerKeyLabel(instrumentKey.key, instrumentKey.code)}`;
   }
 
   function previewKeyboardGuideKey(note, key) {
-    playTone(261.63 * Math.pow(2, (note - 60) / 12), .28);
+    playTone(261.63 * Math.pow(2, (note - 60) / 12), .28, note);
     const target = document.querySelector(`.keyboard-guide-key[data-guide-note="${note}"]`);
     target?.classList.add('pressed');
     setTimeout(() => target?.classList.remove('pressed'), 180);
@@ -2169,10 +2357,10 @@
       if (complete) status.textContent = '三键都找到了，开始弹吧。';
       else if (note === expected) {
         const next = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((item) => item.note === KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep]);
-        status.textContent = next ? `很好 · 下一个 ${next.name}（${computerKeyLabel(next.key)}）` : `${key.name} · ${computerKeyLabel(key.key)}`;
+        status.textContent = next ? `很好 · 下一个 ${next.name}（${computerKeyLabel(next.key, next.code)}）` : `${key.name} · ${computerKeyLabel(key.key, key.code)}`;
       } else {
         const expectedKey = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((item) => item.note === expected);
-        status.textContent = `${key.name} 也能弹 · 先找 ${expectedKey?.name || ''}（${expectedKey ? computerKeyLabel(expectedKey.key) : ''}）`;
+        status.textContent = `${key.name} 也能弹 · 先找 ${expectedKey?.name || ''}（${expectedKey ? computerKeyLabel(expectedKey.key, expectedKey.code) : ''}）`;
       }
     }
     syncKeyboardGuideTarget();
@@ -2232,7 +2420,7 @@
     const keys = rhythmKeysForOffset(freePlayOctaveOffset);
     const key = [...keys.white, ...keys.black].find((candidate) => candidate.note === note);
     if (!key) return;
-    playTone(261.63 * Math.pow(2, (note - 60) / 12), .34);
+    playTone(261.63 * Math.pow(2, (note - 60) / 12), .34, note);
     freePlayKeyCount += 1;
     freePlayNotes.add(note);
     const keyCountLabel = document.querySelector('#freePlayKeyCount');
@@ -2424,6 +2612,7 @@
   }
 
   function openFreePiano(showGuide = true) {
+    ensurePianoSamplesLoaded();
     stopRhythmPiano();
     stopFreePlay();
     freePlayActive = true;
@@ -2518,6 +2707,7 @@
   }
 
   function openRhythmPiano() {
+    ensurePianoSamplesLoaded();
     stopRhythmPiano();
     stopFreePlay();
     document.querySelector('#rhythmFreePlay')?.classList.add('hidden');
@@ -2674,7 +2864,7 @@
         target = event;
       }
     }
-    playTone(261.63 * Math.pow(2, (note - 60) / 12), .22);
+    playTone(261.63 * Math.pow(2, (note - 60) / 12), .22, note);
     const keyElement = document.querySelector(`.rhythm-key[data-note="${note}"]`);
     keyElement?.classList.add('pressed');
     setTimeout(() => keyElement?.classList.remove('pressed'), 130);
@@ -3301,7 +3491,15 @@
       if (!modal || modal.classList.contains('hidden')) return;
       if (event.target.closest('.modal-backdrop') !== modal) activateModalFocus(modal);
     });
-    $('#dueReviewLink')?.addEventListener('click', () => APP.updateNav('stats'));
+    $('#dueReviewLink')?.addEventListener('click', () => {
+      const item = APP.dueReviewItems()[0];
+      const reviewSession = APP.reviewSessionFor?.(item);
+      if (!reviewSession) {
+        APP.updateNav('stats');
+        return;
+      }
+      window.PIANO_OPEN_SESSION?.(reviewSession);
+    });
     $('#startRhythmGame')?.addEventListener('click', openNoteGame);
     $('#startPlayAlongHome')?.addEventListener('click', openPlayAlong);
     document.querySelectorAll('#onboardingForm .choice-chip').forEach((button) => {
@@ -3643,6 +3841,9 @@
   APP.closeLegalView = closeLegalView;
   APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;
+  APP.preloadPianoSamples = preloadPianoSamples;
+  APP.getAudioSnapshot = () => ({ engine: 'sampled-grand-piano', samples: PIANO_SAMPLE_SOURCES.length, loaded: pianoSampleBuffers.size, sampledPlaybackCount, synthPlaybackCount, lastPlaybackEngine, fallback: 'multi-layer-synth' });
+  APP.getKeyboardMap = () => RHYTHM_KEYBOARD_ROWS.map((row) => ({ type: row.type, notes: row.notes.slice(), keys: row.keys.slice(), codes: row.codes.slice() }));
 
   const accountState = {
     loggedIn: false,

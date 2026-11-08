@@ -248,11 +248,13 @@ def public_path(path: str) -> bool:
     relative = path.lstrip("/")
     if relative.startswith("assets/covers/") and "/" not in relative[len("assets/covers/"):]:
         return relative.rsplit(".", 1)[-1].lower() in {"jpg", "jpeg", "png", "webp", "svg"}
+    if relative.startswith("assets/audio/piano/") and "/" not in relative[len("assets/audio/piano/"):]:
+        return relative.rsplit(".", 1)[-1].lower() == "mp3"
     return relative in PUBLIC_FILES
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "PianoPath/1.23"
+    server_version = "PianoPath/1.29"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)

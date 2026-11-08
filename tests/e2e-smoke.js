@@ -11,8 +11,8 @@ const assert = require('assert');
 
 const ROOT = path.resolve(__dirname, '..');
 const EXPECTED_RHYTHM_KEYS = Object.freeze({
-  lower: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';', "'", 'Enter'],
-  upper: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\']
+  white: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';', "'", 'Enter', '.', 'Enter', '+'],
+  black: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 });
 
 const INDEX = 'file:///' + path.join(ROOT, 'index.html').replace(/\\/g, '/');
@@ -215,27 +215,48 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('#startFreePiano').click();
     await page.waitForTimeout(200);
     assert.equal(await page.locator('#keyboardGuideModal').isVisible(), true, `${name}: first free-play tutorial missing`);
-    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-row').count(), 2, `${name}: keyboard tutorial should have two rows`);
-    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-key').count(), 26, `${name}: keyboard tutorial should show 26 keys`);
-    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-key').first().innerText(), 'Z\nC3', `${name}: keyboard tutorial first key wrong`);
-    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-row').last().locator('.keyboard-guide-key').last().innerText(), '\\\nD5', `${name}: keyboard tutorial last key wrong`);
+    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-piano').count(), 1, `${name}: tutorial should use one piano keybed`);
+    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-whites .keyboard-guide-key').count(), 16, `${name}: tutorial should show 16 white keys`);
+    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-blacks .keyboard-guide-key').count(), 10, `${name}: tutorial should show 10 black keys`);
+    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-whites .keyboard-guide-key').first().innerText(), 'Z\nC3', `${name}: keyboard tutorial first key wrong`);
+    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-whites .keyboard-guide-key').last().innerText(), 'N+\nD5', `${name}: keyboard tutorial last white key wrong`);
+    assert.equal(await page.locator('#keyboardGuideRows .keyboard-guide-blacks .keyboard-guide-key').first().innerText(), 'N1\nC#3', `${name}: keyboard tutorial first black key wrong`);
+    const keyGeometry = await page.evaluate(() => {
+      const rect = (selector) => {
+        const bounds = document.querySelector(selector).getBoundingClientRect();
+        return { left: bounds.left, right: bounds.right, top: bounds.top, bottom: bounds.bottom };
+      };
+      return {
+        c4: rect('.keyboard-guide-key[data-guide-note="60"]'),
+        d4: rect('.keyboard-guide-key[data-guide-note="62"]'),
+        cs4: rect('.keyboard-guide-key[data-guide-note="61"]'),
+        f4: rect('.keyboard-guide-key[data-guide-note="65"]'),
+        g4: rect('.keyboard-guide-key[data-guide-note="67"]'),
+        fs4: rect('.keyboard-guide-key[data-guide-note="66"]'),
+        white: rect('.keyboard-guide-whites .keyboard-guide-key.white'),
+        black: rect('.keyboard-guide-blacks .keyboard-guide-key.black')
+      };
+    });
+    assert.ok(keyGeometry.cs4.left > keyGeometry.c4.left && keyGeometry.cs4.right < keyGeometry.d4.right, `${name}: C sharp 4 is not between C4 and D4`);
+    assert.ok(keyGeometry.fs4.left > keyGeometry.f4.left && keyGeometry.fs4.right < keyGeometry.g4.right, `${name}: F sharp 4 is not between F4 and G4`);
+    assert.ok(keyGeometry.black.top >= keyGeometry.white.top - 1 && keyGeometry.black.bottom < keyGeometry.white.bottom - 8, `${name}: black keys are not layered over the upper portion of white keys`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), 0, `${name}: keyboard tutorial overflow`);
     if (name === 'mobile') {
-      assert.equal(await page.evaluate(() => [...document.querySelectorAll('.keyboard-guide-keys')].every((row) => row.scrollWidth <= row.clientWidth + 1)), true, `${name}: keyboard tutorial rows should fit without internal scrolling`);
+      assert.equal(await page.evaluate(() => { const bed = document.querySelector('.keyboard-guide-keybed'); return bed.scrollWidth <= bed.clientWidth + 1; }), true, `${name}: keyboard tutorial should fit without internal scrolling`);
     }
     assert.equal(await page.locator('.keyboard-guide-key.target').getAttribute('data-guide-note'), '48', `${name}: first tutorial target missing`);
     await page.keyboard.press('z');
     await page.waitForTimeout(40);
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '1 / 3', `${name}: tutorial keyboard progress wrong`);
     assert.equal(await page.locator('.keyboard-guide-key.target').getAttribute('data-guide-note'), '49', `${name}: second tutorial target missing`);
-    await page.locator('.keyboard-guide-key[data-guide-note="55"]').click();
+    await page.keyboard.press('a');
     await page.waitForTimeout(40);
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '1 / 3', `${name}: wrong tutorial key advanced progress`);
     assert.match(await page.locator('#keyboardGuideStatus').innerText(), /先找 C#3/, `${name}: wrong tutorial key gave no recovery cue`);
-    await page.locator('.keyboard-guide-key[data-guide-note="49"]').click();
+    await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: '1', code: 'Numpad1', bubbles: true })));
     await page.waitForTimeout(40);
-    assert.equal(await page.locator('#keyboardGuideCount').innerText(), '2 / 3', `${name}: tutorial pointer preview failed`);
-    await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: '某', code: 'KeyC', bubbles: true })));
+    assert.equal(await page.locator('#keyboardGuideCount').innerText(), '2 / 3', `${name}: tutorial numeric-key preview failed`);
+    await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: '某', code: 'KeyX', bubbles: true })));
     await page.waitForTimeout(40);
     assert.equal(await page.locator('#keyboardGuideStatus').innerText(), '三键都找到了，开始弹吧。', `${name}: tutorial third-key preview failed`);
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '3 / 3 ✓', `${name}: tutorial completion count wrong`);
@@ -307,12 +328,14 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('#freePlayNote').innerText(), 'C4', `${name}: free-play touch note feedback wrong`);
     assert.equal(await page.locator('#freePlayKeyCount').innerText(), '1 次触键', `${name}: free-play key counter wrong`);
     assert.equal(await page.locator('#freePlayUniqueCount').innerText(), '1 个音', `${name}: free-play unique-note counter wrong`);
+    const audioAfterFirstNote = await page.evaluate(() => window.PIANO_APP.getAudioSnapshot());
+    assert.ok(audioAfterFirstNote.sampledPlaybackCount + audioAfterFirstNote.synthPlaybackCount > 0, `${name}: piano produced no audible sound`);
     await page.locator('#freeOctaveUp').click();
     await page.waitForTimeout(80);
     assert.equal(await page.locator('#freePlayOctaveLabel').innerText(), 'C4–D6', `${name}: free-play octave-up range wrong`);
-    await page.keyboard.press('q');
+    await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: '1', code: 'Numpad1', bubbles: true })));
     await page.waitForTimeout(80);
-    assert.equal(await page.locator('#freePlayNote').innerText(), 'C#5', `${name}: free-play computer keyboard did not transpose`);
+    assert.equal(await page.locator('#freePlayNote').innerText(), 'C#4', `${name}: free-play computer keyboard did not transpose`);
     await page.locator('#freeOctaveUp').click();
     assert.equal(await page.locator('#freePlayOctaveLabel').innerText(), 'C5–D7', `${name}: free-play high range wrong`);
     assert.equal(await page.locator('#freeOctaveUp').isDisabled(), true, `${name}: free-play high octave should stop at range limit`);
@@ -338,16 +361,17 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('[data-rhythm-song="twinkle"]').click();
     await page.waitForTimeout(2200);
     assert.equal(await page.locator('#rhythmPianoStage').isVisible(), true, `${name}: rhythm stage missing`);
-    assert.equal(await page.locator('#rhythmKeyHint').innerText(), '下排 Z–↵ · 上排 Q–\\', `${name}: rhythm keyboard hint drifted`);
+    assert.equal(await page.locator('#rhythmKeyHint').innerText(), '白键：字母区 + 小键盘下方 · 黑键：小键盘 N1–N0', `${name}: rhythm keyboard hint drifted`);
     assert.equal(await page.locator('#rhythmKeyboard .rhythm-key').count(), 26, `${name}: rhythm keyboard should have two octaves`);
     assert.equal(await page.locator('#rhythmLanes .rhythm-lane').count(), 16, `${name}: rhythm lanes should align with white keys`);
-    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="60"]').getAttribute('data-key'), 'Enter', `${name}: lower C4 keyboard mapping wrong`);
-    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="60"]').getAttribute('data-code'), 'Enter', `${name}: lower C4 physical code wrong`);
-    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="61"]').getAttribute('data-key'), 'q', `${name}: upper C sharp keyboard mapping wrong`);
-    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="61"]').getAttribute('data-code'), 'KeyQ', `${name}: upper C sharp physical code wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="60"]').getAttribute('data-key'), ',', `${name}: C4 keyboard mapping wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="60"]').getAttribute('data-code'), 'Comma', `${name}: C4 physical code wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="61"]').getAttribute('data-key'), '6', `${name}: C sharp 4 keyboard mapping wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="61"]').getAttribute('data-code'), 'Numpad6', `${name}: C sharp 4 physical code wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="70"]').getAttribute('data-code'), 'Numpad0', `${name}: A sharp 4 physical code wrong`);
     const rhythmKeyGroups = await page.evaluate(() => ({
-      lower: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key')].filter((key) => Number(key.dataset.note) <= 60).sort((a, b) => Number(a.dataset.note) - Number(b.dataset.note)).map((key) => key.dataset.key),
-      upper: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key')].filter((key) => Number(key.dataset.note) > 60).sort((a, b) => Number(a.dataset.note) - Number(b.dataset.note)).map((key) => key.dataset.key)
+      white: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key.white')].sort((a, b) => Number(a.dataset.note) - Number(b.dataset.note)).map((key) => key.dataset.key),
+      black: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key.black')].sort((a, b) => Number(a.dataset.note) - Number(b.dataset.note)).map((key) => key.dataset.key)
     }));
     assert.deepEqual(rhythmKeyGroups, EXPECTED_RHYTHM_KEYS, `${name}: computer keyboard mapping drifted`);
     await page.locator('#rhythmPause').click();
@@ -572,21 +596,33 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.ok(await page.locator('.review-item').count() > 0, `${name}: review item missing`);
     const reviewBefore = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews);
     assert.ok(reviewBefore && Object.keys(reviewBefore).length > 0, `${name}: review queue is empty`);
-    await page.locator('.review-item').first().click();
+    await page.evaluate(() => window.PIANO_APP.updateNav('today'));
+    await page.waitForTimeout(180);
+    assert.match(await page.locator('#dueReviewLink').innerText(), /复习/, `${name}: home due-review shortcut missing`);
+    await page.locator('#dueReviewLink').click();
     await page.waitForTimeout(300);
-    assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: review session did not open`);
-    assert.equal(await page.locator('#lessonSteps .lesson-step').count(), 4, `${name}: review session should have 4 steps`);
-    assert.match(await page.locator('#lessonTitle').innerText(), /^复习：/, `${name}: wrong review title`);
+    assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: home due-review shortcut did not open a session`);
+    assert.match(await page.locator('#lessonTitle').innerText(), /^复习：/, `${name}: home due-review shortcut opened the wrong lesson`);
     await page.locator('#finishSession').click();
     await page.waitForTimeout(250);
     await page.locator('#saveCompletion').click();
     await page.waitForTimeout(500);
+    if (await page.locator('#lessonModal').isVisible().catch(() => false)) {
+      await page.locator('#closeLesson').click();
+      await page.waitForTimeout(200);
+    }
+    if (name === 'mobile') await page.locator('.mobile-nav [data-nav="stats"]').click(); else await page.locator('.sidebar .nav-item[data-nav="stats"]').click();
+    await page.waitForTimeout(300);
     const reviewAfter = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews);
     const reviewedId = Object.keys(reviewAfter).find((id) => reviewAfter[id]?.lastReviewedAt);
     assert.ok(reviewedId, `${name}: successful review did not update schedule`);
     if (reviewBefore[reviewedId]) {
       assert.ok(reviewAfter[reviewedId].dueAt >= reviewBefore[reviewedId].dueAt, `${name}: review due date moved backwards`);
     }
+    const dueAfter = await page.evaluate(() => window.PIANO_APP.dueReviewItems().map((item) => item.sourceId));
+    assert.equal(dueAfter.includes(reviewedId), false, `${name}: reviewed item stayed due today`);
+    const historyAfterReview = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).history[0]);
+    assert.match(historyAfterReview.title, /^复习：/, `${name}: home review did not create a review history record`);
 
     // Placement runs during first-run onboarding, before onboarding is completed.
     // This smoke test has already passed onboarding, so exercise the exposed entry point directly.

@@ -18,6 +18,21 @@
 - **PWA**：可安装到桌面、离线打开，带 Service Worker 缓存。
 - **主题**：亮色与深色模式。
 
+### 1.29 两层钢琴键位与三角钢琴采样
+
+- 虚拟键盘改为真正的两层：白键铺在下层，黑键按 C/D、D/E、F/G、G/A、A/B 间隙嵌在上层。
+- 黑键使用右侧数字键 `N1–N0` 对应 C#3–A#4；白键使用字母区并在右侧小键盘补齐高音。
+- 键位教程、自由弹、节奏钢琴共用同一套位置与物理键码，避免三处映射漂移。
+- 音色升级为本地 FluidR3_GM 三角钢琴采样，26 个音全部缓存；采样不可用时自动回退到多层合成器。
+- 采样来源与 CC BY 3.0 许可见 `assets/audio/piano/README.md`。
+
+### 1.28 首页直接复习
+
+- 首页的到期复习不再只是跳转统计页，点击后会直接打开当前最优先的 10 分钟复习会话。
+- 首页与统计页共用同一套复习生成逻辑，避免两处入口产生不同练习内容。
+- 完成复习后按间隔复习算法推进阶段与下一次日期，并从“今日到期”队列移出。
+- 增加首页入口、复习完成、历史记录与间隔更新的桌面/手机回归。
+
 ### 1.27.1 键盘焦点与新手提示
 
 - 进入节奏舞台时自动移走按钮焦点，避免 `Enter` 键在钢琴演奏中被浏览器当成“点击暂停”。
@@ -230,11 +245,12 @@ npm run check
 npm run test:api
 npm run test:e2e
 npm run test:offline
+npm run test:audio
 npm run test:legal
 npm run test:content
 ```
 
-前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 默认启动隔离的本地服务验证当前构建；设置 `PIANOPATH_OFFLINE_REMOTE=1` 时才检查线上 Service Worker 缓存。
+前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 默认启动隔离的本地服务验证当前构建；设置 `PIANOPATH_OFFLINE_REMOTE=1` 时才检查线上 Service Worker 缓存。`test:audio` 在本地 HTTP 服务上解码 26 个钢琴采样并确认首音实际走采样引擎。
 
 ## 快速开始
 

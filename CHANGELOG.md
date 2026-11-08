@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.29.0 — 2026-11-08
+
+- Rebuilt the virtual piano as two visual layers: white keys below and black keys inset over the correct gaps above.
+- Mapped black keys to the numeric keypad `N1–N0` and kept white keys on the lower letter row plus numeric-keypad high notes.
+- Unified tutorial, free-play and rhythm-piano geometry and physical key mappings.
+- Added 26 locally bundled FluidR3_GM acoustic grand piano samples with CC BY 3.0 attribution.
+- Added sample decoding, audible-engine status, PWA caching and synthesized fallback coverage.
+- Added geometry, Numpad mapping, transposition and sample-playback regression tests.
+
+## 1.28.0 — 2026-11-08
+
+- Changed the home due-review shortcut to launch the highest-priority 10-minute review directly.
+- Reused one review-session builder for both home and progress surfaces.
+- Verified successful reviews advance the spaced-repetition interval, leave the due queue and create history.
+- Added desktop and mobile regression coverage for direct review entry and completion.
+
 ## 1.27.1 — 2026-11-08
 
 - Cleared focused controls when entering the rhythm stage so the mapped `Enter` key plays C4 instead of activating a previously focused button.

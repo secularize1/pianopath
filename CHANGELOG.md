@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.27.0 — 2026-11-08
+
+- Preserved full session snapshots for quick practice, repertoire practice and long-term stage practice.
+- The primary home CTA now resumes an interrupted session from its saved step instead of starting over.
+- Home progress messaging explicitly shows the saved segment after returning or reloading.
+- Added desktop/mobile reload coverage for main lessons and quick practice.
+- Kept tutorial previews excluded from free-play counters and formal practice history.
+
 ## 1.26.1 — 2026-11-08
 
 - Changed the keyboard tutorial from free exploration to an ordered `C3 → C#3 → D3` guided sequence.

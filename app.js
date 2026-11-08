@@ -511,14 +511,19 @@
       const setText = (selector, value) => { const element = document.querySelector(selector); if (element) element.textContent = value; };
       setText('#homeStage', `第 ${current.week} 周 · ${week.phase}`);
       const resumable = state.activeSession && state.activeSession.id === current.id;
-      setText('#homeLessonIndex', `${resumable ? '继续 · ' : ''}${formattedNextPracticeDay(current.practiceDay)} · ${current.practiceTime} · 第 ${current.day} 次`);
-      setText('#homeLessonTitle', current.title);
-      setText('#homeLessonGoal', current.goal);
-      setText('#homeLessonDuration', `${current.duration} 分钟`);
+      const pendingType = state.activeSession?.sessionType;
+      const typingResume = Boolean(state.activeSession?.session && pendingType && pendingType !== 'lesson');
+      setText('#homeLessonIndex', `${resumable || typingResume ? '继续 · ' : ''}${resumable ? '上次停在第 ' + (Number(state.activeSession.stepIndex) + 1) + ' 段' : typingResume ? '上次练习还没有保存' : `${formattedNextPracticeDay(current.practiceDay)} · ${current.practiceTime} · 第 ${current.day} 次`}`);
+      setText('#homeLessonTitle', typingResume ? state.activeSession.session.title : current.title);
+      setText('#homeLessonGoal', typingResume ? state.activeSession.session.goal : current.goal);
+      setText('#homeLessonDuration', `${typingResume ? state.activeSession.session.duration : current.duration} 分钟`);
       setText('#homeWeekProgress', `${weekDone} / ${sessions.length}`);
       setText('#homeArtWeek', `${weekDone} / ${sessions.length}`);
       setText('#homeWeekTitle', `${sessions.length} 次练习，按你的练习日完成`);
-
+      const quickButton = document.querySelector('#quickPractice');
+      const secondaryDivider = document.querySelector('#homeSecondaryDivider');
+      if (quickButton) quickButton.classList.toggle('hidden', typingResume);
+      if (secondaryDivider) secondaryDivider.classList.toggle('hidden', typingResume);
     }
 
     const trail = document.querySelector('#homeWeekTrail');
@@ -1130,12 +1135,15 @@
     const now = Date.now();
     if (!force && now - lastActiveSessionSave < 8000) return;
     lastActiveSessionSave = now;
+    const sessionType = session.repertoireId ? 'repertoire' : session.stageId ? 'stage' : session.quick ? 'quick' : 'lesson';
     APP.state.activeSession = {
       id: session.id,
       week: session.week,
       day: session.day,
       stepIndex,
       remaining,
+      sessionType,
+      session: sessionType === 'quick' || sessionType === 'repertoire' || sessionType === 'stage' ? structuredClone(session) : null,
       updatedAt: new Date().toISOString()
     };
     APP.persist();
@@ -1447,7 +1455,8 @@
   }
 
   function openSession(sessionId) {
-    const found = sessionId && typeof sessionId === 'object' ? sessionId : APP.findSession(sessionId);
+    let found = sessionId && typeof sessionId === 'object' ? sessionId : APP.findSession(sessionId);
+    if (!found && state.activeSession?.session && state.activeSession.id === sessionId) found = state.activeSession.session;
     if (!found) {
       APP.showToast('找不到这节课，请刷新页面。');
       return;
@@ -1483,6 +1492,7 @@
     $('#lessonModal').classList.add('hidden');
     document.body.style.overflow = '';
     session = null;
+    APP.renderAll();
   }
 
   function finishSession() {
@@ -3247,7 +3257,11 @@
       }
     });
 
-    $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
+    $('#startToday').addEventListener('click', () => {
+      const pending = state.activeSession;
+      if (pending?.session) openSession(pending.session);
+      else openSession(APP.currentSessionData().id);
+    });
     $('#openAccount')?.addEventListener('click', openAccount);
     $('#profileButton')?.addEventListener('click', openAccount);
     document.querySelector('#accountPlanSettings')?.addEventListener('click', () => { closeAccount(); openSettings(); });

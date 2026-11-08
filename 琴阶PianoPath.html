@@ -1592,7 +1592,7 @@ button, input, select, textarea { font-family: inherit; }
             </button>
             <div class="home-secondary">
               <button class="home-warm-link due-review-link" id="dueReviewLink" type="button" disabled>复习队列已清空</button>
-              <span>主课没时间？</span>
+              <span id="homeSecondaryDivider">主课没时间？</span>
               <button class="home-warm-link quick-link" id="quickPractice" type="button">换成 5 分钟快练 →</button>
             </div>
           </div>
@@ -2133,7 +2133,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.26.1 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.27 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -2210,7 +2210,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.26.1",
+    "appVersion": "1.27.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -8836,14 +8836,19 @@ window.PIANO_DATA = {
       const setText = (selector, value) => { const element = document.querySelector(selector); if (element) element.textContent = value; };
       setText('#homeStage', `第 ${current.week} 周 · ${week.phase}`);
       const resumable = state.activeSession && state.activeSession.id === current.id;
-      setText('#homeLessonIndex', `${resumable ? '继续 · ' : ''}${formattedNextPracticeDay(current.practiceDay)} · ${current.practiceTime} · 第 ${current.day} 次`);
-      setText('#homeLessonTitle', current.title);
-      setText('#homeLessonGoal', current.goal);
-      setText('#homeLessonDuration', `${current.duration} 分钟`);
+      const pendingType = state.activeSession?.sessionType;
+      const typingResume = Boolean(state.activeSession?.session && pendingType && pendingType !== 'lesson');
+      setText('#homeLessonIndex', `${resumable || typingResume ? '继续 · ' : ''}${resumable ? '上次停在第 ' + (Number(state.activeSession.stepIndex) + 1) + ' 段' : typingResume ? '上次练习还没有保存' : `${formattedNextPracticeDay(current.practiceDay)} · ${current.practiceTime} · 第 ${current.day} 次`}`);
+      setText('#homeLessonTitle', typingResume ? state.activeSession.session.title : current.title);
+      setText('#homeLessonGoal', typingResume ? state.activeSession.session.goal : current.goal);
+      setText('#homeLessonDuration', `${typingResume ? state.activeSession.session.duration : current.duration} 分钟`);
       setText('#homeWeekProgress', `${weekDone} / ${sessions.length}`);
       setText('#homeArtWeek', `${weekDone} / ${sessions.length}`);
       setText('#homeWeekTitle', `${sessions.length} 次练习，按你的练习日完成`);
-
+      const quickButton = document.querySelector('#quickPractice');
+      const secondaryDivider = document.querySelector('#homeSecondaryDivider');
+      if (quickButton) quickButton.classList.toggle('hidden', typingResume);
+      if (secondaryDivider) secondaryDivider.classList.toggle('hidden', typingResume);
     }
 
     const trail = document.querySelector('#homeWeekTrail');
@@ -9455,12 +9460,15 @@ window.PIANO_DATA = {
     const now = Date.now();
     if (!force && now - lastActiveSessionSave < 8000) return;
     lastActiveSessionSave = now;
+    const sessionType = session.repertoireId ? 'repertoire' : session.stageId ? 'stage' : session.quick ? 'quick' : 'lesson';
     APP.state.activeSession = {
       id: session.id,
       week: session.week,
       day: session.day,
       stepIndex,
       remaining,
+      sessionType,
+      session: sessionType === 'quick' || sessionType === 'repertoire' || sessionType === 'stage' ? structuredClone(session) : null,
       updatedAt: new Date().toISOString()
     };
     APP.persist();
@@ -9772,7 +9780,8 @@ window.PIANO_DATA = {
   }
 
   function openSession(sessionId) {
-    const found = sessionId && typeof sessionId === 'object' ? sessionId : APP.findSession(sessionId);
+    let found = sessionId && typeof sessionId === 'object' ? sessionId : APP.findSession(sessionId);
+    if (!found && state.activeSession?.session && state.activeSession.id === sessionId) found = state.activeSession.session;
     if (!found) {
       APP.showToast('找不到这节课，请刷新页面。');
       return;
@@ -9808,6 +9817,7 @@ window.PIANO_DATA = {
     $('#lessonModal').classList.add('hidden');
     document.body.style.overflow = '';
     session = null;
+    APP.renderAll();
   }
 
   function finishSession() {
@@ -11572,7 +11582,11 @@ window.PIANO_DATA = {
       }
     });
 
-    $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
+    $('#startToday').addEventListener('click', () => {
+      const pending = state.activeSession;
+      if (pending?.session) openSession(pending.session);
+      else openSession(APP.currentSessionData().id);
+    });
     $('#openAccount')?.addEventListener('click', openAccount);
     $('#profileButton')?.addEventListener('click', openAccount);
     document.querySelector('#accountPlanSettings')?.addEventListener('click', () => { closeAccount(); openSettings(); });

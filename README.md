@@ -18,13 +18,15 @@
 - **PWA**：可安装到桌面、离线打开，带 Service Worker 缓存。
 - **主题**：亮色与深色模式。
 
-### 1.29 两层钢琴键位与三角钢琴采样
+### 1.30 录音棚级三角钢琴音色
 
-- 虚拟键盘改为真正的两层：白键铺在下层，黑键按 C/D、D/E、F/G、G/A、A/B 间隙嵌在上层。
-- 黑键使用右侧数字键 `N1–N0` 对应 C#3–A#4；白键使用字母区并在右侧小键盘补齐高音。
-- 键位教程、自由弹、节奏钢琴共用同一套位置与物理键码，避免三处映射漂移。
-- 音色升级为本地 FluidR3_GM 三角钢琴采样，26 个音全部缓存；采样不可用时自动回退到多层合成器。
-- 采样来源与 CC BY 3.0 许可见 `assets/audio/piano/README.md`。
+- 虚拟钢琴换成 Salamander Grand Piano V3（Yamaha C5）30 个跨音区采样，覆盖 A0–C8；音色低频更厚、击弦更清晰、尾音更自然。
+- 保留真实采样的击弦与衰减轮廓，移除原先过重的压缩和过早淡出；多个音符可以自然叠响。
+- 30 个采样全部本地缓存并进入 PWA 离线包；解码失败时仍自动回退到多层合成器。
+- 音频回归会检查采样源、音域、力度层、30/30 解码和真实首音播放。
+- 采样来源、作者与 CC BY 3.0 许可见 `assets/audio/piano/README.md`。
+
+### 1.29 两层钢琴键位
 
 ### 1.28 首页直接复习
 
@@ -250,7 +252,7 @@ npm run test:legal
 npm run test:content
 ```
 
-前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 默认启动隔离的本地服务验证当前构建；设置 `PIANOPATH_OFFLINE_REMOTE=1` 时才检查线上 Service Worker 缓存。`test:audio` 在本地 HTTP 服务上解码 26 个钢琴采样并确认首音实际走采样引擎。
+前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 默认启动隔离的本地服务验证当前构建；设置 `PIANOPATH_OFFLINE_REMOTE=1` 时才检查线上 Service Worker 缓存。`test:audio` 在本地 HTTP 服务上解码 30 个 Salamander 钢琴采样并确认首音实际走采样引擎。
 
 ## 快速开始
 
@@ -330,8 +332,9 @@ PianoPath/
 │   ├── icon.svg
 │   ├── icon-192.png
 │   ├── icon-512.png
-│   └── covers/
-└── data/state.json
+│   ├── covers/
+│   └── audio/piano/
+└── data/pianopath.db
 ```
 
 ## 部署
@@ -354,6 +357,8 @@ GitHub Pages 无后端，应用会使用浏览器本地存储；前端功能完�
 ## 素材说明
 
 封面图来自原平台公开页面或本地制作的品牌封面，仅用于资源导航。应用不包含受版权保护的曲谱；教材与考纲通过官方链接跳转。
+
+虚拟钢琴使用 Alexander Holm 录制的 Salamander Grand Piano V3 采样，许可为 CC BY 3.0；来源与修改说明见 `assets/audio/piano/README.md`。
 
 ## License
 

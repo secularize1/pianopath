@@ -1491,3 +1491,7 @@ button, input, select, textarea { font-family: inherit; }
 .confirm-action-card .account-intro { margin-bottom:0; }
 .confirm-action-card .delete-account-actions { margin-top:18px; }
 @media(max-width:540px){ .delete-account-actions{grid-template-columns:1fr}.delete-account-actions .btn{width:100%} }
+
+/* === 1.30 piano sample attribution === */
+.piano-credit { display:block; margin-top:7px; color:#8b9a8e; font-size:8px; line-height:1.5; text-align:center; text-decoration:none; }
+.piano-credit:hover { color:#5d8366; text-decoration:underline; }

@@ -75,7 +75,7 @@ async function waitForServer(url) {
       if (!keys.includes(expectedCache)) return false;
       const cache = await caches.open(expectedCache);
       const urls = (await cache.keys()).map((request) => request.url);
-      return ['/app.js', '/data.js', '/styles.css', '/assets/audio/piano/C4.mp3'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
+      return ['/app.js', '/data.js', '/styles.css', '/assets/audio/piano/C4v13.mp3'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
     }, cacheVersion, { timeout: 20000 });
     const cached = await page.evaluate(async (expectedCache) => {
       const keys = await caches.keys();

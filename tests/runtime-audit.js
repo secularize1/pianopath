@@ -37,7 +37,7 @@ for (const [label, fragment] of Object.entries(expected)) {
 if (!app.includes('data-key="${key.key}"')) issues.push('app.js: rhythm keys must expose data-key');
 if (!app.includes('data-code="${key.code}"')) issues.push('app.js: rhythm keys must expose physical key codes');
 if (!app.includes('function blackKeyGeometry(')) issues.push('app.js: black keys must use piano geometry');
-if (!fs.existsSync('assets/audio/piano/C4.mp3')) issues.push('assets: piano samples missing');
+if (!fs.existsSync('assets/audio/piano/C4v13.mp3') || !fs.existsSync('assets/audio/piano/A0v13.mp3') || !fs.existsSync('assets/audio/piano/C8v13.mp3')) issues.push('assets: Salamander piano samples missing');
 if (!fs.readFileSync('index.html', 'utf8').includes('id="keyboardGuideModal"')) issues.push('index.html: keyboard guide modal missing');
 console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', issues }, null, 2));
 assert.deepEqual(issues, []);

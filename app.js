@@ -1904,20 +1904,24 @@
   }
 
   const PIANO_SAMPLE_SOURCES = [
-    ['C3', 'assets/audio/piano/C3.mp3', 48], ['Db3', 'assets/audio/piano/Db3.mp3', 49],
-    ['D3', 'assets/audio/piano/D3.mp3', 50], ['Eb3', 'assets/audio/piano/Eb3.mp3', 51],
-    ['E3', 'assets/audio/piano/E3.mp3', 52], ['F3', 'assets/audio/piano/F3.mp3', 53],
-    ['Gb3', 'assets/audio/piano/Gb3.mp3', 54], ['G3', 'assets/audio/piano/G3.mp3', 55],
-    ['Ab3', 'assets/audio/piano/Ab3.mp3', 56], ['A3', 'assets/audio/piano/A3.mp3', 57],
-    ['Bb3', 'assets/audio/piano/Bb3.mp3', 58], ['B3', 'assets/audio/piano/B3.mp3', 59],
-    ['C4', 'assets/audio/piano/C4.mp3', 60], ['Db4', 'assets/audio/piano/Db4.mp3', 61],
-    ['D4', 'assets/audio/piano/D4.mp3', 62], ['Eb4', 'assets/audio/piano/Eb4.mp3', 63],
-    ['E4', 'assets/audio/piano/E4.mp3', 64], ['F4', 'assets/audio/piano/F4.mp3', 65],
-    ['Gb4', 'assets/audio/piano/Gb4.mp3', 66], ['G4', 'assets/audio/piano/G4.mp3', 67],
-    ['Ab4', 'assets/audio/piano/Ab4.mp3', 68], ['A4', 'assets/audio/piano/A4.mp3', 69],
-    ['Bb4', 'assets/audio/piano/Bb4.mp3', 70], ['B4', 'assets/audio/piano/B4.mp3', 71],
-    ['C5', 'assets/audio/piano/C5.mp3', 72], ['D5', 'assets/audio/piano/D5.mp3', 74]
+    ['A0', 'assets/audio/piano/A0v13.mp3', 21], ['C1', 'assets/audio/piano/C1v13.mp3', 24],
+    ['D#1', 'assets/audio/piano/Ds1v13.mp3', 27], ['F#1', 'assets/audio/piano/Fs1v13.mp3', 30],
+    ['A1', 'assets/audio/piano/A1v13.mp3', 33], ['C2', 'assets/audio/piano/C2v13.mp3', 36],
+    ['D#2', 'assets/audio/piano/Ds2v13.mp3', 39], ['F#2', 'assets/audio/piano/Fs2v13.mp3', 42],
+    ['A2', 'assets/audio/piano/A2v13.mp3', 45], ['C3', 'assets/audio/piano/C3v13.mp3', 48],
+    ['D#3', 'assets/audio/piano/Ds3v13.mp3', 51], ['F#3', 'assets/audio/piano/Fs3v13.mp3', 54],
+    ['A3', 'assets/audio/piano/A3v13.mp3', 57], ['C4', 'assets/audio/piano/C4v13.mp3', 60],
+    ['D#4', 'assets/audio/piano/Ds4v13.mp3', 63], ['F#4', 'assets/audio/piano/Fs4v13.mp3', 66],
+    ['A4', 'assets/audio/piano/A4v13.mp3', 69], ['C5', 'assets/audio/piano/C5v13.mp3', 72],
+    ['D#5', 'assets/audio/piano/Ds5v13.mp3', 75], ['F#5', 'assets/audio/piano/Fs5v13.mp3', 78],
+    ['A5', 'assets/audio/piano/A5v13.mp3', 81], ['C6', 'assets/audio/piano/C6v13.mp3', 84],
+    ['D#6', 'assets/audio/piano/Ds6v13.mp3', 87], ['F#6', 'assets/audio/piano/Fs6v13.mp3', 90],
+    ['A6', 'assets/audio/piano/A6v13.mp3', 93], ['C7', 'assets/audio/piano/C7v13.mp3', 96],
+    ['D#7', 'assets/audio/piano/Ds7v13.mp3', 99], ['F#7', 'assets/audio/piano/Fs7v13.mp3', 102],
+    ['A7', 'assets/audio/piano/A7v13.mp3', 105], ['C8', 'assets/audio/piano/C8v13.mp3', 108]
   ];
+  const PIANO_SAMPLE_LAYER = 13;
+  const PIANO_SAMPLE_SOURCE_NAME = 'Salamander Grand Piano V3';
   let pianoAudioContext = null;
   let pianoMasterGain = null;
   const pianoSampleBuffers = new Map();
@@ -1934,13 +1938,13 @@
       if (!AudioCtx) return null;
       pianoAudioContext = new AudioCtx();
       const compressor = pianoAudioContext.createDynamicsCompressor();
-      compressor.threshold.value = -20;
-      compressor.knee.value = 14;
-      compressor.ratio.value = 5;
-      compressor.attack.value = .004;
-      compressor.release.value = .22;
+      compressor.threshold.value = -14;
+      compressor.knee.value = 12;
+      compressor.ratio.value = 3;
+      compressor.attack.value = .006;
+      compressor.release.value = .25;
       pianoMasterGain = pianoAudioContext.createGain();
-      pianoMasterGain.gain.value = .72;
+      pianoMasterGain.gain.value = .82;
       pianoMasterGain.connect(compressor).connect(pianoAudioContext.destination);
       return pianoAudioContext;
     } catch (error) {
@@ -1984,7 +1988,7 @@
     const hint = document.querySelector('#freePlayHint');
     if (!hint) return;
     const sampled = pianoSampleBuffers.size > 0;
-    hint.textContent = sampled ? '三角钢琴采样 · 触屏或键盘演奏' : '合成钢琴 · 触屏或键盘演奏';
+    hint.textContent = sampled ? '三角钢琴 · 触屏或键盘演奏' : '合成钢琴 · 触屏或键盘演奏';
   }
 
   function nearestPianoSample(midi) {
@@ -2001,11 +2005,15 @@
     const source = ctx.createBufferSource();
     const gain = ctx.createGain();
     const now = ctx.currentTime;
-    const tail = Math.max(.75, Math.min(2.8, Number(buffer.duration) || 1.6));
     source.buffer = buffer;
     source.playbackRate.value = Math.pow(2, (midi - sample[2]) / 12);
-    gain.gain.setValueAtTime(.30, now);
-    gain.gain.exponentialRampToValueAtTime(.11, now + Math.min(.35, tail * .3));
+    // Keep the recorded piano envelope intact. The source samples already carry
+    // the strike and natural decay; only trim the tail so several notes can ring together.
+    const audibleDuration = (Number(buffer.duration) || 2.5) / source.playbackRate.value;
+    const tail = Math.max(1.1, Math.min(8, audibleDuration));
+    const releaseStart = now + Math.max(.3, tail - .35);
+    gain.gain.setValueAtTime(.78, now);
+    gain.gain.setValueAtTime(.78, releaseStart);
     gain.gain.exponentialRampToValueAtTime(.0008, now + tail);
     source.connect(gain).connect(pianoMasterGain);
     source.start(now);
@@ -3842,7 +3850,8 @@
   APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;
   APP.preloadPianoSamples = preloadPianoSamples;
-  APP.getAudioSnapshot = () => ({ engine: 'sampled-grand-piano', samples: PIANO_SAMPLE_SOURCES.length, loaded: pianoSampleBuffers.size, sampledPlaybackCount, synthPlaybackCount, lastPlaybackEngine, fallback: 'multi-layer-synth' });
+  APP.previewPianoNote = (midi) => playTone(440 * Math.pow(2, (Number(midi) - 69) / 12), .45, Number(midi));
+  APP.getAudioSnapshot = () => ({ engine: 'sampled-grand-piano', samples: PIANO_SAMPLE_SOURCES.length, loaded: pianoSampleBuffers.size, sampleSource: PIANO_SAMPLE_SOURCE_NAME, velocityLayer: PIANO_SAMPLE_LAYER, sampleRange: 'A0–C8', sampledPlaybackCount, synthPlaybackCount, lastPlaybackEngine, fallback: 'multi-layer-synth' });
   APP.getKeyboardMap = () => RHYTHM_KEYBOARD_ROWS.map((row) => ({ type: row.type, notes: row.notes.slice(), keys: row.keys.slice(), codes: row.codes.slice() }));
 
   const accountState = {

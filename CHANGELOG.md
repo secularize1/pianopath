@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.30.0 — 2026-11-08
+
+- Replaced the FluidR3 sample set with Salamander Grand Piano V3 (Yamaha C5) from Alexander Holm.
+- Bundled 30 local samples covering A0–C8 at velocity layer 13, with CC BY 3.0 attribution.
+- Preserved the recorded attack and decay instead of forcing a short synthetic-style gain envelope.
+- Reduced master compression and increased headroom so chords retain dynamics and natural string resonance.
+- Updated service-worker caching, audio metadata, offline cache checks and 30/30 sample decoding coverage.
+
 ## 1.29.0 — 2026-11-08
 
 - Rebuilt the virtual piano as two visual layers: white keys below and black keys inset over the correct gaps above.

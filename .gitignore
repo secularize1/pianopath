@@ -12,3 +12,6 @@ Thumbs.db
 work/
 
 tests/smoke-*.png
+
+# local account/test database
+data/pianopath.db*

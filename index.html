@@ -535,6 +535,17 @@
           <button class="rhythm-top-button" id="freeOctaveUp" type="button" aria-label="升高一个八度">+</button>
           <span>八度</span>
         </div>
+        <div class="rhythm-free-play-metronome">
+          <button class="rhythm-top-button free-metronome-toggle" id="freeMetronomeToggle" type="button" aria-label="开启节拍器" aria-pressed="false"><span>♩</span> 节拍器</button>
+          <div class="free-tempo-control" aria-label="节拍速度">
+            <button class="rhythm-top-button" id="freeTempoDown" type="button" aria-label="降低速度">−</button>
+            <strong><span id="freeTempoValue">80</span><small>BPM</small></strong>
+            <button class="rhythm-top-button" id="freeTempoUp" type="button" aria-label="提高速度">+</button>
+          </div>
+          <div class="free-beat-dots" id="freeBeatDots" aria-label="四拍节拍">
+            <i data-beat="0"></i><i data-beat="1"></i><i data-beat="2"></i><i data-beat="3"></i>
+          </div>
+        </div>
         <div class="rhythm-free-play-session"><span id="freePlayKeyCount">0 次触键</span><span id="freePlayUniqueCount">0 个音</span></div>
         <div class="rhythm-keyboard free-play-keyboard" id="freePlayKeyboard" aria-label="自由弹钢琴键盘"></div>
         <div class="rhythm-stage-footer">
@@ -611,7 +622,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.21 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.22 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

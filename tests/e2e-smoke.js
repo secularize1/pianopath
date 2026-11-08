@@ -214,6 +214,21 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       await page.waitForTimeout(220);
       assert.equal(await page.evaluate(() => window.PIANO_APP.getPianoLandscapeSnapshot().requested), false, `${name}: landscape mode did not exit`);
     }
+    assert.equal(await page.locator('#freeMetronomeToggle').isVisible(), true, `${name}: free-play metronome missing`);
+    assert.equal(await page.locator('#freeTempoValue').innerText(), '80', `${name}: free-play default tempo wrong`);
+    await page.locator('#freeTempoUp').click();
+    assert.equal(await page.locator('#freeTempoValue').innerText(), '84', `${name}: free-play tempo increment wrong`);
+    await page.locator('#freeMetronomeToggle').click();
+    await page.waitForTimeout(180);
+    const metronome = await page.evaluate(() => window.PIANO_APP.getFreeMetronomeSnapshot());
+    assert.equal(metronome.active, true, `${name}: free-play metronome did not start`);
+    assert.equal(metronome.bpm, 84, `${name}: free-play metronome tempo drift`);
+    assert.ok(metronome.beats.some(Boolean), `${name}: free-play beat indicator did not animate`);
+    await page.waitForTimeout(750);
+    assert.ok((await page.evaluate(() => window.PIANO_APP.getFreeMetronomeSnapshot().beats.filter(Boolean).length)) <= 1, `${name}: beat indicator should have one active beat`);
+    await page.locator('#freeMetronomeToggle').click();
+    assert.equal(await page.evaluate(() => window.PIANO_APP.getFreeMetronomeSnapshot().active), false, `${name}: free-play metronome did not stop`);
+    await page.waitForTimeout(60);
     assert.equal(await page.locator('#freePlayKeyboard .rhythm-key').count(), 26, `${name}: free-play keyboard should stay touch-sized`);
     assert.equal(await page.locator('#freePlayKeyboard .rhythm-key.white').count(), 16, `${name}: free-play white-key count wrong`);
     assert.deepEqual(await page.evaluate(() => window.PIANO_APP.getFreePianoSnapshot()), {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.22.0 — 2026-11-08
+
+- Added a 40–208 BPM metronome to free-play piano with persisted tempo.
+- Added Web Audio look-ahead scheduling, accented downbeats and a four-beat visual indicator.
+- Stops metronome audio when leaving free play, closing the piano or switching tabs.
+- Preserved usable landscape key height on phones and added desktop/mobile regressions.
+
 ## 1.21.0 — 2026-11-07
 
 - Added standalone privacy-policy and terms pages with local-data, account-sync, retention, deletion, copyright and practice-safety disclosures.

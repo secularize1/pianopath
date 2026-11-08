@@ -1865,6 +1865,12 @@
   let freePlayKeyCount = 0;
   let freePlayNotes = new Set();
   let freePlaySaved = false;
+  let freeMetronomeActive = false;
+  let freeMetronomeTimer = null;
+  let freeMetronomeAudio = null;
+  let freeMetronomeStep = 0;
+  let freeMetronomeNextTime = 0;
+  let freeTempo = Math.max(40, Math.min(208, Number(localStorage.getItem('pianopath-free-tempo')) || 80));
   let pianoLandscapeRequested = false;
   let pianoFullscreenOwned = false;
 
@@ -1996,6 +2002,92 @@
     if (modal.classList.contains('piano-force-landscape')) APP.showToast('横屏模式已开启；请把手机横过来弹奏。');
   }
 
+  function setFreeTempo(nextTempo) {
+    freeTempo = Math.max(40, Math.min(208, Math.round(Number(nextTempo) / 4) * 4));
+    localStorage.setItem('pianopath-free-tempo', String(freeTempo));
+    const label = document.querySelector('#freeTempoValue');
+    if (label) label.textContent = String(freeTempo);
+    if (freeMetronomeActive && freeMetronomeAudio) {
+      freeMetronomeNextTime = Math.max(freeMetronomeNextTime, freeMetronomeAudio.currentTime + 60 / freeTempo);
+    }
+  }
+
+  function flashFreeMetronomeBeat(beat) {
+    document.querySelectorAll('#freeBeatDots i').forEach((dot, index) => {
+      dot.classList.toggle('active', index === beat);
+    });
+    const button = document.querySelector('#freeMetronomeToggle');
+    if (button) button.dataset.beat = String(beat);
+  }
+
+  function scheduleFreeMetronomeClick(time, beat) {
+    const context = freeMetronomeAudio;
+    if (!context) return;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(beat === 0 ? 1050 : 760, time);
+    gain.gain.setValueAtTime(beat === 0 ? .055 : .032, time);
+    gain.gain.exponentialRampToValueAtTime(.001, time + .045);
+    oscillator.connect(gain).connect(context.destination);
+    oscillator.start(time);
+    oscillator.stop(time + .05);
+  }
+
+  function freeMetronomeScheduler() {
+    if (!freeMetronomeActive || !freeMetronomeAudio) return;
+    const context = freeMetronomeAudio;
+    while (freeMetronomeNextTime < context.currentTime + .12) {
+      const beat = freeMetronomeStep % 4;
+      const delay = Math.max(0, (freeMetronomeNextTime - context.currentTime) * 1000);
+      setTimeout(() => {
+        if (freeMetronomeActive) flashFreeMetronomeBeat(beat);
+      }, delay);
+      scheduleFreeMetronomeClick(freeMetronomeNextTime, beat);
+      freeMetronomeNextTime += 60 / freeTempo;
+      freeMetronomeStep += 1;
+    }
+  }
+
+  async function toggleFreeMetronome() {
+    if (freeMetronomeActive) {
+      stopFreeMetronome();
+      return;
+    }
+    try {
+      freeMetronomeAudio = freeMetronomeAudio || new (window.AudioContext || window.webkitAudioContext)();
+      await freeMetronomeAudio.resume();
+      freeMetronomeActive = true;
+      freeMetronomeStep = 0;
+      freeMetronomeNextTime = freeMetronomeAudio.currentTime + .08;
+      freeMetronomeScheduler();
+      freeMetronomeTimer = setInterval(freeMetronomeScheduler, 25);
+      const button = document.querySelector('#freeMetronomeToggle');
+      if (button) {
+        button.classList.add('active');
+        button.setAttribute('aria-pressed', 'true');
+        button.setAttribute('aria-label', '关闭节拍器');
+      }
+    } catch (error) {
+      APP.showToast('当前浏览器无法播放节拍器，请检查声音权限。');
+    }
+  }
+
+  function stopFreeMetronome() {
+    clearInterval(freeMetronomeTimer);
+    freeMetronomeTimer = null;
+    freeMetronomeActive = false;
+    freeMetronomeStep = 0;
+    const button = document.querySelector('#freeMetronomeToggle');
+    if (button) {
+      button.classList.remove('active');
+      button.removeAttribute('data-beat');
+      button.setAttribute('aria-pressed', 'false');
+      button.setAttribute('aria-label', '开启节拍器');
+    }
+    document.querySelectorAll('#freeBeatDots i').forEach((dot) => dot.classList.remove('active'));
+  }
+
   function openFreePiano() {
     stopRhythmPiano();
     stopFreePlay();
@@ -2017,6 +2109,7 @@
     if (noteLabel) noteLabel.textContent = '—';
     if (lastLabel) lastLabel.textContent = '按下琴键开始';
     renderFreePlayKeyboard();
+    setFreeTempo(freeTempo);
     syncPianoLandscapeState();
   }
 
@@ -2070,6 +2163,7 @@
   function stopFreePlay() {
     freePlayActive = false;
     freePlayStartedAt = 0;
+    stopFreeMetronome();
     document.querySelectorAll('#freePlayKeyboard .rhythm-key.pressed').forEach((key) => key.classList.remove('pressed'));
   }
 
@@ -2349,6 +2443,9 @@
     });
     document.querySelector('#freeOctaveDown')?.addEventListener('click', () => changeFreePlayOctave(-1));
     document.querySelector('#freeOctaveUp')?.addEventListener('click', () => changeFreePlayOctave(1));
+    document.querySelector('#freeTempoDown')?.addEventListener('click', () => setFreeTempo(freeTempo - 4));
+    document.querySelector('#freeTempoUp')?.addEventListener('click', () => setFreeTempo(freeTempo + 4));
+    document.querySelector('#freeMetronomeToggle')?.addEventListener('click', toggleFreeMetronome);
     document.addEventListener('keydown', handleFreePianoKeydown);
     document.querySelector('#rhythmKeyboard')?.addEventListener('pointerdown', (event) => {
       const key = event.target.closest('.rhythm-key');
@@ -2373,6 +2470,9 @@
     document.addEventListener('keydown', handleRhythmKeydown);
     window.addEventListener('orientationchange', syncPianoLandscapeState);
     window.addEventListener('resize', syncPianoLandscapeState);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') stopFreeMetronome();
+    });
     document.addEventListener('fullscreenchange', () => {
       if (!document.fullscreenElement) pianoFullscreenOwned = false;
     });
@@ -3082,6 +3182,12 @@
     requested: pianoLandscapeRequested,
     fallback: document.querySelector('#rhythmPianoModal')?.classList.contains('piano-force-landscape') || false,
     orientation: window.matchMedia?.('(orientation: landscape)').matches ? 'landscape' : 'portrait'
+  });
+  APP.getFreeMetronomeSnapshot = () => ({
+    active: freeMetronomeActive,
+    bpm: freeTempo,
+    beat: freeMetronomeStep % 4,
+    beats: Array.from(document.querySelectorAll('#freeBeatDots i')).map((dot) => dot.classList.contains('active'))
   });
   APP.getFreePianoSnapshot = () => ({
     active: freePlayActive,

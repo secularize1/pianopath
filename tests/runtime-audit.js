@@ -39,5 +39,10 @@ if (!app.includes('data-code="${key.code}"')) issues.push('app.js: rhythm keys m
 if (!app.includes('function blackKeyGeometry(')) issues.push('app.js: black keys must use piano geometry');
 if (!fs.existsSync('assets/audio/piano/C4v13.mp3') || !fs.existsSync('assets/audio/piano/A0v13.mp3') || !fs.existsSync('assets/audio/piano/C8v13.mp3')) issues.push('assets: Salamander piano samples missing');
 if (!fs.readFileSync('index.html', 'utf8').includes('id="keyboardGuideModal"')) issues.push('index.html: keyboard guide modal missing');
+if (!app.includes('navigator.mediaDevices.getUserMedia')) issues.push('app.js: microphone permission flow missing');
+if (!app.includes('new Blob(recordingState.chunks')) issues.push('app.js: local audio blob creation missing');
+if (!app.includes('putRecordingRecord')) issues.push('app.js: local recording persistence missing');
+if (!app.includes('uploadsRecording: false')) issues.push('app.js: recording upload boundary missing');
+if (app.includes('recordingState.metadata =') && !app.includes('recording: recordingState.metadata ?')) issues.push('app.js: recording metadata not attached to completion');
 console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', issues }, null, 2));
 assert.deepEqual(issues, []);

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.31.0 — 2026-11-08
+
+- Added an in-lesson record-and-review panel with a 60-second limit and explicit microphone permission.
+- Stored recording blobs in IndexedDB; learning history stores metadata only and never receives audio blobs.
+- Added in-place playback, download, replacement and deletion for lesson recordings.
+- Added completed-practice playback from the stats page and a focused recording dialog.
+- Added graceful microphone-denial and single-file/Unsupported-browser recovery.
+- Updated privacy/terms, CSP media policy and `Permissions-Policy` for same-origin microphone use.
+- Added recording success, permission denial, download, deletion, history metadata and standalone fallback coverage.
+
 ## 1.30.0 — 2026-11-08
 
 - Replaced the FluidR3 sample set with Salamander Grand Piano V3 (Yamaha C5) from Alexander Holm.

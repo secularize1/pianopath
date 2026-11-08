@@ -410,6 +410,7 @@
               <button class="timer-control" id="timerToggle" aria-label="暂停计时"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
               <button class="metronome-button" id="metronomeToggle" type="button" aria-label="开启节拍器" aria-pressed="false"><span class="metro-icon">♩</span><span id="metronomeLabel">节拍</span></button>
               <button class="playalong-button" id="openPlayAlong" type="button"><span>⌨</span> 跟弹练习</button>
+              <button class="recording-button" id="openRecording" type="button" aria-expanded="false"><span>●</span> 录音复盘</button>
               <button class="checkpoint-button" id="openCheckpoint" type="button">◎ 掌握检查</button>
               <button class="btn btn-primary" id="completeStep" type="button">完成这一段</button>
             </div>
@@ -418,6 +419,25 @@
             <span class="step-index" id="stepIndex">01</span>
             <div><small>现在做</small><h3 id="stepTitle">身体校准</h3><p id="stepDetail"></p><div class="cue" id="stepCue"></div></div>
           </article>
+          <section class="recording-panel hidden" id="recordingPanel" aria-labelledby="recordingTitle">
+            <div class="recording-head">
+              <div><span class="eyebrow">RECORD & REVIEW</span><h3 id="recordingTitle">录一段，听清一个下一步</h3></div>
+              <button class="text-button" id="closeRecording" type="button">收起</button>
+            </div>
+            <div class="recording-body">
+              <span class="recording-orb" id="recordingOrb" aria-hidden="true">●</span>
+              <div class="recording-copy"><strong id="recordingStatus">准备好后开始录音</strong><small id="recordingHint">麦克风只在你点击后启用 · 最长 60 秒</small></div>
+              <span class="recording-time" id="recordingTime">00:00</span>
+            </div>
+            <div class="recording-actions">
+              <button class="btn btn-primary" id="startRecording" type="button">开始录音</button>
+              <button class="btn btn-soft" id="stopRecording" type="button" disabled>停止</button>
+              <button class="btn btn-soft hidden" id="playRecording" type="button">回放</button>
+              <a class="btn btn-soft hidden" id="downloadRecording" href="#" download>下载</a>
+              <button class="text-button hidden" id="deleteRecording" type="button">删除</button>
+            </div>
+            <audio id="recordingAudio" controls hidden></audio>
+          </section>
           <div class="lesson-source" id="lessonSource"></div>
           <section class="checkpoint-panel hidden" id="checkpointPanel">
             <div class="checkpoint-head"><span class="eyebrow">MASTERY CHECK</span><button type="button" class="text-button" id="closeCheckpoint">返回练习</button></div>
@@ -655,7 +675,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.30 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.31 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -722,6 +742,16 @@
       <div class="repertoire-phases" id="repertoireModalPhases"></div>
       <div class="repertoire-modal-actions"><button class="btn btn-primary" id="startRepertoirePractice" type="button">开始本阶段</button><a class="btn btn-soft" id="repertoireScoreLink" href="#" target="_blank" rel="noreferrer noopener">打开曲谱</a></div>
       <div class="repertoire-modal-hint">完成 1 次 25 分钟阶段练习，进度前进一格。曲谱来自公共领域或官方来源。</div>
+    </div>
+  </div>
+  <div class="modal-backdrop hidden" id="recordingModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="recordingModalTitle">
+    <div class="recording-modal-card">
+      <button class="icon-button modal-close" id="closeRecordingModal" aria-label="关闭录音回放"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <span class="eyebrow">RECORDING</span>
+      <h2 id="recordingModalTitle">回放录音</h2>
+      <p class="recording-modal-meta" id="recordingModalMeta"></p>
+      <audio id="historyRecordingAudio" controls preload="metadata"></audio>
+      <div class="recording-modal-actions"><a class="btn btn-soft" id="historyRecordingDownload" href="#" download>下载</a><button class="btn danger-button" id="historyRecordingDelete" type="button">删除录音</button></div>
     </div>
   </div>
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>

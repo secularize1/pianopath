@@ -15,3 +15,4 @@ tests/smoke-*.png
 
 # local account/test database
 data/pianopath.db*
+tests/recording-*.png

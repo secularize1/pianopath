@@ -13,10 +13,19 @@
 - **长期路线**：0–3 个月、3–12 个月、1–3 年、3–6 年、6–8 年。
 - **国内优先**：默认只显示 B 站公开课与官方教材/考纲；YouTube 资源仅在“全部来源”中出现。
 - **交互练习**：双八度节奏钢琴、10 音跟弹、音名找键小游戏、逐段计时、音频节拍、暂停、完成打卡。
+- **录音复盘**：课内主动录音、60 秒上限、本机回放/下载/删除；音频只进 IndexedDB，不上传服务器。
 - **学习反馈**：连续天数、XP、课次完成率、热力图、六周柱状图、历史笔记。
 - **个性化**：按每周总时长和练习天数自动重排单次任务。
 - **PWA**：可安装到桌面、离线打开，带 Service Worker 缓存。
 - **主题**：亮色与深色模式。
+
+### 1.31 录音复盘闭环
+
+- 课内新增“录音复盘”：点击后才请求麦克风，最长 60 秒；停止后可立即回放、下载或重录。
+- 录音 Blob 只保存在本机 IndexedDB；学习历史只记录 `id`、时长、格式和来源，不进入 localStorage 或账户同步。
+- 完成练习后可以在“记录”页回放或删除对应录音，删除音频不会删除文字复盘和练习记录。
+- 拒绝麦克风权限不会中断练习；单文件版或非安全环境会明确说明录音不可用，钢琴和课程不受影响。
+- 隐私政策、服务条款、CSP 媒体源和服务器麦克风策略同步更新，并增加录音专项回归。
 
 ### 1.30 录音棚级三角钢琴音色
 
@@ -248,11 +257,12 @@ npm run test:api
 npm run test:e2e
 npm run test:offline
 npm run test:audio
+npm run test:recording
 npm run test:legal
 npm run test:content
 ```
 
-前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 默认启动隔离的本地服务验证当前构建；设置 `PIANOPATH_OFFLINE_REMOTE=1` 时才检查线上 Service Worker 缓存。`test:audio` 在本地 HTTP 服务上解码 30 个 Salamander 钢琴采样并确认首音实际走采样引擎。
+前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 默认启动隔离的本地服务验证当前构建；设置 `PIANOPATH_OFFLINE_REMOTE=1` 时才检查线上 Service Worker 缓存。`test:audio` 在本地 HTTP 服务上解码 30 个 Salamander 钢琴采样并确认首音实际走采样引擎。`test:recording` 使用模拟麦克风验证录音、IndexedDB、历史回放、删除、拒绝授权和单文件降级。
 
 ## 快速开始
 

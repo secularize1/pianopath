@@ -33,7 +33,7 @@ DATA_FILE = ROOT / "data.js"
 MAX_BODY = 2 * 1024 * 1024
 SESSION_DAYS = 30
 PBKDF2_ITERATIONS = 310_000
-LEGAL_VERSION = "2026-11-07"
+LEGAL_VERSION = "2026-11-08"
 LOCK = threading.Lock()
 ATTEMPTS: dict[str, list[float]] = {}
 ATTEMPTS_LOCK = threading.Lock()
@@ -254,7 +254,7 @@ def public_path(path: str) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "PianoPath/1.30"
+    server_version = "PianoPath/1.31"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -421,8 +421,8 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("X-Frame-Options", "SAMEORIGIN")
             self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
-            self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; frame-src https://player.bilibili.com https://www.youtube-nocookie.com; connect-src 'self'; font-src 'self' data:; base-uri 'self'; form-action 'self'")
+            self.send_header("Permissions-Policy", "camera=(), microphone=(self), geolocation=()")
+            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; frame-src https://player.bilibili.com https://www.youtube-nocookie.com; connect-src 'self' blob:; media-src 'self' blob: data:; font-src 'self' data:; base-uri 'self'; form-action 'self'")
             self._pianopath_security_end_headers = True
         super().end_headers()
 

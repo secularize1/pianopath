@@ -778,6 +778,11 @@
     document.querySelector('#skillFocusButton').dataset.skillFocus = report.weakest.key;
   }
 
+  function formatClockDuration(seconds) {
+    const value = Math.max(0, Math.round(Number(seconds) || 0));
+    return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
+  }
+
   function renderStats() {
     renderSkillReport();
     const total = totalMinutes();
@@ -827,7 +832,17 @@
     if (!state.history.length) {
       $('#historyList').innerHTML = `<div class="empty-history">完成第一次练习后，这里会留下你的声音记录。</div>`;
     } else {
-      $('#historyList').innerHTML = state.history.slice(0, 12).map((entry) => { const duration = entry.durationSeconds && Number(entry.durationSeconds) < 60 ? `${entry.durationSeconds} 秒` : `${entry.minutes} 分钟`; const context = entry.week ? `第 ${entry.week} 周` : entry.type === 'freeplay' ? '自由练习' : entry.type === 'playalong' ? '跟弹练习' : entry.type === 'game' ? '音乐游戏' : entry.type === 'quick' ? '短练' : entry.type === 'repertoire' ? '曲目训练' : '自主练习'; return `<div class="history-item"><span class="history-icon">♪</span><div><strong>${escapeHtml(entry.title)}</strong><small>${context} · ${entry.date} · ${entry.ratingLabel || '已记录'}${entry.notes ? ` · ${escapeHtml(entry.notes)}` : ''}</small></div><span>${duration}</span></div>`; }).join('');
+      $('#historyList').innerHTML = state.history.slice(0, 12).map((entry) => {
+        const duration = entry.durationSeconds && Number(entry.durationSeconds) < 60 ? `${entry.durationSeconds} 秒` : `${entry.minutes} 分钟`;
+        const context = entry.week ? `第 ${entry.week} 周` : entry.type === 'freeplay' ? '自由练习' : entry.type === 'playalong' ? '跟弹练习' : entry.type === 'game' ? '音乐游戏' : entry.type === 'quick' ? '短练' : entry.type === 'repertoire' ? '曲目训练' : '自主练习';
+        const recording = entry.recording?.id ? `<button class="history-recording" type="button" data-recording-id="${escapeHtml(entry.recording.id)}" aria-label="回放 ${escapeHtml(entry.title)} 的录音"><span>▶</span> ${formatClockDuration(entry.recording.durationSeconds)}</button>` : '';
+        return `<div class="history-item"><span class="history-icon">♪</span><div><strong>${escapeHtml(entry.title)}</strong><small>${context} · ${entry.date} · ${entry.ratingLabel || '已记录'}${entry.notes ? ` · ${escapeHtml(entry.notes)}` : ''}</small></div>${recording}<span>${duration}</span></div>`;
+      }).join('');
+      $('#historyList').querySelectorAll('[data-recording-id]').forEach((button) => button.addEventListener('click', () => {
+        const entry = state.history.find((item) => item.recording?.id === button.dataset.recordingId);
+        if (!entry?.recording?.id) return;
+        window.PIANO_APP.openHistoryRecording?.(entry.recording.id)?.catch?.(() => APP.showToast('无法打开这段录音。'));
+      }));
     }
   }
 
@@ -885,17 +900,18 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const RATING_LABELS = { 1: '需要帮助', 2: '有点卡', 3: '刚刚好', 4: '很顺' };
-  const LEGAL_VERSION = '2026-11-07';
+  const LEGAL_VERSION = '2026-11-08';
   const LEGAL_SUMMARIES = {
     privacy: {
       eyebrow: 'PRIVACY',
       title: '隐私政策',
       items: [
-        ['保存什么', '学习计划、进度、练习记录与可选账户信息。注册账户时，服务端保存邮箱、昵称和密码哈希，不保存明文密码。'],
-        ['保存在哪里', '游客数据默认保存在当前浏览器。只有注册并连接账户服务后，进度才会同步到服务端。'],
+        ['保存什么', '学习计划、进度、练习记录与可选账户信息。主动录音时，音频只存本机。注册账户时，服务端保存邮箱、昵称和密码哈希，不保存明文密码。'],
+        ['保存在哪里', '游客数据默认保存在当前浏览器。学习进度可同步到账户服务；录音只进入本机 IndexedDB，不上传、不进入账户同步。'],
+        ['麦克风', '只有点击“开始录音”后才请求麦克风。音频不会用于训练或分析，你可以随时回放、下载或删除。'],
         ['用于什么', '课程进度、跨设备同步、复习提醒、数据恢复与账户安全。不接入广告画像，不出售个人数据。'],
-        ['你能做什么', '随时导出备份、清除本机数据、退出登录或删除账户与云端进度。删除账户不会自动清除本机记录。'],
-        ['政策版本', '2026-11-07']
+        ['你能做什么', '随时导出备份、查看或删除本机录音、清除本机数据、退出登录或删除账户与云端进度。删除账户不会自动清除本机记录。'],
+        ['政策版本', '2026-11-08']
       ]
     },
     terms: {
@@ -906,7 +922,7 @@
         ['账户责任', '请妥善保管密码，并对账户下的操作负责。发现异常时立即退出登录并联系我们。'],
         ['内容与版权', '不托管受版权保护的完整曲谱，只链接公共领域或官方来源。第三方内容由其权利人负责。'],
         ['练习安全', '出现疼痛、麻木、眩晕或其他不适时立即停止，并寻求教师或医疗专业人员帮助。'],
-        ['条款版本', '2026-11-07']
+        ['条款版本', '2026-11-08']
       ]
     }
   };
@@ -927,6 +943,28 @@
   let rating = 3;
   let completionPreview = null;
   let deferredInstallPrompt = null;
+  const RECORDING_DB_NAME = 'pianopath-recordings-v1';
+  const RECORDING_STORE = 'recordings';
+  const RECORDING_MAX_SECONDS = 60;
+  const recordingState = {
+    recorder: null,
+    stream: null,
+    chunks: [],
+    startedAt: 0,
+    elapsed: 0,
+    timerId: null,
+    blob: null,
+    mimeType: '',
+    id: null,
+    metadata: null,
+    objectUrl: '',
+    replaceId: null,
+    supported: Boolean(navigator.mediaDevices?.getUserMedia && window.MediaRecorder),
+    error: ''
+  };
+  let historyRecording = null;
+  let recordingDbPromise = null;
+  const recordingsThisSession = new Set();
   let metronomeTimer = null;
   let metronomeStep = 0;
   let metronomeBpms = [0, 60, 72, 84, 96];
@@ -1113,6 +1151,380 @@
     }
   }
 
+  function formatRecordingDuration(seconds) {
+    const value = Math.max(0, Math.round(Number(seconds) || 0));
+    return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
+  }
+
+  function openRecordingDb() {
+    if (recordingDbPromise) return recordingDbPromise;
+    recordingDbPromise = new Promise((resolve, reject) => {
+      if (!window.indexedDB) {
+        reject(new Error('IndexedDB unavailable'));
+        return;
+      }
+      const request = indexedDB.open(RECORDING_DB_NAME, 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(RECORDING_STORE)) db.createObjectStore(RECORDING_STORE, { keyPath: 'id' });
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error('IndexedDB open failed'));
+    });
+    return recordingDbPromise;
+  }
+
+  async function putRecordingRecord(record) {
+    const db = await openRecordingDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(RECORDING_STORE, 'readwrite');
+      transaction.objectStore(RECORDING_STORE).put(record);
+      transaction.oncomplete = () => resolve(record);
+      transaction.onerror = () => reject(transaction.error || new Error('Recording save failed'));
+      transaction.onabort = () => reject(transaction.error || new Error('Recording save aborted'));
+    });
+  }
+
+  async function getRecordingRecord(id) {
+    if (!id) return null;
+    const db = await openRecordingDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(RECORDING_STORE, 'readonly');
+      const request = transaction.objectStore(RECORDING_STORE).get(id);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error || new Error('Recording read failed'));
+    });
+  }
+
+  async function deleteRecordingRecord(id) {
+    if (!id) return;
+    const db = await openRecordingDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(RECORDING_STORE, 'readwrite');
+      transaction.objectStore(RECORDING_STORE).delete(id);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error || new Error('Recording delete failed'));
+    });
+  }
+
+  async function clearAllRecordingRecords() {
+    const db = await openRecordingDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(RECORDING_STORE, 'readwrite');
+      transaction.objectStore(RECORDING_STORE).clear();
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error || new Error('Recording clear failed'));
+      transaction.onabort = () => reject(transaction.error || new Error('Recording clear aborted'));
+    });
+  }
+
+  async function deleteRecordingDatabase() {
+    if (recordingDbPromise) {
+      try { const db = await recordingDbPromise; db.close(); } catch (error) {}
+      recordingDbPromise = null;
+    }
+    return new Promise((resolve) => {
+      try {
+        const request = indexedDB.deleteDatabase(RECORDING_DB_NAME);
+        request.onsuccess = () => resolve();
+        request.onerror = () => resolve();
+        request.onblocked = () => resolve();
+      } catch (error) {
+        resolve();
+      }
+    });
+  }
+
+  function recordingFileName(metadata) {
+    const safeTitle = String(metadata?.title || 'piano-practice').replace(/[\\/:*?"<>|]+/g, '-').slice(0, 48);
+    const extension = String(metadata?.mimeType || '').includes('mp4') ? 'm4a' : 'webm';
+    return `${safeTitle}-${String(metadata?.createdAt || new Date().toISOString()).slice(0, 10)}.${extension}`;
+  }
+
+  function setRecordingStatus(message, hint = '') {
+    const status = document.querySelector('#recordingStatus');
+    const hintEl = document.querySelector('#recordingHint');
+    const time = document.querySelector('#recordingTime');
+    if (status) status.textContent = message;
+    if (hintEl && hint) hintEl.textContent = hint;
+    if (time) time.textContent = formatRecordingDuration(recordingState.elapsed || 0);
+    document.querySelector('#recordingOrb')?.classList.toggle('active', recordingState.recorder?.state === 'recording');
+  }
+
+  function syncRecordingControls() {
+    const supported = recordingState.supported && location.protocol !== 'file:';
+    const active = recordingState.recorder?.state === 'recording';
+    const ready = Boolean(recordingState.metadata && recordingState.blob);
+    const start = document.querySelector('#startRecording');
+    const stop = document.querySelector('#stopRecording');
+    const play = document.querySelector('#playRecording');
+    const download = document.querySelector('#downloadRecording');
+    const remove = document.querySelector('#deleteRecording');
+    const audio = document.querySelector('#recordingAudio');
+    if (start) {
+      start.disabled = !supported || active;
+      start.textContent = active ? '录音中' : ready ? '重新录音' : '开始录音';
+    }
+    if (stop) stop.disabled = !active;
+    if (play) play.classList.toggle('hidden', !ready || active);
+    if (download) download.classList.toggle('hidden', !ready || active);
+    if (remove) remove.classList.toggle('hidden', !ready || active);
+    if (audio) {
+      audio.hidden = !ready || active;
+      if (ready && recordingState.objectUrl && audio.src !== recordingState.objectUrl) audio.src = recordingState.objectUrl;
+      if (!ready) audio.removeAttribute('src');
+    }
+    document.querySelector('#openRecording')?.setAttribute('aria-expanded', String(!document.querySelector('#recordingPanel')?.classList.contains('hidden')));
+  }
+
+  function clearRecordingView() {
+    if (recordingState.timerId) clearInterval(recordingState.timerId);
+    recordingState.timerId = null;
+    recordingState.recorder = null;
+    recordingState.chunks = [];
+    recordingState.startedAt = 0;
+    recordingState.elapsed = 0;
+    recordingState.blob = null;
+    recordingState.mimeType = '';
+    recordingState.id = null;
+    recordingState.metadata = null;
+    recordingState.error = '';
+    if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
+    recordingState.objectUrl = '';
+    const audio = document.querySelector('#recordingAudio');
+    if (audio) {
+      audio.pause?.();
+      audio.removeAttribute('src');
+      audio.load?.();
+    }
+    if (recordingState.stream) recordingState.stream.getTracks().forEach((track) => track.stop());
+    recordingState.stream = null;
+    const download = document.querySelector('#downloadRecording');
+    if (download) download.removeAttribute('href');
+    setRecordingStatus('准备好后开始录音', recordingState.supported ? '麦克风只在你点击后启用 · 最长 60 秒' : '需在本地服务或 HTTPS 中录音');
+    syncRecordingControls();
+  }
+
+  function openRecordingPanel(focus = true) {
+    const panel = document.querySelector('#recordingPanel');
+    if (!panel) return;
+    panel.classList.remove('hidden');
+    if (!recordingState.supported || location.protocol === 'file:') {
+      setRecordingStatus('此环境暂不能录音', '用 HTTPS 或本地服务打开后即可录音；播放和练习不受影响');
+    } else if (!recordingState.recorder && !recordingState.metadata) {
+      setRecordingStatus('准备好后开始录音', '麦克风只在你点击后启用 · 最长 60 秒');
+    }
+    syncRecordingControls();
+    if (focus) panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function closeRecordingPanel() {
+    if (recordingState.recorder?.state === 'recording') {
+      APP.showToast('先停止录音，再收起面板。');
+      return;
+    }
+    document.querySelector('#recordingPanel')?.classList.add('hidden');
+    syncRecordingControls();
+  }
+
+  function recordedStepContext() {
+    const step = session?.steps?.[stepIndex] || {};
+    return {
+      sessionId: session?.id || '',
+      sourceId: session?.sourceId || '',
+      title: session?.title || '钢琴练习',
+      stepIndex,
+      stepTitle: step.title || ''
+    };
+  }
+
+  async function startRecording() {
+    if (!session) return;
+    if (!recordingState.supported || location.protocol === 'file:') {
+      setRecordingStatus('此环境暂不能录音', '用 HTTPS 或本地服务打开后即可录音；播放和练习不受影响');
+      return;
+    }
+    if (recordingState.recorder?.state === 'recording') return;
+    const previousId = recordingState.metadata?.id || null;
+    const context = recordedStepContext();
+    recordingState.error = '';
+    recordingState.chunks = [];
+    setRecordingStatus('正在请求麦克风…', '请在浏览器提示中允许使用麦克风');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+        video: false
+      });
+      const candidates = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus'];
+      const mimeType = candidates.find((type) => window.MediaRecorder?.isTypeSupported?.(type)) || '';
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType, audioBitsPerSecond: 128000 } : undefined);
+      recordingState.stream = stream;
+      recordingState.recorder = recorder;
+      recordingState.startedAt = performance.now();
+      recordingState.elapsed = 0;
+      recordingState.mimeType = recorder.mimeType || mimeType || 'audio/webm';
+      recordingState.replaceId = previousId;
+      recorder.addEventListener('dataavailable', (event) => {
+        if (event.data?.size) recordingState.chunks.push(event.data);
+      });
+      recorder.addEventListener('stop', async () => {
+        const durationSeconds = Math.max(1, Math.min(RECORDING_MAX_SECONDS, Math.round((performance.now() - recordingState.startedAt) / 1000) || 1));
+        const blob = new Blob(recordingState.chunks, { type: recordingState.mimeType });
+        recordingState.stream?.getTracks().forEach((track) => track.stop());
+        recordingState.stream = null;
+        if (recordingState.timerId) clearInterval(recordingState.timerId);
+        recordingState.timerId = null;
+        recordingState.recorder = null;
+        if (!blob.size) {
+          recordingState.error = 'empty';
+          setRecordingStatus('没有录到声音', '检查麦克风后重新开始');
+          syncRecordingControls();
+          return;
+        }
+        const id = `recording-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const metadata = {
+          id,
+          ...context,
+          durationSeconds,
+          mimeType: recordingState.mimeType,
+          createdAt: new Date().toISOString()
+        };
+        try {
+          await putRecordingRecord({ id, blob, metadata });
+          if (recordingState.replaceId && recordingState.replaceId !== id) await deleteRecordingRecord(recordingState.replaceId).catch(() => {});
+          recordingState.replaceId = null;
+          recordingState.blob = blob;
+          recordingState.id = id;
+          recordingState.metadata = metadata;
+          recordingState.elapsed = durationSeconds;
+          if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
+          recordingState.objectUrl = URL.createObjectURL(blob);
+          recordingsThisSession.add(id);
+          if (APP.state.activeSession?.id === context.sessionId) APP.state.activeSession.recording = metadata;
+          APP.persist({ sync: false });
+          const download = document.querySelector('#downloadRecording');
+          if (download) {
+            download.href = recordingState.objectUrl;
+            download.download = recordingFileName(metadata);
+          }
+          setRecordingStatus('录音已保存在本机', `${formatRecordingDuration(durationSeconds)} · 可以回放或下载`);
+          syncRecordingControls();
+          APP.showToast('录音已保存，不会上传服务器。');
+        } catch (error) {
+          recordingState.error = 'storage';
+          setRecordingStatus('录音保存失败', '请检查浏览器存储空间后重试');
+          syncRecordingControls();
+        }
+      });
+      recorder.addEventListener('error', () => {
+        recordingState.error = 'record';
+        setRecordingStatus('录音中断', '请检查麦克风权限后重试');
+        syncRecordingControls();
+      });
+      recorder.start(250);
+      setRecordingStatus('正在录音', '只留在这台设备 · 再点停止结束');
+      syncRecordingControls();
+      recordingState.timerId = setInterval(() => {
+        if (recordingState.recorder?.state !== 'recording') return;
+        recordingState.elapsed = Math.min(RECORDING_MAX_SECONDS, (performance.now() - recordingState.startedAt) / 1000);
+        const time = document.querySelector('#recordingTime');
+        if (time) time.textContent = formatRecordingDuration(recordingState.elapsed);
+        if (recordingState.elapsed >= RECORDING_MAX_SECONDS) stopRecording('limit');
+      }, 250);
+    } catch (error) {
+      recordingState.error = error?.name || 'permission';
+      const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
+      setRecordingStatus(denied ? '没有获得麦克风权限' : '无法开始录音', denied ? '允许麦克风后再试，或继续正常练琴' : '检查系统麦克风后重试');
+      recordingState.stream?.getTracks().forEach((track) => track.stop());
+      recordingState.stream = null;
+      recordingState.recorder = null;
+      syncRecordingControls();
+    }
+  }
+
+  function stopRecording(reason = 'manual') {
+    if (recordingState.recorder?.state !== 'recording') return;
+    recordingState.elapsed = Math.max(1, Math.min(RECORDING_MAX_SECONDS, (performance.now() - recordingState.startedAt) / 1000));
+    setRecordingStatus(reason === 'limit' ? '已到 60 秒，正在保存…' : '正在保存录音…', '');
+    try {
+      recordingState.recorder.stop();
+    } catch (error) {
+      recordingState.error = 'stop';
+      setRecordingStatus('停止录音失败', '请重试');
+      syncRecordingControls();
+    }
+  }
+
+  async function restoreSessionRecording(metadata) {
+    if (!metadata?.id) return;
+    try {
+      const record = await getRecordingRecord(metadata.id);
+      if (!record?.blob || !session) return;
+      recordingState.metadata = { ...metadata, ...(record.metadata || {}) };
+      recordingState.id = metadata.id;
+      recordingState.blob = record.blob;
+      recordingState.mimeType = metadata.mimeType || record.blob.type || 'audio/webm';
+      recordingState.elapsed = Number(metadata.durationSeconds) || 0;
+      if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
+      recordingState.objectUrl = URL.createObjectURL(record.blob);
+      const download = document.querySelector('#downloadRecording');
+      if (download) {
+        download.href = recordingState.objectUrl;
+        download.download = recordingFileName(recordingState.metadata);
+      }
+      setRecordingStatus('上次的录音还在', `${formatRecordingDuration(recordingState.elapsed)} · 可以回放或继续练习`);
+      syncRecordingControls();
+    } catch (error) {
+      recordingState.error = 'restore';
+    }
+  }
+
+  async function deleteCurrentRecording() {
+    if (recordingState.recorder?.state === 'recording') return;
+    const id = recordingState.metadata?.id;
+    if (!id) return;
+    try { await deleteRecordingRecord(id); } catch (error) {}
+    if (APP.state.activeSession?.id === recordingState.metadata?.sessionId && APP.state.activeSession.recording?.id === id) delete APP.state.activeSession.recording;
+    recordingsThisSession.delete(id);
+    clearRecordingView();
+    APP.persist({ sync: false });
+    APP.showToast('录音已从本机删除。');
+  }
+
+  function closeRecordingModal() {
+    const modal = document.querySelector('#recordingModal');
+    const audio = document.querySelector('#historyRecordingAudio');
+    if (audio) { audio.pause?.(); audio.removeAttribute('src'); audio.load?.(); }
+    if (historyRecording?.objectUrl) URL.revokeObjectURL(historyRecording.objectUrl);
+    historyRecording = null;
+    modal?.classList.add('hidden');
+    document.body.style.overflow = document.querySelector('.modal-backdrop:not(.hidden)') ? 'hidden' : '';
+    syncModalFocus();
+  }
+
+  function deleteHistoryRecording() {
+    if (!historyRecording) return;
+    const id = historyRecording.entry.recording?.id;
+    confirmAction({
+      title: '删除这段录音？',
+      body: '音频只从这台设备删除，练习记录和文字复盘会保留。',
+      confirmLabel: '删除录音',
+      onConfirm: () => {
+        deleteRecordingRecord(id).catch(() => {});
+        state.history = state.history.map((entry) => {
+          if (entry.recording?.id !== id) return entry;
+          const next = { ...entry };
+          delete next.recording;
+          return next;
+        });
+        APP.persist();
+        closeRecordingModal();
+        renderStats();
+        APP.showToast('录音已删除，练习记录仍保留。');
+      }
+    });
+  }
+
   function renderStep() {
     if (!session) return;
     if (stepIndex >= session.steps.length) {
@@ -1161,6 +1573,7 @@
       remaining,
       sessionType,
       session: sessionType === 'quick' || sessionType === 'repertoire' || sessionType === 'stage' ? structuredClone(session) : null,
+      recording: APP.state.activeSession?.id === session.id ? APP.state.activeSession.recording || null : null,
       updatedAt: new Date().toISOString()
     };
     APP.persist();
@@ -1490,9 +1903,11 @@
     const planLength = document.querySelector('#lessonPlanLength');
     if (planLength) planLength.textContent = session.repertoireId ? `曲目训练 · ${session.duration} 分钟` : session.stageId ? `阶段训练 · ${session.duration} 分钟` : session.quick ? '5 分钟快练' : `今天的 ${session.duration} 分钟`;
     $('#lessonSteps').innerHTML = session.steps.map((step, index) => `<div class="lesson-step" data-step="${index}"><span class="lesson-step-num">${String(index + 1).padStart(2, '0')}</span><span><strong>${step.title}</strong><small>${step.start}–${step.end} 分 · ${step.minutes} 分钟</small></span></div>`).join('');
+    clearRecordingView();
     $('#lessonModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     renderStep();
+    if (saved?.recording?.id) restoreSessionRecording(saved.recording);
     if (saved && Number(saved.remaining) > 0) {
       remaining = Math.min(remaining, Number(saved.remaining));
       updateLessonProgress();
@@ -1502,6 +1917,11 @@
   }
 
   function closeSession() {
+    if (recordingState.recorder?.state === 'recording') {
+      APP.showToast('先停止录音，再退出本次练习。');
+      openRecordingPanel();
+      return;
+    }
     stopMetronome();
     rememberActiveSession(true);
     clearInterval(intervalId);
@@ -1514,6 +1934,11 @@
 
   function finishSession() {
     if (!session) return;
+    if (recordingState.recorder?.state === 'recording') {
+      APP.showToast('先停止录音，再完成本次练习。');
+      openRecordingPanel();
+      return;
+    }
     stopMetronome();
     rememberActiveSession(true);
     clearInterval(intervalId);
@@ -1581,6 +2006,12 @@
       ratingLabel: RATING_LABELS[rating],
       notes: $('#sessionNotes').value.trim(),
       sightDone: finished.steps.some((step) => step.category === '读谱' || /视奏/.test(step.title)) ? 1 : 0,
+      recording: recordingState.metadata ? {
+        id: recordingState.metadata.id,
+        durationSeconds: Number(recordingState.metadata.durationSeconds) || 0,
+        mimeType: recordingState.metadata.mimeType || '',
+        createdAt: recordingState.metadata.createdAt || now.toISOString()
+      } : null,
       completedAt: now.toISOString()
     };
     const isLesson = isNormalLesson(finished);
@@ -3312,14 +3743,14 @@
     syncModalFocus();
   }
 
-  function runConfirmedAction() {
+  async function runConfirmedAction() {
     const action = pendingConfirmation;
     if (!action) return;
     pendingConfirmation = null;
     const button = document.querySelector('#confirmActionButton');
     if (button) button.disabled = true;
     try {
-      const shouldClose = action.onConfirm();
+      const shouldClose = await action.onConfirm();
       if (shouldClose !== false) closeConfirmAction();
     } catch (error) {
       APP.showToast('操作失败，请稍后再试。');
@@ -3544,6 +3975,20 @@
     });
     $('#closeLesson').addEventListener('click', closeSession);
     $('#metronomeToggle')?.addEventListener('click', cycleMetronome);
+    document.querySelector('#openRecording')?.addEventListener('click', () => {
+      const panel = document.querySelector('#recordingPanel');
+      if (panel?.classList.contains('hidden')) openRecordingPanel();
+      else closeRecordingPanel();
+    });
+    document.querySelector('#closeRecording')?.addEventListener('click', closeRecordingPanel);
+    document.querySelector('#startRecording')?.addEventListener('click', startRecording);
+    document.querySelector('#stopRecording')?.addEventListener('click', () => stopRecording());
+    document.querySelector('#deleteRecording')?.addEventListener('click', deleteCurrentRecording);
+    document.querySelector('#closeRecordingModal')?.addEventListener('click', closeRecordingModal);
+    document.querySelector('#historyRecordingDelete')?.addEventListener('click', deleteHistoryRecording);
+    document.querySelector('#recordingModal')?.addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) closeRecordingModal();
+    });
     document.querySelector('#openPlayAlong')?.addEventListener('click', openPlayAlong);
     document.querySelector('#closePlayAlong')?.addEventListener('click', closePlayAlong);
     document.querySelector('#playAlongStart')?.addEventListener('click', startPlayAlong);
@@ -3639,8 +4084,9 @@
         title: '清除全部本地数据？',
         body: '计划、打卡、最佳成绩与账户同步队列都会从这台设备移除，且无法恢复。',
         confirmLabel: '清除全部数据',
-        onConfirm: () => {
+        onConfirm: async () => {
           localStorage.clear();
+          await deleteRecordingDatabase();
           location.reload();
           return false;
         }
@@ -3678,9 +4124,9 @@
     document.querySelector('#clearHistory')?.addEventListener('click', () => {
       confirmAction({
         title: '清除练习记录？',
-        body: '课程完成、掌握成绩、曲目阶段、最佳成绩、复习队列和练习历史会从这台设备清除，计划设置会保留。',
+        body: '课程完成、掌握成绩、曲目阶段、最佳成绩、复习队列、练习历史和本机录音会从这台设备清除，计划设置会保留。',
         confirmLabel: '清除练习记录',
-        onConfirm: () => {
+        onConfirm: async () => {
           state.completed = {};
           state.mastery = {};
           state.repertoire = {};
@@ -3690,10 +4136,13 @@
           state.gameSessions = [];
           state.quickPractice = null;
           state.activeSession = null;
+          try { await clearAllRecordingRecords(); } catch (error) {}
+          if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
+          recordingState.objectUrl = '';
           APP.persist();
           APP.renderAll();
           updateProgressDisplay();
-          APP.showToast('本地练习记录已清除。');
+          APP.showToast('本地练习记录与录音已清除。');
         }
       });
     });
@@ -3771,6 +4220,7 @@
         else if (backdrop.id === 'playAlongModal') closePlayAlong();
         else if (backdrop.id === 'keyboardGuideModal') closeKeyboardGuide();
         else if (backdrop.id === 'rhythmPianoModal') closeRhythmPiano();
+        else if (backdrop.id === 'recordingModal') closeRecordingModal();
         else if (backdrop.id === 'legalViewModal') closeLegalView();
         else if (backdrop.id === 'videoModal') closeVideo();
       });
@@ -3780,6 +4230,7 @@
       if (event.key === 'Escape') {
         if (document.querySelector('#confirmActionModal') && !document.querySelector('#confirmActionModal').classList.contains('hidden')) { closeConfirmAction(); return; }
         if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
+        if (document.querySelector('#recordingModal') && !document.querySelector('#recordingModal').classList.contains('hidden')) { closeRecordingModal(); return; }
         if (document.querySelector('#legalViewModal') && !document.querySelector('#legalViewModal').classList.contains('hidden')) { closeLegalView(); return; }
         if (document.querySelector('#keyboardGuideModal') && !document.querySelector('#keyboardGuideModal').classList.contains('hidden')) { closeKeyboardGuide(); return; }
         if (freePlayActive) { closeFreePiano(); return; }
@@ -3853,6 +4304,36 @@
   APP.previewPianoNote = (midi) => playTone(440 * Math.pow(2, (Number(midi) - 69) / 12), .45, Number(midi));
   APP.getAudioSnapshot = () => ({ engine: 'sampled-grand-piano', samples: PIANO_SAMPLE_SOURCES.length, loaded: pianoSampleBuffers.size, sampleSource: PIANO_SAMPLE_SOURCE_NAME, velocityLayer: PIANO_SAMPLE_LAYER, sampleRange: 'A0–C8', sampledPlaybackCount, synthPlaybackCount, lastPlaybackEngine, fallback: 'multi-layer-synth' });
   APP.getKeyboardMap = () => RHYTHM_KEYBOARD_ROWS.map((row) => ({ type: row.type, notes: row.notes.slice(), keys: row.keys.slice(), codes: row.codes.slice() }));
+  APP.getRecordingSnapshot = () => ({
+    supported: recordingState.supported && location.protocol !== 'file:',
+    state: recordingState.recorder?.state || 'idle',
+    durationSeconds: Math.round(recordingState.elapsed || 0),
+    hasRecording: Boolean(recordingState.metadata && recordingState.blob),
+    recordingId: recordingState.metadata?.id || null,
+    mimeType: recordingState.mimeType || '',
+    error: recordingState.error || '',
+    source: location.protocol === 'file:' ? 'file' : 'http',
+    uploadsRecording: false
+  });
+  APP.getHistoryRecordingIds = () => state.history.filter((entry) => entry.recording?.id).map((entry) => entry.recording.id);
+  APP.openHistoryRecording = async (id) => {
+    const entry = state.history.find((item) => item.recording?.id === id);
+    const record = await getRecordingRecord(id);
+    if (!entry || !record?.blob) throw new Error('recording unavailable');
+    if (historyRecording?.objectUrl) URL.revokeObjectURL(historyRecording.objectUrl);
+    historyRecording = { entry, record, objectUrl: URL.createObjectURL(record.blob) };
+    document.querySelector('#recordingModalTitle').textContent = entry.title;
+    document.querySelector('#recordingModalMeta').textContent = `${formatRecordingDuration(entry.recording.durationSeconds)} · ${entry.date} · 本机录音`;
+    const audio = document.querySelector('#historyRecordingAudio');
+    audio.src = historyRecording.objectUrl;
+    const download = document.querySelector('#historyRecordingDownload');
+    download.href = historyRecording.objectUrl;
+    download.download = recordingFileName({ ...entry.recording, title: entry.title });
+    document.querySelector('#recordingModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    syncModalFocus();
+    return audio.play().catch(() => {});
+  };
 
   const accountState = {
     loggedIn: false,

@@ -716,6 +716,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.deepEqual(cleared.playAlong, {}, `${name}: play-along scores were not cleared`);
     assert.deepEqual(cleared.reviews, {}, `${name}: review queue was not cleared`);
     assert.deepEqual(cleared.gameSessions, [], `${name}: game sessions were not cleared`);
+    assert.equal(await page.evaluate(() => window.PIANO_APP.getHistoryRecordingIds().length), 0, `${name}: recording metadata survived clearing practice`);
     assert.equal(cleared.quickPractice, null, `${name}: quick practice state was not cleared`);
     assert.equal(cleared.profile.weeklyMinutes, 180, `${name}: clearing records changed the plan`);
     assert.match(await page.locator('#historyList').innerText(), /完成第一次练习/, `${name}: empty history state missing`);

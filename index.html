@@ -446,6 +446,15 @@
               </div>
               <p id="recordingCheckTip">录完后，这里会给出下一条可执行的录音建议。</p>
             </div>
+            <div class="recording-compare hidden" id="recordingCompare">
+              <div class="recording-compare-head"><strong>两遍对比</strong><span id="recordingCompareDelta">—</span></div>
+              <div class="recording-compare-takes">
+                <span><small>上一条</small><strong id="recordingCompareBefore">—</strong></span>
+                <i>→</i>
+                <span><small>这一条</small><strong id="recordingCompareAfter">—</strong></span>
+              </div>
+              <p id="recordingCompareTip"></p>
+            </div>
           </section>
           <div class="lesson-source" id="lessonSource"></div>
           <section class="checkpoint-panel hidden" id="checkpointPanel">
@@ -684,7 +693,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.32 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.33 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -768,6 +777,15 @@
           <span><small>静音</small><strong id="historyRecordingCheckSilence">—</strong></span>
         </div>
         <p id="historyRecordingCheckTip"></p>
+      </div>
+      <div class="recording-compare hidden" id="historyRecordingCompare">
+        <div class="recording-compare-head"><strong>两遍对比</strong><span id="historyRecordingCompareDelta">—</span></div>
+        <div class="recording-compare-takes">
+          <span><small>上一条</small><strong id="historyRecordingCompareBefore">—</strong></span>
+          <i>→</i>
+          <span><small>这一条</small><strong id="historyRecordingCompareAfter">—</strong></span>
+        </div>
+        <p id="historyRecordingCompareTip"></p>
       </div>
       <div class="recording-modal-actions"><a class="btn btn-soft" id="historyRecordingDownload" href="#" download>下载</a><button class="btn danger-button" id="historyRecordingDelete" type="button">删除录音</button></div>
     </div>

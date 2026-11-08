@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.33.0 — 2026-11-08
+
+- Added A/B comparison when replacing a recording: previous vs current level, RMS and effective-audio trend.
+- Added deterministic comparison states for recovered, regressed, stable and newly clipped takes.
+- Persisted a compact comparison summary with recording metadata and restored it in the history playback dialog.
+- Removed the replaced take's IndexedDB blob after a successful re-record.
+- Added end-to-end coverage for re-recording, replacement cleanup, trend rendering and history restoration.
+
 ## 1.32.0 — 2026-11-08
 
 - Added on-device audio diagnostics after recording: duration, RMS level, peak/clipping, active-audio ratio and silence.

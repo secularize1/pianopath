@@ -1550,6 +1550,18 @@ button, input, select, textarea { font-family: inherit; }
 .recording-check-metrics strong[data-level="太小"],.recording-check-metrics strong[data-level="偏轻"] { color:#a57b34; }
 .recording-check-metrics strong[data-level="过响"],.recording-check-metrics strong[data-level="断续"] { color:#aa6256; }
 .recording-check > p { margin:9px 0 0; color:#7e9083; font-size:9px; line-height:1.65; }
+.recording-compare { margin-top:10px; padding:12px; border:1px solid #dce8dd; border-radius:11px; background:#f7fbf6; }
+.recording-compare-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.recording-compare-head strong { color:#506c59; font-size:10px; }
+.recording-compare-head span { padding:3px 7px; border-radius:999px; background:#e8f4e6; color:#4f875b; font-size:8px; font-weight:850; }
+.recording-compare-head span[data-trend="又偏了"] { background:#fbece8; color:#a76154; }
+.recording-compare-head span[data-trend="差不多"] { background:#f3f1e6; color:#8e8259; }
+.recording-compare-takes { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:8px; margin-top:9px; }
+.recording-compare-takes > span { padding:8px 9px; border-radius:8px; background:#fff; }
+.recording-compare-takes small { display:block; color:#9ba99e; font-size:8px; }
+.recording-compare-takes strong { display:block; margin-top:3px; color:#526d5b; font-size:9px; }
+.recording-compare-takes > i { color:#93b09a; font-style:normal; font-size:12px; }
+.recording-compare > p { margin:9px 0 0; color:#7d9082; font-size:9px; line-height:1.65; }
 .history-recording { display:inline-flex; align-items:center; gap:5px; flex:0 0 auto; padding:5px 7px; border:1px solid #cfe1d0; border-radius:7px; background:#f2faf0; color:#4e875a; font-size:8px; font-weight:800; }
 .history-recording:hover { background:#e7f6e4; }
 .history-recording span { color:#68a574; font-size:8px; }
@@ -2012,6 +2024,15 @@ button, input, select, textarea { font-family: inherit; }
               </div>
               <p id="recordingCheckTip">录完后，这里会给出下一条可执行的录音建议。</p>
             </div>
+            <div class="recording-compare hidden" id="recordingCompare">
+              <div class="recording-compare-head"><strong>两遍对比</strong><span id="recordingCompareDelta">—</span></div>
+              <div class="recording-compare-takes">
+                <span><small>上一条</small><strong id="recordingCompareBefore">—</strong></span>
+                <i>→</i>
+                <span><small>这一条</small><strong id="recordingCompareAfter">—</strong></span>
+              </div>
+              <p id="recordingCompareTip"></p>
+            </div>
           </section>
           <div class="lesson-source" id="lessonSource"></div>
           <section class="checkpoint-panel hidden" id="checkpointPanel">
@@ -2250,7 +2271,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.32 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.33 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -2335,6 +2356,15 @@ button, input, select, textarea { font-family: inherit; }
         </div>
         <p id="historyRecordingCheckTip"></p>
       </div>
+      <div class="recording-compare hidden" id="historyRecordingCompare">
+        <div class="recording-compare-head"><strong>两遍对比</strong><span id="historyRecordingCompareDelta">—</span></div>
+        <div class="recording-compare-takes">
+          <span><small>上一条</small><strong id="historyRecordingCompareBefore">—</strong></span>
+          <i>→</i>
+          <span><small>这一条</small><strong id="historyRecordingCompareAfter">—</strong></span>
+        </div>
+        <p id="historyRecordingCompareTip"></p>
+      </div>
       <div class="recording-modal-actions"><a class="btn btn-soft" id="historyRecordingDownload" href="#" download>下载</a><button class="btn danger-button" id="historyRecordingDelete" type="button">删除录音</button></div>
     </div>
   </div>
@@ -2347,7 +2377,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.32.0",
+    "appVersion": "1.33.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -9443,6 +9473,18 @@ window.PIANO_DATA = {
         silent: Boolean(metadata.analysis.silent),
         clipped: Boolean(metadata.analysis.clipped),
         tip: String(metadata.analysis.tip || '').slice(0, 180)
+      } : null,
+      comparison: metadata.comparison ? {
+        trend: String(metadata.comparison.trend || '差不多').slice(0, 12),
+        tip: String(metadata.comparison.tip || '').slice(0, 180),
+        previous: metadata.comparison.previous ? {
+          level: String(metadata.comparison.previous.level || '').slice(0, 8),
+          rmsDb: Number(metadata.comparison.previous.rmsDb) || 0
+        } : null,
+        current: metadata.comparison.current ? {
+          level: String(metadata.comparison.current.level || '').slice(0, 8),
+          rmsDb: Number(metadata.comparison.current.rmsDb) || 0
+        } : null
       } : null
     };
   }
@@ -9464,6 +9506,8 @@ window.PIANO_DATA = {
     objectUrl: '',
     replaceId: null,
     analysis: null,
+    previousAnalysis: null,
+    comparison: null,
     supported: Boolean(navigator.mediaDevices?.getUserMedia && window.MediaRecorder),
     error: ''
   };
@@ -9752,6 +9796,51 @@ window.PIANO_DATA = {
     }
   }
 
+  function compareRecordingAnalysis(previous, current) {
+    if (!previous || !current) return null;
+    const rmsDelta = Math.round(current.rmsDb - previous.rmsDb);
+    const activeDelta = Math.round(current.activeRatio - previous.activeRatio);
+    const peakDelta = Math.round(current.peakDb - previous.peakDb);
+    const recovered = (current.clipped === false && previous.clipped === true) || (current.silent === false && previous.silent === true) || (current.level === '合适' && previous.level !== '合适');
+    const regressed = (current.clipped === true && previous.clipped === false) || (current.silent === true && previous.silent === false) || (current.level !== '合适' && previous.level === '合适');
+    const stableLevel = current.level === previous.level && Math.abs(rmsDelta) <= 3;
+    const moreActive = activeDelta >= 8 && !regressed;
+    let trend = '差不多';
+    let tip = '两遍音量条件接近，可以接着比较演奏内容。';
+    if (recovered) {
+      trend = '更稳';
+      tip = '这一遍进入更可复盘的音量状态；下次只改一个连接或节奏点。';
+    } else if (regressed) {
+      trend = '又偏了';
+      tip = '这一遍出现了上一遍没有的音量问题，先固定麦克风距离，再重录一条。';
+    } else if (stableLevel) {
+      trend = '一致';
+      tip = '两遍音量条件稳定，可以把注意力放到节奏和连接上。';
+    } else if (moreActive) {
+      trend = '更连贯';
+      tip = '这一遍有效声音更多，继续保留同一种录法。';
+    }
+    return { previous, current, rmsDelta, activeDelta, peakDelta, trend, tip };
+  }
+
+  function renderRecordingCompare(comparison, prefix = 'recordingCompare') {
+    const panel = document.querySelector(`#${prefix}`);
+    if (!panel) return;
+    panel.classList.toggle('hidden', !comparison);
+    if (!comparison) return;
+    const before = document.querySelector(`#${prefix}Before`);
+    const after = document.querySelector(`#${prefix}After`);
+    const delta = document.querySelector(`#${prefix}Delta`);
+    const tip = document.querySelector(`#${prefix}Tip`);
+    if (before) before.textContent = `${comparison.previous.level} · ${comparison.previous.rmsDb} dB`;
+    if (after) after.textContent = `${comparison.current.level} · ${comparison.current.rmsDb} dB`;
+    if (delta) {
+      delta.textContent = comparison.trend;
+      delta.dataset.trend = comparison.trend;
+    }
+    if (tip) tip.textContent = comparison.tip;
+  }
+
   function renderRecordingAnalysis(analysis, prefix = 'recordingCheck') {
     const panel = document.querySelector(`#${prefix}`);
     if (!panel) return;
@@ -9885,6 +9974,8 @@ window.PIANO_DATA = {
     recordingState.id = null;
     recordingState.metadata = null;
     recordingState.analysis = null;
+    recordingState.previousAnalysis = null;
+    recordingState.comparison = null;
     recordingState.error = '';
     if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
     recordingState.objectUrl = '';
@@ -9899,6 +9990,7 @@ window.PIANO_DATA = {
     const download = document.querySelector('#downloadRecording');
     if (download) download.removeAttribute('href');
     renderRecordingAnalysis(null, 'recordingCheck');
+    renderRecordingCompare(null, 'recordingCompare');
     setRecordingStatus('准备好后开始录音', recordingState.supported ? '麦克风只在你点击后启用 · 最长 60 秒' : '需在本地服务或 HTTPS 中录音');
     syncRecordingControls();
   }
@@ -9944,6 +10036,7 @@ window.PIANO_DATA = {
     }
     if (recordingState.recorder?.state === 'recording') return;
     const previousId = recordingState.metadata?.id || null;
+    const previousAnalysis = recordingState.analysis || null;
     const context = recordedStepContext();
     recordingState.error = '';
     recordingState.chunks = [];
@@ -9962,6 +10055,7 @@ window.PIANO_DATA = {
       recordingState.elapsed = 0;
       recordingState.mimeType = recorder.mimeType || mimeType || 'audio/webm';
       recordingState.replaceId = previousId;
+      recordingState.previousAnalysis = previousAnalysis;
       recorder.addEventListener('dataavailable', (event) => {
         if (event.data?.size) recordingState.chunks.push(event.data);
       });
@@ -9981,6 +10075,7 @@ window.PIANO_DATA = {
         }
         const id = `recording-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
         const analysis = await analyzeRecordingBlob(blob);
+        const comparison = previousAnalysis && analysis ? compareRecordingAnalysis(previousAnalysis, analysis) : null;
         const metadata = {
           id,
           ...context,
@@ -9988,7 +10083,8 @@ window.PIANO_DATA = {
           mimeType: recordingState.mimeType,
           createdAt: new Date().toISOString(),
           deviceId: RECORDING_DEVICE_ID,
-          analysis
+          analysis,
+          comparison
         };
         try {
           await putRecordingRecord({ id, blob, metadata });
@@ -10002,6 +10098,7 @@ window.PIANO_DATA = {
           recordingState.id = id;
           recordingState.metadata = metadata;
           recordingState.analysis = analysis;
+          recordingState.comparison = comparison;
           recordingState.elapsed = durationSeconds;
           if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
           recordingState.objectUrl = URL.createObjectURL(blob);
@@ -10014,6 +10111,7 @@ window.PIANO_DATA = {
             download.download = recordingFileName(metadata);
           }
           renderRecordingAnalysis(analysis, 'recordingCheck');
+          if (comparison) renderRecordingCompare(comparison, 'recordingCompare');
           setRecordingStatus('录音已保存在本机', `${formatRecordingDuration(durationSeconds)} · ${analysis?.level || '可以回放'} · 不上传`);
           syncRecordingControls();
           APP.showToast('录音已保存，不会上传服务器。');
@@ -10069,6 +10167,7 @@ window.PIANO_DATA = {
       if (!record?.blob || !session) return;
       recordingState.metadata = { ...metadata, ...(record.metadata || {}) };
       recordingState.analysis = recordingState.metadata.analysis || await analyzeRecordingBlob(record.blob);
+      recordingState.comparison = recordingState.metadata.comparison || null;
       recordingState.id = metadata.id;
       recordingState.blob = record.blob;
       recordingState.mimeType = metadata.mimeType || record.blob.type || 'audio/webm';
@@ -10081,6 +10180,7 @@ window.PIANO_DATA = {
         download.download = recordingFileName(recordingState.metadata);
       }
       renderRecordingAnalysis(recordingState.analysis, 'recordingCheck');
+      if (recordingState.comparison) renderRecordingCompare(recordingState.comparison, 'recordingCompare');
       setRecordingStatus('上次的录音还在', `${formatRecordingDuration(recordingState.elapsed)} · 可以回放或继续练习`);
       syncRecordingControls();
     } catch (error) {
@@ -10113,6 +10213,7 @@ window.PIANO_DATA = {
     if (historyRecording?.objectUrl) URL.revokeObjectURL(historyRecording.objectUrl);
     historyRecording = null;
     renderRecordingAnalysis(null, 'historyRecordingCheck');
+    renderRecordingCompare(null, 'historyRecordingCompare');
     modal?.classList.add('hidden');
     document.body.style.overflow = document.querySelector('.modal-backdrop:not(.hidden)') ? 'hidden' : '';
     syncModalFocus();
@@ -12923,6 +13024,7 @@ window.PIANO_DATA = {
     recordingId: recordingState.metadata?.id || null,
     mimeType: recordingState.mimeType || '',
     analysis: recordingState.analysis || null,
+    comparison: recordingState.comparison || null,
     error: recordingState.error || '',
     source: location.protocol === 'file:' ? 'file' : 'http',
     uploadsRecording: false
@@ -12930,6 +13032,7 @@ window.PIANO_DATA = {
   APP.getHistoryRecordingIds = () => state.history.filter((entry) => entry.recording?.id).map((entry) => entry.recording.id);
   APP.getRecordingDeviceId = () => RECORDING_DEVICE_ID;
   APP.analyzeRecordingSamples = (samples, sampleRate = 48000, durationSeconds = 0) => analyzeRecordingSamples(samples, sampleRate, durationSeconds);
+  APP.compareRecordingAnalysis = (previous, current) => compareRecordingAnalysis(previous, current);
   APP.openHistoryRecording = async (id) => {
     const entry = state.history.find((item) => item.recording?.id === id);
     const record = await getRecordingRecord(id);
@@ -12939,6 +13042,7 @@ window.PIANO_DATA = {
     document.querySelector('#recordingModalTitle').textContent = entry.title;
     document.querySelector('#recordingModalMeta').textContent = `${formatRecordingDuration(entry.recording.durationSeconds)} · ${entry.date} · 本机录音`;
     renderRecordingAnalysis(entry.recording.analysis || await analyzeRecordingBlob(record.blob), 'historyRecordingCheck');
+    renderRecordingCompare(entry.recording.comparison || null, 'historyRecordingCompare');
     const audio = document.querySelector('#historyRecordingAudio');
     audio.src = historyRecording.objectUrl;
     const download = document.querySelector('#historyRecordingDownload');

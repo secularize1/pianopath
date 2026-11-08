@@ -981,6 +981,18 @@
         silent: Boolean(metadata.analysis.silent),
         clipped: Boolean(metadata.analysis.clipped),
         tip: String(metadata.analysis.tip || '').slice(0, 180)
+      } : null,
+      comparison: metadata.comparison ? {
+        trend: String(metadata.comparison.trend || '差不多').slice(0, 12),
+        tip: String(metadata.comparison.tip || '').slice(0, 180),
+        previous: metadata.comparison.previous ? {
+          level: String(metadata.comparison.previous.level || '').slice(0, 8),
+          rmsDb: Number(metadata.comparison.previous.rmsDb) || 0
+        } : null,
+        current: metadata.comparison.current ? {
+          level: String(metadata.comparison.current.level || '').slice(0, 8),
+          rmsDb: Number(metadata.comparison.current.rmsDb) || 0
+        } : null
       } : null
     };
   }
@@ -1002,6 +1014,8 @@
     objectUrl: '',
     replaceId: null,
     analysis: null,
+    previousAnalysis: null,
+    comparison: null,
     supported: Boolean(navigator.mediaDevices?.getUserMedia && window.MediaRecorder),
     error: ''
   };
@@ -1290,6 +1304,51 @@
     }
   }
 
+  function compareRecordingAnalysis(previous, current) {
+    if (!previous || !current) return null;
+    const rmsDelta = Math.round(current.rmsDb - previous.rmsDb);
+    const activeDelta = Math.round(current.activeRatio - previous.activeRatio);
+    const peakDelta = Math.round(current.peakDb - previous.peakDb);
+    const recovered = (current.clipped === false && previous.clipped === true) || (current.silent === false && previous.silent === true) || (current.level === '合适' && previous.level !== '合适');
+    const regressed = (current.clipped === true && previous.clipped === false) || (current.silent === true && previous.silent === false) || (current.level !== '合适' && previous.level === '合适');
+    const stableLevel = current.level === previous.level && Math.abs(rmsDelta) <= 3;
+    const moreActive = activeDelta >= 8 && !regressed;
+    let trend = '差不多';
+    let tip = '两遍音量条件接近，可以接着比较演奏内容。';
+    if (recovered) {
+      trend = '更稳';
+      tip = '这一遍进入更可复盘的音量状态；下次只改一个连接或节奏点。';
+    } else if (regressed) {
+      trend = '又偏了';
+      tip = '这一遍出现了上一遍没有的音量问题，先固定麦克风距离，再重录一条。';
+    } else if (stableLevel) {
+      trend = '一致';
+      tip = '两遍音量条件稳定，可以把注意力放到节奏和连接上。';
+    } else if (moreActive) {
+      trend = '更连贯';
+      tip = '这一遍有效声音更多，继续保留同一种录法。';
+    }
+    return { previous, current, rmsDelta, activeDelta, peakDelta, trend, tip };
+  }
+
+  function renderRecordingCompare(comparison, prefix = 'recordingCompare') {
+    const panel = document.querySelector(`#${prefix}`);
+    if (!panel) return;
+    panel.classList.toggle('hidden', !comparison);
+    if (!comparison) return;
+    const before = document.querySelector(`#${prefix}Before`);
+    const after = document.querySelector(`#${prefix}After`);
+    const delta = document.querySelector(`#${prefix}Delta`);
+    const tip = document.querySelector(`#${prefix}Tip`);
+    if (before) before.textContent = `${comparison.previous.level} · ${comparison.previous.rmsDb} dB`;
+    if (after) after.textContent = `${comparison.current.level} · ${comparison.current.rmsDb} dB`;
+    if (delta) {
+      delta.textContent = comparison.trend;
+      delta.dataset.trend = comparison.trend;
+    }
+    if (tip) tip.textContent = comparison.tip;
+  }
+
   function renderRecordingAnalysis(analysis, prefix = 'recordingCheck') {
     const panel = document.querySelector(`#${prefix}`);
     if (!panel) return;
@@ -1423,6 +1482,8 @@
     recordingState.id = null;
     recordingState.metadata = null;
     recordingState.analysis = null;
+    recordingState.previousAnalysis = null;
+    recordingState.comparison = null;
     recordingState.error = '';
     if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
     recordingState.objectUrl = '';
@@ -1437,6 +1498,7 @@
     const download = document.querySelector('#downloadRecording');
     if (download) download.removeAttribute('href');
     renderRecordingAnalysis(null, 'recordingCheck');
+    renderRecordingCompare(null, 'recordingCompare');
     setRecordingStatus('准备好后开始录音', recordingState.supported ? '麦克风只在你点击后启用 · 最长 60 秒' : '需在本地服务或 HTTPS 中录音');
     syncRecordingControls();
   }
@@ -1482,6 +1544,7 @@
     }
     if (recordingState.recorder?.state === 'recording') return;
     const previousId = recordingState.metadata?.id || null;
+    const previousAnalysis = recordingState.analysis || null;
     const context = recordedStepContext();
     recordingState.error = '';
     recordingState.chunks = [];
@@ -1500,6 +1563,7 @@
       recordingState.elapsed = 0;
       recordingState.mimeType = recorder.mimeType || mimeType || 'audio/webm';
       recordingState.replaceId = previousId;
+      recordingState.previousAnalysis = previousAnalysis;
       recorder.addEventListener('dataavailable', (event) => {
         if (event.data?.size) recordingState.chunks.push(event.data);
       });
@@ -1519,6 +1583,7 @@
         }
         const id = `recording-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
         const analysis = await analyzeRecordingBlob(blob);
+        const comparison = previousAnalysis && analysis ? compareRecordingAnalysis(previousAnalysis, analysis) : null;
         const metadata = {
           id,
           ...context,
@@ -1526,7 +1591,8 @@
           mimeType: recordingState.mimeType,
           createdAt: new Date().toISOString(),
           deviceId: RECORDING_DEVICE_ID,
-          analysis
+          analysis,
+          comparison
         };
         try {
           await putRecordingRecord({ id, blob, metadata });
@@ -1540,6 +1606,7 @@
           recordingState.id = id;
           recordingState.metadata = metadata;
           recordingState.analysis = analysis;
+          recordingState.comparison = comparison;
           recordingState.elapsed = durationSeconds;
           if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
           recordingState.objectUrl = URL.createObjectURL(blob);
@@ -1552,6 +1619,7 @@
             download.download = recordingFileName(metadata);
           }
           renderRecordingAnalysis(analysis, 'recordingCheck');
+          if (comparison) renderRecordingCompare(comparison, 'recordingCompare');
           setRecordingStatus('录音已保存在本机', `${formatRecordingDuration(durationSeconds)} · ${analysis?.level || '可以回放'} · 不上传`);
           syncRecordingControls();
           APP.showToast('录音已保存，不会上传服务器。');
@@ -1607,6 +1675,7 @@
       if (!record?.blob || !session) return;
       recordingState.metadata = { ...metadata, ...(record.metadata || {}) };
       recordingState.analysis = recordingState.metadata.analysis || await analyzeRecordingBlob(record.blob);
+      recordingState.comparison = recordingState.metadata.comparison || null;
       recordingState.id = metadata.id;
       recordingState.blob = record.blob;
       recordingState.mimeType = metadata.mimeType || record.blob.type || 'audio/webm';
@@ -1619,6 +1688,7 @@
         download.download = recordingFileName(recordingState.metadata);
       }
       renderRecordingAnalysis(recordingState.analysis, 'recordingCheck');
+      if (recordingState.comparison) renderRecordingCompare(recordingState.comparison, 'recordingCompare');
       setRecordingStatus('上次的录音还在', `${formatRecordingDuration(recordingState.elapsed)} · 可以回放或继续练习`);
       syncRecordingControls();
     } catch (error) {
@@ -1651,6 +1721,7 @@
     if (historyRecording?.objectUrl) URL.revokeObjectURL(historyRecording.objectUrl);
     historyRecording = null;
     renderRecordingAnalysis(null, 'historyRecordingCheck');
+    renderRecordingCompare(null, 'historyRecordingCompare');
     modal?.classList.add('hidden');
     document.body.style.overflow = document.querySelector('.modal-backdrop:not(.hidden)') ? 'hidden' : '';
     syncModalFocus();
@@ -4461,6 +4532,7 @@
     recordingId: recordingState.metadata?.id || null,
     mimeType: recordingState.mimeType || '',
     analysis: recordingState.analysis || null,
+    comparison: recordingState.comparison || null,
     error: recordingState.error || '',
     source: location.protocol === 'file:' ? 'file' : 'http',
     uploadsRecording: false
@@ -4468,6 +4540,7 @@
   APP.getHistoryRecordingIds = () => state.history.filter((entry) => entry.recording?.id).map((entry) => entry.recording.id);
   APP.getRecordingDeviceId = () => RECORDING_DEVICE_ID;
   APP.analyzeRecordingSamples = (samples, sampleRate = 48000, durationSeconds = 0) => analyzeRecordingSamples(samples, sampleRate, durationSeconds);
+  APP.compareRecordingAnalysis = (previous, current) => compareRecordingAnalysis(previous, current);
   APP.openHistoryRecording = async (id) => {
     const entry = state.history.find((item) => item.recording?.id === id);
     const record = await getRecordingRecord(id);
@@ -4477,6 +4550,7 @@
     document.querySelector('#recordingModalTitle').textContent = entry.title;
     document.querySelector('#recordingModalMeta').textContent = `${formatRecordingDuration(entry.recording.durationSeconds)} · ${entry.date} · 本机录音`;
     renderRecordingAnalysis(entry.recording.analysis || await analyzeRecordingBlob(record.blob), 'historyRecordingCheck');
+    renderRecordingCompare(entry.recording.comparison || null, 'historyRecordingCompare');
     const audio = document.querySelector('#historyRecordingAudio');
     audio.src = historyRecording.objectUrl;
     const download = document.querySelector('#historyRecordingDownload');

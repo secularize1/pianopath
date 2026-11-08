@@ -1534,6 +1534,18 @@ button, input, select, textarea { font-family: inherit; }
 .recording-check-metrics strong[data-level="太小"],.recording-check-metrics strong[data-level="偏轻"] { color:#a57b34; }
 .recording-check-metrics strong[data-level="过响"],.recording-check-metrics strong[data-level="断续"] { color:#aa6256; }
 .recording-check > p { margin:9px 0 0; color:#7e9083; font-size:9px; line-height:1.65; }
+.recording-compare { margin-top:10px; padding:12px; border:1px solid #dce8dd; border-radius:11px; background:#f7fbf6; }
+.recording-compare-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.recording-compare-head strong { color:#506c59; font-size:10px; }
+.recording-compare-head span { padding:3px 7px; border-radius:999px; background:#e8f4e6; color:#4f875b; font-size:8px; font-weight:850; }
+.recording-compare-head span[data-trend="又偏了"] { background:#fbece8; color:#a76154; }
+.recording-compare-head span[data-trend="差不多"] { background:#f3f1e6; color:#8e8259; }
+.recording-compare-takes { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:8px; margin-top:9px; }
+.recording-compare-takes > span { padding:8px 9px; border-radius:8px; background:#fff; }
+.recording-compare-takes small { display:block; color:#9ba99e; font-size:8px; }
+.recording-compare-takes strong { display:block; margin-top:3px; color:#526d5b; font-size:9px; }
+.recording-compare-takes > i { color:#93b09a; font-style:normal; font-size:12px; }
+.recording-compare > p { margin:9px 0 0; color:#7d9082; font-size:9px; line-height:1.65; }
 .history-recording { display:inline-flex; align-items:center; gap:5px; flex:0 0 auto; padding:5px 7px; border:1px solid #cfe1d0; border-radius:7px; background:#f2faf0; color:#4e875a; font-size:8px; font-weight:800; }
 .history-recording:hover { background:#e7f6e4; }
 .history-recording span { color:#68a574; font-size:8px; }

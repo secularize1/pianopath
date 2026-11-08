@@ -90,6 +90,19 @@ async function openLesson(page, base) {
     assert.equal(diagnostics.clipped.level, '过响', 'clipping diagnostics failed');
     assert.equal(diagnostics.clipped.clipped, true, 'clipped flag missing');
     assert.ok(diagnostics.good.rmsDb > diagnostics.quiet.rmsDb, 'RMS comparison failed');
+    const comparisons = await page.evaluate(() => {
+      const base = { level: '偏轻', rmsDb: -28, peakDb: -28, activeRatio: 60, silent: false, clipped: false };
+      return {
+        recovered: window.PIANO_APP.compareRecordingAnalysis(base, { ...base, level: '合适', rmsDb: -16, peakDb: -1 }),
+        regressed: window.PIANO_APP.compareRecordingAnalysis({ ...base, level: '合适', rmsDb: -16, peakDb: -1 }, base),
+        stable: window.PIANO_APP.compareRecordingAnalysis(base, { ...base, rmsDb: -29 }),
+        clipped: window.PIANO_APP.compareRecordingAnalysis({ ...base, level: '合适', rmsDb: -16, peakDb: -1 }, { ...base, level: '过响', rmsDb: -1, peakDb: 0, clipped: true })
+      };
+    });
+    assert.equal(comparisons.recovered.trend, '更稳', 'recovered-take comparison failed');
+    assert.equal(comparisons.regressed.trend, '又偏了', 'regressed-take comparison failed');
+    assert.equal(comparisons.stable.trend, '一致', 'stable-take comparison failed');
+    assert.equal(comparisons.clipped.trend, '又偏了', 'clipped-take comparison failed');
 
     await page.locator('#startRecording').click();
     await page.waitForFunction(() => window.PIANO_APP.getRecordingSnapshot().state === 'recording', null, { timeout: 5000 });
@@ -115,6 +128,33 @@ async function openLesson(page, base) {
     assert.equal(await page.locator('#recordingCheck').isVisible(), true, 'recording analysis card missing');
     assert.match(await page.locator('#recordingCheckLevel').innerText(), /太小|偏轻|合适|过响|断续/, 'recording level not rendered');
     assert.match(await page.locator('#recordingCheckTip').innerText(), /麦克风|片段|小节|琴声|录音|声音|连接/, 'recording analysis tip missing');
+    const firstTake = saved;
+    await page.locator('#startRecording').click();
+    await page.waitForFunction(() => window.PIANO_APP.getRecordingSnapshot().state === 'recording', null, { timeout: 5000 });
+    await page.waitForTimeout(900);
+    await page.locator('#stopRecording').click();
+    await page.waitForFunction((previousId) => {
+      const snap = window.PIANO_APP.getRecordingSnapshot();
+      return snap.hasRecording && snap.recordingId && snap.recordingId !== previousId;
+    }, firstTake.recordingId, { timeout: 8000 });
+    const compared = await page.evaluate(() => window.PIANO_APP.getRecordingSnapshot());
+    assert.notEqual(compared.recordingId, firstTake.recordingId, 're-recording did not replace the prior take');
+    assert.ok(compared.comparison, 'A/B comparison missing after re-recording');
+    assert.match(compared.comparison.trend, /更稳|又偏了|差不多|一致|更连贯/, 'A/B trend missing');
+    assert.equal(await page.locator('#recordingCompare').isVisible(), true, 'A/B comparison card missing');
+    assert.match(await page.locator('#recordingCompareBefore').innerText(), /dB/, 'previous take summary missing');
+    assert.match(await page.locator('#recordingCompareAfter').innerText(), /dB/, 'current take summary missing');
+    const oldTakeRemoved = await page.evaluate(async (id) => new Promise((resolve, reject) => {
+      const request = indexedDB.open('pianopath-recordings-v1');
+      request.onsuccess = () => {
+        const db = request.result;
+        const get = db.transaction('recordings').objectStore('recordings').get(id);
+        get.onsuccess = () => resolve(!get.result);
+        get.onerror = () => reject(get.error);
+      };
+      request.onerror = () => reject(request.error);
+    }), firstTake.recordingId);
+    assert.equal(oldTakeRemoved, true, 'replaced recording blob was not removed');
     await page.locator('#finishSession').click();
     await page.waitForTimeout(250);
     await page.locator('#saveCompletion').click();
@@ -126,7 +166,8 @@ async function openLesson(page, base) {
     assert.equal(historyIds.length, 1, 'completed practice did not keep recording metadata');
     assert.equal(await page.locator('.history-recording').count(), 1, 'history playback button missing');
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).history.find((entry) => entry.recording));
-    assert.equal(stored.recording.id, saved.recordingId, 'history recording metadata id mismatch');
+    assert.equal(stored.recording.id, compared.recordingId, 'history recording metadata id mismatch');
+    assert.ok(stored.recording.comparison, 'A/B comparison was not persisted to history');
     assert.ok(stored.recording.deviceId, 'recording metadata must record the owning device');
     assert.equal(stored.recording.deviceId, await page.evaluate(() => window.PIANO_APP.getRecordingDeviceId()), 'recording device id mismatch');
     assert.equal(Object.prototype.hasOwnProperty.call(stored.recording, 'blob'), false, 'audio blob must not enter localStorage');
@@ -136,6 +177,9 @@ async function openLesson(page, base) {
     assert.equal(await page.locator('#historyRecordingAudio').getAttribute('src') !== null, true, 'history playback source missing');
     assert.equal(await page.locator('#historyRecordingCheck').isVisible(), true, 'history recording analysis missing');
     assert.match(await page.locator('#historyRecordingCheckLevel').innerText(), /太小|偏轻|合适|过响|断续/, 'history recording level missing');
+    assert.equal(await page.locator('#historyRecordingCompare').isVisible(), true, 'history A/B comparison missing');
+    assert.match(await page.locator('#historyRecordingCompareBefore').innerText(), /dB/, 'history previous take missing');
+    assert.match(await page.locator('#historyRecordingCompareAfter').innerText(), /dB/, 'history current take missing');
     await page.locator('#historyRecordingDelete').click();
     await page.waitForFunction(() => !document.querySelector('#confirmActionModal').classList.contains('hidden'), null, { timeout: 3000 });
     await page.keyboard.press('Escape');
@@ -154,7 +198,7 @@ async function openLesson(page, base) {
         get.onerror = () => reject(get.error);
       };
       request.onerror = () => reject(request.error);
-    }), saved.recordingId);
+    }), compared.recordingId);
     assert.equal(deletedAudio, false, 'recording blob was not removed from IndexedDB');
     await page.evaluate(() => {
       const current = JSON.parse(localStorage.getItem('pianopath-state-v1'));
@@ -206,7 +250,7 @@ async function openLesson(page, base) {
     assert.equal(fileErrors.length, 0, `standalone recording errors: ${fileErrors.join('; ')}`);
     await fileContext.close();
 
-    console.log(JSON.stringify({ ok: true, active, saved, historyRecording: stored.recording, diagnostics, denied: 'recoverable', standalone: 'graceful' }, null, 2));
+    console.log(JSON.stringify({ ok: true, active, saved, historyRecording: stored.recording, comparison: compared.comparison, diagnostics, comparisons, denied: 'recoverable', standalone: 'graceful' }, null, 2));
   } finally {
     if (browser) await browser.close();
     if (server) {

@@ -1,4 +1,4 @@
-# PianoPath 1.32 — 产品健康检查
+# PianoPath 1.33 — 产品健康检查
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
@@ -9,7 +9,7 @@
 | 掌握门槛 | 2/3 通过才完成课程并解锁下一课 | Playwright |
 | 音乐练习 | 8 首公共领域短曲；触屏 + 两层电脑键盘；自由弹 C1–D7；40–208 BPM 节拍器；Salamander Grand Piano V3（Yamaha C5，A0–C8，30 个采样）与合成兜底 | Playwright / `tests/audio-smoke.js` |
 | 学习反馈 | 今日主课/掌握路径、每日目标完成反馈、四项能力、热力图、首页直达间隔复习、跟弹与自由弹历史；刷新后保留中断练习 | Playwright / app state |
-| 录音复盘 | 60 秒课内录音、本机 IndexedDB、本地声音体检、回放/下载/删除；权限拒绝与单文件降级；音频不上传，跨设备只显示“原设备录音” | `tests/recording-smoke.js` |
+| 录音复盘 | 60 秒课内录音、本机 IndexedDB、声音体检、两遍对比、回放/下载/删除；权限拒绝与单文件降级；音频不上传，跨设备只显示“原设备录音” | `tests/recording-smoke.js` |
 | 账户系统 | 注册、登录、同步、退出、删除账户与云端进度 | API / UI integration |
 | 跨设备同步 | SQLite + revision 冲突检测 | API integration |
 | 离线能力 | 断网刷新仍可进入课程；单文件离线包可用 | `tests/offline-smoke.js` / standalone build |

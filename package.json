@@ -1,6 +1,6 @@
 {
   "name": "pianopath",
-  "version": "1.27.0",
+  "version": "1.27.1",
   "private": true,
   "description": "每周 4 小时的钢琴学习工作台，国内资源优先，支持 PWA 与本地后端。",
   "scripts": {

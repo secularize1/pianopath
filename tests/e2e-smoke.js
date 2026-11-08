@@ -241,7 +241,10 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '3 / 3 ✓', `${name}: tutorial completion count wrong`);
     assert.equal(await page.locator('.keyboard-guide-progress').getAttribute('class'), 'keyboard-guide-progress complete', `${name}: tutorial completion state missing`);
     assert.equal((await page.evaluate(() => window.PIANO_APP.getFreePianoSnapshot())).keyCount, 0, `${name}: tutorial previews polluted free-play stats`);
-    await page.locator('#keyboardGuideStart').click();
+    await page.locator('#keyboardGuideStart').focus();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(180);
+    assert.equal(await page.locator('#keyboardGuideModal').isVisible(), false, `${name}: Enter did not activate the focused tutorial CTA`);
     await page.waitForTimeout(150);
     assert.equal(await page.locator('#rhythmFreePlay').isVisible(), true, `${name}: free-play panel missing`);
     assert.equal(await page.locator('#freePlayLandscape').isVisible(), true, `${name}: free-play landscape control missing`);

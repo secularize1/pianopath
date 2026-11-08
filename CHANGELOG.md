@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.27.1 — 2026-11-08
+
+- Cleared focused controls when entering the rhythm stage so the mapped `Enter` key plays C4 instead of activating a previously focused button.
+- Preserved normal Enter activation inside the keyboard tutorial and formal dialogs.
+- Clarified both row ranges, continuous chromatic mapping and IME-safe physical key handling in the tutorial.
+- Verified the first rhythm note, tutorial CTA, desktop/mobile layouts and interrupted-practice recovery.
+
 ## 1.27.0 — 2026-11-08
 
 - Preserved full session snapshots for quick practice, repertoire practice and long-term stage practice.

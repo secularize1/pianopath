@@ -2182,6 +2182,7 @@
     const modal = document.querySelector('#keyboardGuideModal');
     if (!modal || modal.classList.contains('hidden')) return;
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+    if (event.key === 'Enter' && event.target.closest('button, a, input, textarea, select')) return;
     const key = guideKeyForEvent(event);
     if (!key) return;
     event.preventDefault();
@@ -2584,6 +2585,7 @@
     document.querySelector('#rhythmPianoHome')?.classList.add('hidden');
     document.querySelector('#rhythmPianoResult')?.classList.add('hidden');
     document.querySelector('#rhythmPianoStage')?.classList.remove('hidden');
+    if (document.activeElement?.closest?.('#rhythmPianoStage button, #rhythmPianoHome button')) document.activeElement.blur();
     startRhythmCountdown();
   }
 
@@ -2739,6 +2741,8 @@
     const target = keys.find((candidate) => candidate.code === event.code) || keys.find((candidate) => candidate.key.toLowerCase() === key);
     if (!target) return;
     event.preventDefault();
+    event.stopImmediatePropagation();
+    if (event.target?.closest?.('button, a')) event.target.blur();
     pressRhythmKey(target.note);
   }
 

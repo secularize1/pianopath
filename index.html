@@ -128,7 +128,7 @@
 
         <section class="home-week card">
           <div class="home-section-head">
-            <div><span class="home-label">本周路线</span><h3>四次练习，走完这一周</h3></div>
+            <div><span class="home-label">本周路线</span><h3 id="homeWeekTitle">四次练习，走完这一周</h3></div>
             <button class="text-button" data-nav="path">查看 12 周路径 →</button>
           </div>
           <div class="week-trail" id="homeWeekTrail"></div>
@@ -617,12 +617,17 @@
           <label><span>目标风格</span><select name="style"><option value="classical">古典打底</option><option value="pop">流行伴奏</option><option value="mixed" selected>古典 + 流行</option></select></label>
         </div>
         <div class="range-label plan-derived"><span>单次约 <strong id="minutesPerDayLabel">60 分钟</strong></span><small>由每周总时长 ÷ 练习天数自动计算</small></div>
+        <fieldset class="practice-day-picker">
+          <legend>哪几天练琴</legend>
+          <div class="practice-day-grid" id="practiceDayPicker"></div>
+          <p id="practiceDaySummary">已选 4 天</p>
+        </fieldset>
         <label><span>你的首要目标</span><input name="goal" type="text" maxlength="80" placeholder="例如：半年内能完整弹《天空之城》"></label>
         <div class="plan-tools"><button type="button" class="text-button" id="reopenOnboarding">重新选择目标</button><button type="button" class="text-button" id="resetPlan">恢复默认</button></div>
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.22 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.23 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

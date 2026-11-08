@@ -1,4 +1,4 @@
-# PianoPath 1.22 — 产品健康检查
+# PianoPath 1.23 — 产品健康检查
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
@@ -17,6 +17,7 @@
 | 安全性 | PBKDF2、HttpOnly Cookie、私有 DB、CSP | `server.py` |
 | 危险操作 | 应用内确认、焦点锁定、Esc/取消与持久化清除验证 | Playwright |
 | 隐私与条款 | 独立法律页面、注册强制同意、版本与时间记录、单文件离线说明 | DOM / API / Playwright |
+| 练习排期 | 可选 7 个练习日；首页按真实星期/日期推进；API 计划生成、旧备份兼容与手机触控尺寸均有覆盖 | Playwright / API / import |
 | 线上部署 | GitHub Pages 自动构建与部署 | GitHub Actions |
 
 ## 仍需商业级建设

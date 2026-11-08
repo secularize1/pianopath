@@ -57,6 +57,88 @@ CURRICULUM = load_curriculum()
 APP_VERSION = str(CURRICULUM.get("meta", {}).get("appVersion", "1.14.0"))
 
 
+def clamp_int(value, low: int, high: int, fallback: int) -> int:
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return fallback
+    return max(low, min(high, number))
+
+
+def normalize_practice_days(value, days: int) -> list[int]:
+    allowed = set(range(7))
+    unique: list[int] = []
+    if isinstance(value, list):
+        for item in value:
+            try:
+                day = int(item)
+            except (TypeError, ValueError):
+                continue
+            if day in allowed and day not in unique:
+                unique.append(day)
+    defaults = {
+        1: [1],
+        2: [2, 6],
+        3: [1, 3, 6],
+        4: [1, 3, 5, 6],
+        5: [1, 2, 4, 5, 6],
+        6: [1, 2, 3, 4, 5, 6],
+        7: [1, 2, 3, 4, 5, 6, 0],
+    }
+    selected = unique[:days]
+    return [*selected, *[day for day in defaults[days] if day not in selected]][:days]
+
+
+def make_plan(profile: dict) -> dict:
+    days = clamp_int(profile.get("daysPerWeek"), 1, 7, 4)
+    minutes = clamp_int(profile.get("sessionMinutes"), 10, 180, 60)
+    style = str(profile.get("style", "mixed"))
+    level = str(profile.get("level", "zero"))
+    practice_days = normalize_practice_days(profile.get("practiceDays"), days)
+    weekly = days * minutes
+    focus = {
+        "classical": ["读谱", "技术", "曲目", "复调", "表达"],
+        "pop": ["和弦", "伴奏型", "节奏", "听辨", "即兴"],
+        "mixed": ["读谱", "技术", "曲目", "和弦", "表达"],
+    }.get(style, ["读谱", "技术", "曲目", "和弦", "表达"])
+    priority = {
+        "zero": "先稳定坐姿、键盘定位与拍感，不追求速度。",
+        "basic": "用短曲校正双手协调，同时把视奏单独拆开。",
+        "return": "用低难度陌生谱恢复读谱，再把旧曲作为技术素材。",
+    }.get(level, "先稳定动作，再谈曲目数量。")
+    total = max(1, weekly)
+    allocation = {
+        "身体/技术": round(total * (0.24 if minutes >= 30 else 0.16)),
+        "主曲拆解": round(total * 0.38),
+        "复习与表达": round(total * 0.18),
+        "视奏": round(total * 0.12),
+        "听觉/即兴": round(total * 0.08),
+    }
+    if days <= 2:
+        warning = "每周少于 3 天时，间隔过长；建议把其中一次拆成 10 分钟复习。"
+    elif minutes < 30:
+        warning = "单次少于 30 分钟时，优先保留技术、主曲和视奏，不追求全部模块。"
+    else:
+        warning = "保持每周至少 3 个不同日期练琴，比周末一次练很久更有效。"
+    return {
+        "ok": True,
+        "generatedAt": datetime.now().isoformat(timespec="seconds"),
+        "profile": {
+            **profile,
+            "daysPerWeek": days,
+            "sessionMinutes": minutes,
+            "weeklyMinutes": weekly,
+            "practiceDays": practice_days,
+        },
+        "summary": f"按每周 {days} 次 × {minutes} 分钟生成；总时长 {weekly // 60} 小时 {weekly % 60} 分钟。",
+        "priority": priority,
+        "rotation": focus,
+        "allocation": allocation,
+        "warning": warning,
+        "totalWeeks": CURRICULUM.get("meta", {}).get("totalWeeks", 12),
+    }
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -166,7 +248,7 @@ def public_path(path: str) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "PianoPath/1.21"
+    server_version = "PianoPath/1.23"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)

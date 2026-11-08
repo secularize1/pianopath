@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.23.0 — 2026-11-08
+
+- Added selectable practice weekdays to the personal plan and synchronized them with the weekly session count.
+- Home and weekly trail now show the actual upcoming weekday and date for every session.
+- Persisted practice days through local state, account sync and backup import with legacy-plan defaults.
+- Added desktop/mobile regressions for weekday editing, persistence and responsive touch sizing.
+- Restored server-side plan generation and included selected practice days in plan responses.
+
 ## 1.22.0 — 2026-11-08
 
 - Added a 40–208 BPM metronome to free-play piano with persisted tempo.

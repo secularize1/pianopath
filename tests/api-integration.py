@@ -66,6 +66,20 @@ def main():
         terms_status, terms_html = request_html(base, "/terms.html")
         assert privacy_status == 200 and "隐私政策" in privacy_html and "账户" in privacy_html
         assert terms_status == 200 and "服务条款" in terms_html and "版权" in terms_html
+        status, default_plan, _ = request(base, "/api/plan/default")
+        assert status == 200 and default_plan["ok"] is True
+        assert default_plan["profile"]["practiceDays"] == [1, 3, 5, 6]
+        status, planned, _ = request(base, "/api/plan", "POST", {
+            "daysPerWeek": 3,
+            "sessionMinutes": 50,
+            "level": "zero",
+            "style": "classical",
+            "practiceDays": [2, 4, 6],
+        })
+        assert status == 200 and planned["ok"] is True
+        assert planned["profile"]["weeklyMinutes"] == 150
+        assert planned["profile"]["practiceDays"] == [2, 4, 6]
+        assert sum(planned["allocation"].values()) > 0
         email = f"test-{time.time_ns()}@example.com"
         status, no_consent, _ = request(base, "/api/auth/register", "POST", {"email": email, "password": "PianoPath123!", "name": "Test User"})
         assert status == 400 and "同意" in no_consent["error"]
@@ -108,7 +122,7 @@ def main():
         assert status == 200 and unauthenticated["authenticated"] is False
         status, db_probe, _ = request(base, "/data/pianopath.db")
         assert status == 404
-        print(json.dumps({"ok": True, "checks": ["legal-pages", "legal-consent-required", "register", "session", "sync", "revision-conflict", "login", "delete-account", "logout", "private-db"]}, ensure_ascii=False))
+        print(json.dumps({"ok": True, "checks": ["legal-pages", "plan-generation", "legal-consent-required", "register", "session", "sync", "revision-conflict", "login", "delete-account", "logout", "private-db"]}, ensure_ascii=False))
     finally:
         process.terminate()
         try:

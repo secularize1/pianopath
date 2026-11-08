@@ -1,6 +1,6 @@
 # 琴阶 PianoPath
 
-> 每周 4 小时的钢琴学习工作台：每日一课、逐分钟练习、国内教学资源、学习路径、打卡记录和轻量音乐游戏。
+> 每周 4 小时的钢琴学习工作台：具体练习日排期、逐分钟任务、国内教学资源、学习路径、打卡记录和轻量音乐游戏。
 
 [![HTML](https://img.shields.io/badge/HTML-5-e34f26?logo=html5&logoColor=white)](https://developer.mozilla.org/zh-CN/docs/Web/HTML)
 [![CSS](https://img.shields.io/badge/CSS-3-1572b6?logo=css3&logoColor=white)](https://developer.mozilla.org/zh-CN/docs/Web/CSS)
@@ -17,6 +17,13 @@
 - **个性化**：按每周总时长和练习天数自动重排单次任务。
 - **PWA**：可安装到桌面、离线打开，带 Service Worker 缓存。
 - **主题**：亮色与深色模式。
+
+### 1.23 练习日排期
+
+- 计划设置新增“哪几天练琴”，7 个日期都可直接点选，选择数量与每周练习天数同步。
+- 首页、本周路线和今日主课显示真实星期与日期；顺序按接下来发生的练习日排列。
+- 练习日随计划、备份和账户同步保存；旧计划与旧备份缺少日期时自动补成合理默认值。
+- 手机端 7 天选择器保持约 45×48 px 的触控尺寸，无横向溢出。
 
 ### 1.22 电子琴节拍器
 

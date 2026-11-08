@@ -596,7 +596,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .mastery-heading h2 { font-size: 24px; }
 .mastery-note { padding: 7px 10px; border-radius: 8px; background: #edf6ea; color: #498454; font-size: 9px; font-weight: 800; white-space: nowrap; }
 .stage-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 9px; }
-.stage-card { position: relative; min-height: 225px; padding: 16px 14px 14px; border: 1px solid #e1e7dd; border-radius: 15px; background: #fff; overflow: hidden; }
+.stage-card { position: relative; min-height: 225px; padding: 16px 14px 14px; border: 1px solid #e1e7dd; border-radius: 15px; background: #fff; overflow: hidden; text-align:left; color:inherit; cursor:pointer; transition:transform .16s ease,box-shadow .16s ease; }
+.stage-card:hover { transform:translateY(-2px); box-shadow:0 7px 20px rgba(45,72,51,.09); }
+.stage-card:active { transform:translateY(1px); }
 .stage-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--stage-color, #5bbd78); }
 .stage-rank { display: flex; align-items: center; justify-content: space-between; color: #91a096; font-size: 8px; }
 .stage-rank em { font-style: normal; font-weight: 800; color: var(--stage-color,#5bbd78); }
@@ -605,6 +607,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .stage-card ul { margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid #f0f2ed; list-style: none; display: grid; gap: 7px; }
 .stage-card li { display: flex; gap: 6px; align-items: flex-start; color: #637469; font-size: 8px; line-height: 1.55; }
 .stage-card li::before { content: "✓"; color: var(--stage-color,#5bbd78); font-weight: 900; }
+.stage-focus { margin-top:9px; color:var(--stage-color,#4e8e5f); font-size:9px; font-weight:800; line-height:1.55; }
+.stage-start { display:inline-block; margin-top:12px; color:#4d875b; font-size:9px; font-weight:850; }
 .mastery-footnote { margin: 13px 0 0; color: #9aa69e; font-size: 9px; line-height: 1.6; }
 @media (max-width:1120px){ .stage-grid{grid-template-columns:repeat(3,1fr);} }
 @media (max-width:820px){ .stage-grid{grid-template-columns:repeat(2,1fr);} .mastery-heading{align-items:flex-start;} }
@@ -1361,6 +1365,60 @@ button, input, select, textarea { font-family: inherit; }
 @media(max-width:820px){ .rhythm-piano-card{height:100dvh;border-radius:0;border:0}.rhythm-piano-home{padding:22px 18px}.rhythm-song-grid{grid-template-columns:1fr;gap:8px}.rhythm-song-card{min-height:87px;padding:10px}.rhythm-song-art{width:56px;height:62px}.rhythm-piano-stage{padding:8px 9px 7px}.rhythm-hud{grid-template-columns:1fr repeat(3,minmax(52px,.7fr));gap:4px}.rhythm-hud span{padding:5px 6px}.rhythm-hud strong{font-size:12px}.rhythm-keyboard{height:126px}.rhythm-key.black{height:75px}.rhythm-stage-footer > span{display:none}.rhythm-piano-top{padding:0 10px;min-height:54px}.rhythm-piano-actions{gap:4px}.rhythm-top-button{padding:6px 7px;font-size:9px}.free-play-landscape{margin-left:auto} }
 @media(max-height:500px) and (orientation:landscape){ .rhythm-piano-modal{padding:0}.rhythm-piano-card{width:100vw;height:100dvh;max-height:none;border-radius:0}.rhythm-piano-stage{min-height:0}.rhythm-highway{min-height:96px}.rhythm-key span{font-size:9px}.rhythm-key small{font-size:8px}.rhythm-piano-top{min-height:45px}.rhythm-piano-home{padding:13px 20px;overflow:auto}.rhythm-home-intro h2{font-size:26px}.rhythm-song-grid{grid-template-columns:repeat(4,1fr);margin-top:11px}.rhythm-song-card{display:grid;grid-template-columns:39px 1fr;min-height:78px;padding:7px;gap:7px}.rhythm-song-art{width:39px;height:54px}.rhythm-song-art b{font-size:21px}.rhythm-song-copy strong{font-size:12px}.rhythm-song-copy em,.rhythm-song-copy small{font-size:8px}.rhythm-song-play{display:none}.rhythm-piano-stage{padding:5px 9px}.rhythm-hud{margin-bottom:4px}.rhythm-hud span{padding:3px 6px}.rhythm-hud small{font-size:8px}.rhythm-hud strong{font-size:11px}.rhythm-highway{min-height:120px}.rhythm-keyboard{height:100px;margin-top:4px}.rhythm-key.black{height:59px}.rhythm-stage-footer{margin-top:4px}.rhythm-stage-button{padding:4px 8px}.rhythm-piano-result{padding:10px}.rhythm-piano-result h2{font-size:21px;margin-top:5px}.rhythm-result-score strong{font-size:35px}.rhythm-piano-result p{margin:4px 0 7px}.rhythm-result-stats{padding:6px 0;gap:22px}.rhythm-result-actions{margin-top:8px} }
 
+/* === 1.25 two-row keyboard guide === */
+.keyboard-guide-card {
+  position: relative; width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 32px);
+  overflow: auto; padding: 28px; border: 1px solid #dce8dc; border-radius: 24px;
+  background: linear-gradient(150deg,#fffdf7,#f4faf2); color: #294633;
+  box-shadow: 0 30px 100px rgba(28,48,35,.25);
+}
+.keyboard-guide-close { position:absolute; right:16px; top:16px; }
+.keyboard-guide-card h2 { margin:9px 0 7px; font-size:clamp(25px,4vw,34px); letter-spacing:-.04em; }
+.keyboard-guide-card > p { margin:0; color:#7d8f81; font-size:12px; line-height:1.65; }
+.keyboard-guide-rows { display:grid; gap:12px; margin-top:20px; }
+.keyboard-guide-row { overflow:hidden; border:1px solid #dde8dc; border-radius:15px; background:#fff; }
+.keyboard-guide-row header { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:9px 12px; background:#f4f8ef; }
+.keyboard-guide-row header strong { color:#477959; font-size:11px; }
+.keyboard-guide-row header span { color:#91a094; font-size:10px; }
+.keyboard-guide-keys { display:grid; grid-template-columns:repeat(13,minmax(18px,1fr)); gap:4px; padding:10px; min-width:300px; }
+.keyboard-guide-key { display:grid; place-items:center; gap:5px; min-height:57px; padding:5px 2px; border-radius:8px; border:1px solid #d7dfd4; background:#fcfcf7; }
+.keyboard-guide-key b { display:grid; place-items:center; min-width:24px; min-height:24px; padding:0 5px; border-radius:6px; background:#fff; border:1px solid #d6dfd5; color:#385b43; font-size:12px; }
+.keyboard-guide-key small { color:#8c9b8f; font-size:8px; }
+.keyboard-guide-key.black { transform:translateY(6px); border-color:#405348; background:linear-gradient(#46594b,#27362c); }
+.keyboard-guide-key.black b { border-color:#6e8072; background:#34473a; color:#f2f7ed; }
+.keyboard-guide-key.black small { color:#c2d2c2; }
+.keyboard-guide-example { display:grid; grid-template-columns:auto auto 1fr; align-items:center; gap:12px; margin-top:16px; padding:12px 14px; border:1px solid #e6dfb5; border-radius:13px; background:#fff9dc; }
+.keyboard-guide-example > span { color:#7e713e; font-size:10px; font-weight:800; }
+.keyboard-guide-example div { display:flex; gap:4px; }
+.keyboard-guide-example kbd { display:grid; place-items:center; min-width:28px; height:27px; border-radius:6px; border:1px solid #d5c885; background:#fff; box-shadow:0 2px 0 #d7ca91; color:#5b522e; font:800 11px/1 inherit; }
+.keyboard-guide-example small { color:#91845b; font-size:9px; }
+.keyboard-guide-input { margin-top:15px !important; }
+.keyboard-guide-card > .btn { margin-top:13px; min-height:45px; }
+.keyboard-guide-row { overflow-x:auto; }
+@media (max-width:600px) {
+  .keyboard-guide-card { padding:22px 15px 16px; border-radius:18px; }
+  .keyboard-guide-row header { align-items:flex-start; flex-direction:column; gap:1px; padding:8px 10px; }
+  .keyboard-guide-keys { gap:2px; padding:7px 6px; min-width:300px; }
+  .keyboard-guide-key { min-height:50px; }
+  .keyboard-guide-key b { min-width:22px; min-height:22px; font-size:11px; }
+  .keyboard-guide-example { grid-template-columns:1fr auto; gap:6px 10px; }
+  .keyboard-guide-example small { grid-column:1/-1; }
+  .keyboard-guide-card > p { padding-right:26px; }
+  .keyboard-guide-input { padding-right:0 !important; }
+}
+@media (max-height:500px) {
+  .keyboard-guide-card { width:min(760px,calc(100vw - 20px)); padding:14px 18px; }
+  .keyboard-guide-card h2 { margin:3px 0; font-size:22px; }
+  .keyboard-guide-rows { grid-template-columns:1fr 1fr; margin-top:8px; }
+  .keyboard-guide-row header { padding:5px 8px; }
+  .keyboard-guide-keys { padding:5px; min-width:300px; }
+  .keyboard-guide-key { min-height:37px; gap:1px; }
+  .keyboard-guide-key b { min-height:18px; font-size:9px; }
+  .keyboard-guide-key small { font-size:7px; }
+  .keyboard-guide-example { margin-top:7px; padding:6px 10px; }
+  .keyboard-guide-card > .btn { margin-top:7px; min-height:36px; }
+  .keyboard-guide-card > p,.keyboard-guide-input { font-size:10px; }
+}
 /* === 1.13 accessible focus and touch ergonomics === */
 .modal-backdrop:focus { outline: none; }
 .modal-backdrop [tabindex="-1"]:focus { outline: none; }

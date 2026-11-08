@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.0 — 2026-11-08
+
+- Replaced the split four-group computer mapping with two continuous chromatic rows: `Z–Enter` for C3–C4 and `Q–\\` for C#4–D5.
+- Added a dedicated keyboard tutorial with per-key computer labels, note names, black/white styling, first-run display and reopen controls.
+- Kept the tutorial to exactly two rows on desktop, phone and landscape layouts, with horizontal row scrolling instead of wrapping.
+- Added 60-minute practices for all five long-term stages, including completion history, XP and return-to-path behavior.
+- Added desktop/mobile E2E and runtime checks for the new mapping, tutorial, keyboard input and transposed free-play notes.
+
 ## 1.24.0 — 2026-11-08
 
 - Added a configurable practice start time to the weekly routine.

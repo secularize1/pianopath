@@ -601,11 +601,41 @@
     renderStages();
   }
 
+  function stagePractice(stage) {
+    return {
+      id: `stage-${stage.id}-${Date.now()}`,
+      sourceId: `stage-${stage.id}`,
+      title: `阶段训练：${stage.label}`,
+      week: 0,
+      day: 1,
+      duration: 60,
+      quick: true,
+      stageId: stage.id,
+      stageLabel: stage.label,
+      goal: `${stage.focus || stage.description} · 晋级标准：${stage.advanceRule}`,
+      steps: [
+        { start: 0, end: 8, minutes: 8, title: '热身与听感', category: '热身', detail: '先做肩膀、手腕和坐姿校准，再跟 60 BPM 空拍 2 小节。', cue: '松肩、踩实、先听再动' },
+        { start: 8, end: 20, minutes: 12, title: '技术与音阶', category: '技术', detail: `围绕“${stage.focus}”练一个技术单元：分手、慢速、连续三次正确。`, cue: '慢练不是走流程' },
+        { start: 20, end: 38, minutes: 18, title: '核心曲目拆解', category: '曲目', detail: `从 ${stage.repertoire?.join(' / ') || '当前阶段曲目'} 选 2–4 小节，拆分难点并逐步合手。`, cue: '一次只处理一个难点' },
+        { start: 38, end: 48, minutes: 10, title: '陌生谱视奏', category: '读谱', detail: '选 8–16 小节陌生谱，先看调号、拍号与节奏，再不停顿地走一遍。', cue: '连续比完美重要' },
+        { start: 48, end: 56, minutes: 8, title: '连接与表达', category: '曲目', detail: '把今天拆解的片段接回前后文，加入一个清楚的起句和收束。', cue: '让音乐先发生' },
+        { start: 56, end: 60, minutes: 4, title: '录音与晋级记录', category: '反馈', detail: `录下 20–30 秒，并对照晋级标准：${stage.advanceRule}`, cue: '只记录一个下一步' }
+      ],
+      sources: DATA.weeks[0]?.sessions?.[0]?.sources || []
+    };
+  }
+
+  function startStagePractice(stageId) {
+    const stage = (DATA.stages || []).find((item) => item.id === stageId);
+    if (!stage) return;
+    window.PIANO_OPEN_SESSION?.(stagePractice(stage));
+  }
+
   function renderStages() {
     const stageGrid = $('#stageGrid');
     if (!stageGrid) return;
     const colors = { mint: '#5bbd78', sun: '#d6ad2f', coral: '#e6806a', violet: '#9581ce', ink: '#4d6856' };
-    stageGrid.innerHTML = (DATA.stages || []).map((stage, index) => `<article class="stage-card" style="--stage-color:${colors[stage.color] || colors.mint}"><div class="stage-rank"><span>${escapeHtml(stage.range)}</span><em>${escapeHtml(stage.grade)}</em></div><h3>${escapeHtml(stage.label)}</h3><p>${escapeHtml(stage.description)}</p><ul>${(stage.goals || []).map((goal) => `<li>${escapeHtml(goal)}</li>`).join('')}</ul></article>`).join('');
+    stageGrid.innerHTML = (DATA.stages || []).map((stage, index) => `<button type="button" class="stage-card" data-stage-practice="${escapeHtml(stage.id)}" style="--stage-color:${colors[stage.color] || colors.mint}"><div class="stage-rank"><span>${escapeHtml(stage.range)}</span><em>${escapeHtml(stage.grade)}</em></div><h3>${escapeHtml(stage.label)}</h3><p>${escapeHtml(stage.description)}</p><div class="stage-focus">${escapeHtml(stage.focus || '')}</div><ul>${(stage.goals || []).map((goal) => `<li>${escapeHtml(goal)}</li>`).join('')}</ul><span class="stage-start">开始 60 分钟训练 →</span></button>`).join('');
     $('#masteryFootnote').textContent = DATA.masteryNote || '';
   }
 
@@ -817,7 +847,7 @@
     sessionsForWeek, currentWeekData, currentSessionData, streakCount,
     addReviewItem, completeReviewItem, dueReviewItems,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
-    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar,
+    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar, startStagePractice,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
       Object.assign(state, structuredClone(defaultState), nextState || {});
@@ -1432,7 +1462,7 @@
     $('#lessonTitle').textContent = session.title;
     $('#lessonGoal').textContent = session.goal;
     const planLength = document.querySelector('#lessonPlanLength');
-    if (planLength) planLength.textContent = session.repertoireId ? `曲目训练 · ${session.duration} 分钟` : session.quick ? '5 分钟快练' : `今天的 ${session.duration} 分钟`;
+    if (planLength) planLength.textContent = session.repertoireId ? `曲目训练 · ${session.duration} 分钟` : session.stageId ? `阶段训练 · ${session.duration} 分钟` : session.quick ? '5 分钟快练' : `今天的 ${session.duration} 分钟`;
     $('#lessonSteps').innerHTML = session.steps.map((step, index) => `<div class="lesson-step" data-step="${index}"><span class="lesson-step-num">${String(index + 1).padStart(2, '0')}</span><span><strong>${step.title}</strong><small>${step.start}–${step.end} 分 · ${step.minutes} 分钟</small></span></div>`).join('');
     $('#lessonModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -1468,6 +1498,8 @@
     $('#lessonModal').classList.add('hidden');
     if (session.repertoireId) {
       $('#completeSummary').textContent = `曲目阶段完成 · ${session.title.replace('曲目训练：','')}`;
+    } else if (session.stageId) {
+      $('#completeSummary').textContent = `阶段训练完成 · ${session.stageLabel || session.title.replace('阶段训练：','')}`;
     } else if (session.quick) {
       $('#completeSummary').textContent = `5 分钟快练完成 · ${session.title.replace('5 分钟快练：','')}`;
     } else if (!passed) {
@@ -1494,9 +1526,9 @@
       }
       return count;
     })();
-    $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : passed ? '+20' : '+0';
+    $('#completeXp').textContent = session.repertoireId ? '+15' : session.stageId ? '+15' : session.quick ? '+5' : passed ? '+20' : '+0';
     const saveButton = document.querySelector('#saveCompletion');
-    if (saveButton) saveButton.textContent = !passed ? '保存练习，继续巩固' : session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
+    if (saveButton) saveButton.textContent = !passed ? '保存练习，继续巩固' : session.repertoireId ? '保存阶段并返回曲目' : session.stageId ? '保存阶段训练' : session.quick ? '保存快练' : '保存，继续下一课';
     const masteryEl = document.querySelector('#completeMastery');
     if (masteryEl) masteryEl.textContent = mastery ? `${mastery.best}%` : '未测';
     const completeSessions = document.querySelector('#completeSessionCount');
@@ -1545,7 +1577,8 @@
       return;
     }
     if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt, mastery: state.mastery?.[finished.id] || null };
-    if (finished.quick) entry.type = finished.repertoireId ? 'repertoire' : 'quick';
+    if (finished.quick) entry.type = finished.repertoireId ? 'repertoire' : finished.stageId ? 'stage' : 'quick';
+    if (finished.stageId) { entry.stageId = finished.stageId; entry.stageLabel = finished.stageLabel || ''; }
     const reviewSourceId = finished.sourceId || finished.id.replace(/-quick$/, '').replace(/-review-.*$/, '');
     if (finished.sourceId && /^复习：/.test(finished.title)) {
       APP.completeReviewItem(reviewSourceId, rating >= 3);
@@ -1571,10 +1604,12 @@
     updateProgressDisplay();
     $('#completeModal').classList.add('hidden');
     completionPreview = null;
-    APP.showToast(finished.repertoireId ? '曲目阶段已保存，继续下一阶段。' : '已保存。下一课已经准备好。');
+    APP.showToast(finished.repertoireId ? '曲目阶段已保存，继续下一阶段。' : finished.stageId ? '阶段训练已保存，继续积累这次的关键动作。' : '已保存。下一课已经准备好。');
     if (finished.repertoireId) {
       APP.updateNav('repertoire');
       setTimeout(() => APP.renderRepertoire(), 180);
+    } else if (finished.stageId) {
+      APP.updateNav('path');
     } else {
       APP.updateNav('today');
       setTimeout(() => openSession(APP.currentSessionData().id), 500);
@@ -1973,36 +2008,36 @@
 
 
   const RHYTHM_LEAD_BEATS = 3.5;
+  // Two physical keyboard rows. Each row is a continuous chromatic run from low to high.
+  // Lower row: C3-C4 (Z X C V B N M , . / ; ' Enter)
+  // Upper row: C#4-D5 (Q W E R T Y U I O P [ ] \)
+  const RHYTHM_KEYBOARD_ROWS = [
+    {
+      label: '下排 · 低音 C3–C4',
+      keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';', "'", 'Enter'],
+      notes: [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60]
+    },
+    {
+      label: '上排 · 高音 C#4–D5',
+      keys: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+      notes: [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 74]
+    }
+  ];
+  const RHYTHM_KEY_BY_NOTE = new Map(RHYTHM_KEYBOARD_ROWS.flatMap((row) => row.notes.map((note, index) => [note, row.keys[index]])));
   const RHYTHM_WHITE_KEYS = [
-    { note: 48, name: 'C3', pc: 0, key: 'z' },
-    { note: 50, name: 'D3', pc: 2, key: 'x' },
-    { note: 52, name: 'E3', pc: 4, key: 'c' },
-    { note: 53, name: 'F3', pc: 5, key: 'v' },
-    { note: 55, name: 'G3', pc: 7, key: 'b' },
-    { note: 57, name: 'A3', pc: 9, key: 'n' },
-    { note: 59, name: 'B3', pc: 11, key: 'm' },
-    { note: 60, name: 'C4', pc: 0, key: 'q' },
-    { note: 62, name: 'D4', pc: 2, key: 'w' },
-    { note: 64, name: 'E4', pc: 4, key: 'e' },
-    { note: 65, name: 'F4', pc: 5, key: 'r' },
-    { note: 67, name: 'G4', pc: 7, key: 't' },
-    { note: 69, name: 'A4', pc: 9, key: 'y' },
-    { note: 71, name: 'B4', pc: 11, key: 'u' },
-    { note: 72, name: 'C5', pc: 0, key: 'i' },
-    { note: 74, name: 'D5', pc: 2, key: 'o' }
-  ];
+    { note: 48, name: 'C3', pc: 0 }, { note: 50, name: 'D3', pc: 2 }, { note: 52, name: 'E3', pc: 4 },
+    { note: 53, name: 'F3', pc: 5 }, { note: 55, name: 'G3', pc: 7 }, { note: 57, name: 'A3', pc: 9 },
+    { note: 59, name: 'B3', pc: 11 }, { note: 60, name: 'C4', pc: 0 }, { note: 62, name: 'D4', pc: 2 },
+    { note: 64, name: 'E4', pc: 4 }, { note: 65, name: 'F4', pc: 5 }, { note: 67, name: 'G4', pc: 7 },
+    { note: 69, name: 'A4', pc: 9 }, { note: 71, name: 'B4', pc: 11 }, { note: 72, name: 'C5', pc: 0 },
+    { note: 74, name: 'D5', pc: 2 }
+  ].map((key) => ({ ...key, key: RHYTHM_KEY_BY_NOTE.get(key.note) }));
   const RHYTHM_BLACK_KEYS = [
-    { note: 49, name: 'C#3', pc: 1, key: 's' },
-    { note: 51, name: 'D#3', pc: 3, key: 'd' },
-    { note: 54, name: 'F#3', pc: 6, key: 'g' },
-    { note: 56, name: 'G#3', pc: 8, key: 'h' },
-    { note: 58, name: 'A#3', pc: 10, key: 'j' },
-    { note: 61, name: 'C#4', pc: 1, key: '2' },
-    { note: 63, name: 'D#4', pc: 3, key: '3' },
-    { note: 66, name: 'F#4', pc: 6, key: '5' },
-    { note: 68, name: 'G#4', pc: 8, key: '6' },
-    { note: 70, name: 'A#4', pc: 10, key: '7' }
-  ];
+    { note: 49, name: 'C#3', pc: 1 }, { note: 51, name: 'D#3', pc: 3 }, { note: 54, name: 'F#3', pc: 6 },
+    { note: 56, name: 'G#3', pc: 8 }, { note: 58, name: 'A#3', pc: 10 }, { note: 61, name: 'C#4', pc: 1 },
+    { note: 63, name: 'D#4', pc: 3 }, { note: 66, name: 'F#4', pc: 6 }, { note: 68, name: 'G#4', pc: 8 },
+    { note: 70, name: 'A#4', pc: 10 }
+  ].map((key) => ({ ...key, key: RHYTHM_KEY_BY_NOTE.get(key.note) }));
   const FREE_PLAY_MIN_OFFSET = -2;
   const FREE_PLAY_MAX_OFFSET = 2;
 
@@ -2054,12 +2089,31 @@
   let freeTempo = Math.max(40, Math.min(208, Number(localStorage.getItem('pianopath-free-tempo')) || 80));
   let pianoLandscapeRequested = false;
   let pianoFullscreenOwned = false;
+  let keyboardGuideOrigin = 'general';
+
+  const RHYTHM_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+  function computerKeyLabel(value) {
+    return value === 'Enter' ? '↵' : value === '\\' ? '\\' : value.toUpperCase();
+  }
 
   function pianoKeyboardMarkup(whiteKeys, blackKeys) {
     const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
-    const white = whiteKeys.map((key) => `<button type="button" class="rhythm-key white" data-note="${key.note}" data-key="${key.key}" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
-    const black = blackKeys.map((key, index) => `<button type="button" class="rhythm-key black" data-note="${key.note}" data-key="${key.key}" style="left:${blackLeft[index]}%" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
+    const keyMarkup = (key, extra = '') => `<button type="button" class="rhythm-key ${key.black ? 'black' : 'white'}" data-note="${key.note}" data-key="${key.key}" ${extra} aria-label="${key.name}，键盘 ${computerKeyLabel(key.key)}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${computerKeyLabel(key.key)}</small></button>`;
+    const white = whiteKeys.map((key) => keyMarkup(key)).join('');
+    const black = blackKeys.map((key, index) => keyMarkup({ ...key, black: true }, `style="left:${blackLeft[index]}%"`)).join('');
     return white + black;
+  }
+
+  function keyboardGuideMarkup() {
+    return RHYTHM_KEYBOARD_ROWS.map((row) => {
+      const keys = row.keys.map((key, index) => {
+        const note = row.notes[index];
+        const black = [1, 3, 6, 8, 10].includes(note % 12);
+        return `<span class="keyboard-guide-key ${black ? 'black' : 'white'}"><b>${computerKeyLabel(key)}</b><small>${RHYTHM_NOTE_NAMES[note % 12]}${Math.floor(note / 12) - 1}</small></span>`;
+      }).join('');
+      return `<div class="keyboard-guide-row"><header><strong>${row.label.split(' · ')[0]}</strong><span>${row.label.split(' · ')[1]}</span></header><div class="keyboard-guide-keys">${keys}</div></div>`;
+    }).join('');
   }
 
   function rhythmKeyboardMarkup() {
@@ -2269,7 +2323,27 @@
     document.querySelectorAll('#freeBeatDots i').forEach((dot) => dot.classList.remove('active'));
   }
 
-  function openFreePiano() {
+  function openKeyboardGuide(origin = 'general') {
+    const modal = document.querySelector('#keyboardGuideModal');
+    const rows = document.querySelector('#keyboardGuideRows');
+    if (!modal || !rows) return;
+    keyboardGuideOrigin = origin;
+    rows.innerHTML = keyboardGuideMarkup();
+    const start = document.querySelector('#keyboardGuideStart');
+    if (start) start.textContent = origin === 'freeplay' ? '开始自由弹' : origin === 'rhythm' ? '去选曲目' : '知道了';
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeKeyboardGuide() {
+    const modal = document.querySelector('#keyboardGuideModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    modal.classList.add('hidden');
+    localStorage.setItem('pianopath-keyboard-guide-seen', '1');
+    document.body.style.overflow = document.querySelector('#rhythmPianoModal:not(.hidden)') ? 'hidden' : '';
+  }
+
+  function openFreePiano(showGuide = true) {
     stopRhythmPiano();
     stopFreePlay();
     freePlayActive = true;
@@ -2292,6 +2366,9 @@
     renderFreePlayKeyboard();
     setFreeTempo(freeTempo);
     syncPianoLandscapeState();
+    const guideShown = showGuide && localStorage.getItem('pianopath-keyboard-guide-seen') !== '1';
+    if (guideShown) openKeyboardGuide('freeplay');
+    return guideShown;
   }
 
   function saveFreePlaySession() {
@@ -2327,6 +2404,7 @@
   }
 
   function closeFreePiano() {
+    closeKeyboardGuide();
     saveFreePlaySession();
     stopFreePlay();
     pianoLandscapeRequested = false;
@@ -2372,6 +2450,7 @@
   }
 
   function closeRhythmPiano() {
+    closeKeyboardGuide();
     if (freePlayActive) saveFreePlaySession();
     stopRhythmPiano();
     stopFreePlay();
@@ -2569,14 +2648,15 @@
   function handleRhythmKeydown(event) {
     const modal = document.querySelector('#rhythmPianoModal');
     if (!rhythmActive || rhythmPaused || !modal || modal.classList.contains('hidden')) return;
+    if (document.querySelector('#keyboardGuideModal:not(.hidden)')) return;
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
     if (event.code === 'Space') {
       event.preventDefault();
       toggleRhythmPause();
       return;
     }
-    const key = event.key;
-    const target = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((candidate) => candidate.key.toLowerCase() === key.toLowerCase());
+    const key = event.key.toLowerCase();
+    const target = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((candidate) => candidate.key.toLowerCase() === key);
     if (!target) return;
     event.preventDefault();
     pressRhythmKey(target.note);
@@ -2585,9 +2665,11 @@
   function handleFreePianoKeydown(event) {
     const modal = document.querySelector('#rhythmPianoModal');
     if (!freePlayActive || !modal || modal.classList.contains('hidden')) return;
+    if (document.querySelector('#keyboardGuideModal:not(.hidden)')) return;
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
     const keys = rhythmKeysForOffset(freePlayOctaveOffset);
-    const target = [...keys.white, ...keys.black].find((candidate) => candidate.key.toLowerCase() === event.key.toLowerCase());
+    const key = event.key.toLowerCase();
+    const target = [...keys.white, ...keys.black].find((candidate) => candidate.key.toLowerCase() === key);
     if (!target) return;
     event.preventDefault();
     playFreePianoNote(target.note);
@@ -2610,8 +2692,8 @@
     document.querySelector('#startRhythmPianoHome')?.addEventListener('click', openRhythmPiano);
     document.querySelector('#closeRhythmPiano')?.addEventListener('click', closeRhythmPiano);
     document.querySelector('#startFreePiano')?.addEventListener('click', () => {
-      openFreePiano();
-      if (window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
+      const guideShown = openFreePiano();
+      if (!guideShown && window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
     });
     document.querySelector('#freePlayBack')?.addEventListener('click', closeFreePiano);
     document.querySelector('#freePlayBackBottom')?.addEventListener('click', closeFreePiano);
@@ -2627,6 +2709,14 @@
     document.querySelector('#freeTempoDown')?.addEventListener('click', () => setFreeTempo(freeTempo - 4));
     document.querySelector('#freeTempoUp')?.addEventListener('click', () => setFreeTempo(freeTempo + 4));
     document.querySelector('#freeMetronomeToggle')?.addEventListener('click', toggleFreeMetronome);
+    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => openKeyboardGuide('rhythm'));
+    document.querySelector('#freePlayKeyboardGuide')?.addEventListener('click', () => openKeyboardGuide('freeplay'));
+    document.querySelector('#closeKeyboardGuide')?.addEventListener('click', closeKeyboardGuide);
+    document.querySelector('#keyboardGuideStart')?.addEventListener('click', () => {
+      const startFromFreePlay = keyboardGuideOrigin === 'freeplay';
+      closeKeyboardGuide();
+      if (startFromFreePlay && window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
+    });
     document.addEventListener('keydown', handleFreePianoKeydown);
     document.querySelector('#rhythmKeyboard')?.addEventListener('pointerdown', (event) => {
       const key = event.target.closest('.rhythm-key');
@@ -2641,7 +2731,10 @@
     document.querySelector('#rhythmFullscreen')?.addEventListener('click', async () => {
       try { await document.querySelector('#rhythmPianoCard')?.requestFullscreen?.(); } catch (error) {}
     });
-    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U I O，黑键 2 3 5 6 7。'));
+    document.querySelectorAll('[data-open-keyboard-guide]').forEach((button) => button.addEventListener('click', () => openKeyboardGuide('rhythm')));
+    document.querySelector('#keyboardGuideModal')?.addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) closeKeyboardGuide();
+    });
     document.querySelectorAll('[data-rhythm-filter]').forEach((button) => {
       button.addEventListener('click', () => {
         rhythmDifficulty = button.dataset.rhythmFilter;
@@ -3069,6 +3162,11 @@
         APP.renderRepertoire(repertoireFilterButton.dataset.repertoireFilter);
         return;
       }
+      const stagePracticeButton = event.target.closest('[data-stage-practice]');
+      if (stagePracticeButton) {
+        APP.startStagePractice(stagePracticeButton.dataset.stagePractice);
+        return;
+      }
     });
 
     $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
@@ -3369,6 +3467,7 @@
         else if (backdrop.id === 'warmupModal') closeWarmup();
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
         else if (backdrop.id === 'playAlongModal') closePlayAlong();
+        else if (backdrop.id === 'keyboardGuideModal') closeKeyboardGuide();
         else if (backdrop.id === 'rhythmPianoModal') closeRhythmPiano();
         else if (backdrop.id === 'legalViewModal') closeLegalView();
         else if (backdrop.id === 'videoModal') closeVideo();
@@ -3380,6 +3479,7 @@
         if (document.querySelector('#confirmActionModal') && !document.querySelector('#confirmActionModal').classList.contains('hidden')) { closeConfirmAction(); return; }
         if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
         if (document.querySelector('#legalViewModal') && !document.querySelector('#legalViewModal').classList.contains('hidden')) { closeLegalView(); return; }
+        if (document.querySelector('#keyboardGuideModal') && !document.querySelector('#keyboardGuideModal').classList.contains('hidden')) { closeKeyboardGuide(); return; }
         if (freePlayActive) { closeFreePiano(); return; }
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
@@ -3398,6 +3498,8 @@
   APP.openRhythmPiano = openRhythmPiano;
   APP.finishRhythmPiano = finishRhythmPiano;
   APP.openFreePiano = openFreePiano;
+  APP.openKeyboardGuide = openKeyboardGuide;
+  APP.closeKeyboardGuide = closeKeyboardGuide;
   APP.enterPianoLandscape = enterPianoLandscape;
   APP.exitPianoLandscape = exitPianoLandscape;
   APP.getPianoLandscapeSnapshot = () => ({

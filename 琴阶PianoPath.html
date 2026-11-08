@@ -612,7 +612,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .mastery-heading h2 { font-size: 24px; }
 .mastery-note { padding: 7px 10px; border-radius: 8px; background: #edf6ea; color: #498454; font-size: 9px; font-weight: 800; white-space: nowrap; }
 .stage-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 9px; }
-.stage-card { position: relative; min-height: 225px; padding: 16px 14px 14px; border: 1px solid #e1e7dd; border-radius: 15px; background: #fff; overflow: hidden; }
+.stage-card { position: relative; min-height: 225px; padding: 16px 14px 14px; border: 1px solid #e1e7dd; border-radius: 15px; background: #fff; overflow: hidden; text-align:left; color:inherit; cursor:pointer; transition:transform .16s ease,box-shadow .16s ease; }
+.stage-card:hover { transform:translateY(-2px); box-shadow:0 7px 20px rgba(45,72,51,.09); }
+.stage-card:active { transform:translateY(1px); }
 .stage-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--stage-color, #5bbd78); }
 .stage-rank { display: flex; align-items: center; justify-content: space-between; color: #91a096; font-size: 8px; }
 .stage-rank em { font-style: normal; font-weight: 800; color: var(--stage-color,#5bbd78); }
@@ -621,6 +623,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .stage-card ul { margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid #f0f2ed; list-style: none; display: grid; gap: 7px; }
 .stage-card li { display: flex; gap: 6px; align-items: flex-start; color: #637469; font-size: 8px; line-height: 1.55; }
 .stage-card li::before { content: "✓"; color: var(--stage-color,#5bbd78); font-weight: 900; }
+.stage-focus { margin-top:9px; color:var(--stage-color,#4e8e5f); font-size:9px; font-weight:800; line-height:1.55; }
+.stage-start { display:inline-block; margin-top:12px; color:#4d875b; font-size:9px; font-weight:850; }
 .mastery-footnote { margin: 13px 0 0; color: #9aa69e; font-size: 9px; line-height: 1.6; }
 @media (max-width:1120px){ .stage-grid{grid-template-columns:repeat(3,1fr);} }
 @media (max-width:820px){ .stage-grid{grid-template-columns:repeat(2,1fr);} .mastery-heading{align-items:flex-start;} }
@@ -1377,6 +1381,60 @@ button, input, select, textarea { font-family: inherit; }
 @media(max-width:820px){ .rhythm-piano-card{height:100dvh;border-radius:0;border:0}.rhythm-piano-home{padding:22px 18px}.rhythm-song-grid{grid-template-columns:1fr;gap:8px}.rhythm-song-card{min-height:87px;padding:10px}.rhythm-song-art{width:56px;height:62px}.rhythm-piano-stage{padding:8px 9px 7px}.rhythm-hud{grid-template-columns:1fr repeat(3,minmax(52px,.7fr));gap:4px}.rhythm-hud span{padding:5px 6px}.rhythm-hud strong{font-size:12px}.rhythm-keyboard{height:126px}.rhythm-key.black{height:75px}.rhythm-stage-footer > span{display:none}.rhythm-piano-top{padding:0 10px;min-height:54px}.rhythm-piano-actions{gap:4px}.rhythm-top-button{padding:6px 7px;font-size:9px}.free-play-landscape{margin-left:auto} }
 @media(max-height:500px) and (orientation:landscape){ .rhythm-piano-modal{padding:0}.rhythm-piano-card{width:100vw;height:100dvh;max-height:none;border-radius:0}.rhythm-piano-stage{min-height:0}.rhythm-highway{min-height:96px}.rhythm-key span{font-size:9px}.rhythm-key small{font-size:8px}.rhythm-piano-top{min-height:45px}.rhythm-piano-home{padding:13px 20px;overflow:auto}.rhythm-home-intro h2{font-size:26px}.rhythm-song-grid{grid-template-columns:repeat(4,1fr);margin-top:11px}.rhythm-song-card{display:grid;grid-template-columns:39px 1fr;min-height:78px;padding:7px;gap:7px}.rhythm-song-art{width:39px;height:54px}.rhythm-song-art b{font-size:21px}.rhythm-song-copy strong{font-size:12px}.rhythm-song-copy em,.rhythm-song-copy small{font-size:8px}.rhythm-song-play{display:none}.rhythm-piano-stage{padding:5px 9px}.rhythm-hud{margin-bottom:4px}.rhythm-hud span{padding:3px 6px}.rhythm-hud small{font-size:8px}.rhythm-hud strong{font-size:11px}.rhythm-highway{min-height:120px}.rhythm-keyboard{height:100px;margin-top:4px}.rhythm-key.black{height:59px}.rhythm-stage-footer{margin-top:4px}.rhythm-stage-button{padding:4px 8px}.rhythm-piano-result{padding:10px}.rhythm-piano-result h2{font-size:21px;margin-top:5px}.rhythm-result-score strong{font-size:35px}.rhythm-piano-result p{margin:4px 0 7px}.rhythm-result-stats{padding:6px 0;gap:22px}.rhythm-result-actions{margin-top:8px} }
 
+/* === 1.25 two-row keyboard guide === */
+.keyboard-guide-card {
+  position: relative; width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 32px);
+  overflow: auto; padding: 28px; border: 1px solid #dce8dc; border-radius: 24px;
+  background: linear-gradient(150deg,#fffdf7,#f4faf2); color: #294633;
+  box-shadow: 0 30px 100px rgba(28,48,35,.25);
+}
+.keyboard-guide-close { position:absolute; right:16px; top:16px; }
+.keyboard-guide-card h2 { margin:9px 0 7px; font-size:clamp(25px,4vw,34px); letter-spacing:-.04em; }
+.keyboard-guide-card > p { margin:0; color:#7d8f81; font-size:12px; line-height:1.65; }
+.keyboard-guide-rows { display:grid; gap:12px; margin-top:20px; }
+.keyboard-guide-row { overflow:hidden; border:1px solid #dde8dc; border-radius:15px; background:#fff; }
+.keyboard-guide-row header { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:9px 12px; background:#f4f8ef; }
+.keyboard-guide-row header strong { color:#477959; font-size:11px; }
+.keyboard-guide-row header span { color:#91a094; font-size:10px; }
+.keyboard-guide-keys { display:grid; grid-template-columns:repeat(13,minmax(18px,1fr)); gap:4px; padding:10px; min-width:300px; }
+.keyboard-guide-key { display:grid; place-items:center; gap:5px; min-height:57px; padding:5px 2px; border-radius:8px; border:1px solid #d7dfd4; background:#fcfcf7; }
+.keyboard-guide-key b { display:grid; place-items:center; min-width:24px; min-height:24px; padding:0 5px; border-radius:6px; background:#fff; border:1px solid #d6dfd5; color:#385b43; font-size:12px; }
+.keyboard-guide-key small { color:#8c9b8f; font-size:8px; }
+.keyboard-guide-key.black { transform:translateY(6px); border-color:#405348; background:linear-gradient(#46594b,#27362c); }
+.keyboard-guide-key.black b { border-color:#6e8072; background:#34473a; color:#f2f7ed; }
+.keyboard-guide-key.black small { color:#c2d2c2; }
+.keyboard-guide-example { display:grid; grid-template-columns:auto auto 1fr; align-items:center; gap:12px; margin-top:16px; padding:12px 14px; border:1px solid #e6dfb5; border-radius:13px; background:#fff9dc; }
+.keyboard-guide-example > span { color:#7e713e; font-size:10px; font-weight:800; }
+.keyboard-guide-example div { display:flex; gap:4px; }
+.keyboard-guide-example kbd { display:grid; place-items:center; min-width:28px; height:27px; border-radius:6px; border:1px solid #d5c885; background:#fff; box-shadow:0 2px 0 #d7ca91; color:#5b522e; font:800 11px/1 inherit; }
+.keyboard-guide-example small { color:#91845b; font-size:9px; }
+.keyboard-guide-input { margin-top:15px !important; }
+.keyboard-guide-card > .btn { margin-top:13px; min-height:45px; }
+.keyboard-guide-row { overflow-x:auto; }
+@media (max-width:600px) {
+  .keyboard-guide-card { padding:22px 15px 16px; border-radius:18px; }
+  .keyboard-guide-row header { align-items:flex-start; flex-direction:column; gap:1px; padding:8px 10px; }
+  .keyboard-guide-keys { gap:2px; padding:7px 6px; min-width:300px; }
+  .keyboard-guide-key { min-height:50px; }
+  .keyboard-guide-key b { min-width:22px; min-height:22px; font-size:11px; }
+  .keyboard-guide-example { grid-template-columns:1fr auto; gap:6px 10px; }
+  .keyboard-guide-example small { grid-column:1/-1; }
+  .keyboard-guide-card > p { padding-right:26px; }
+  .keyboard-guide-input { padding-right:0 !important; }
+}
+@media (max-height:500px) {
+  .keyboard-guide-card { width:min(760px,calc(100vw - 20px)); padding:14px 18px; }
+  .keyboard-guide-card h2 { margin:3px 0; font-size:22px; }
+  .keyboard-guide-rows { grid-template-columns:1fr 1fr; margin-top:8px; }
+  .keyboard-guide-row header { padding:5px 8px; }
+  .keyboard-guide-keys { padding:5px; min-width:300px; }
+  .keyboard-guide-key { min-height:37px; gap:1px; }
+  .keyboard-guide-key b { min-height:18px; font-size:9px; }
+  .keyboard-guide-key small { font-size:7px; }
+  .keyboard-guide-example { margin-top:7px; padding:6px 10px; }
+  .keyboard-guide-card > .btn { margin-top:7px; min-height:36px; }
+  .keyboard-guide-card > p,.keyboard-guide-input { font-size:10px; }
+}
 /* === 1.13 accessible focus and touch ergonomics === */
 .modal-backdrop:focus { outline: none; }
 .modal-backdrop [tabindex="-1"]:focus { outline: none; }
@@ -1923,7 +1981,7 @@ button, input, select, textarea { font-family: inherit; }
           <span class="rhythm-free-play-copy"><strong>自由弹</strong><small>双八度电子琴 · 可切换音域</small></span>
           <span class="rhythm-free-play-arrow">→</span>
         </button>
-        <div class="rhythm-home-foot"><span>公共领域短曲 · 双八度虚拟钢琴</span><button class="text-button" id="rhythmHowTo" type="button">怎么玩 →</button></div>
+        <div class="rhythm-home-foot"><span>公共领域短曲 · 双八度虚拟钢琴</span><button class="text-button" id="rhythmHowTo" type="button">键位教程 →</button></div>
       </section>
 
       <section class="rhythm-free-play hidden" id="rhythmFreePlay">
@@ -1958,6 +2016,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="rhythm-keyboard free-play-keyboard" id="freePlayKeyboard" aria-label="自由弹钢琴键盘"></div>
         <div class="rhythm-stage-footer">
           <span id="freePlayHint">触屏点击，或用电脑双排键演奏</span>
+          <button class="rhythm-stage-button" id="freePlayKeyboardGuide" type="button">键位</button>
           <button class="rhythm-stage-button" id="freePlayBackBottom" type="button">回到曲目</button>
         </div>
       </section>
@@ -1979,7 +2038,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="rhythm-keyboard" id="rhythmKeyboard" aria-label="节奏钢琴键盘"></div>
         <div class="rhythm-stage-footer">
           <button class="rhythm-stage-button" id="rhythmPause" type="button">暂停</button>
-          <span id="rhythmKeyHint">电脑：Z–M / S D G H J + Q–O / 2 3 5 6 7</span>
+          <span id="rhythmKeyHint">下排 Z–↵ · 上排 Q–\</span>
           <button class="rhythm-stage-button" id="rhythmQuit" type="button">退出本曲</button>
         </div>
       </section>
@@ -1992,6 +2051,23 @@ button, input, select, textarea { font-family: inherit; }
         <div class="rhythm-result-stats"><span><small>最高连击</small><strong id="rhythmResultCombo">0</strong></span><span><small>准确率</small><strong id="rhythmResultAccuracy">100%</strong></span><span><small>获得</small><strong id="rhythmResultXp">+0 XP</strong></span></div>
         <div class="rhythm-result-actions"><button class="btn btn-primary" id="rhythmPlayAgain" type="button">再弹一次</button><button class="btn btn-soft" id="rhythmChooseAnother" type="button">换一首</button></div>
       </section>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="keyboardGuideModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="keyboardGuideTitle">
+    <div class="keyboard-guide-card">
+      <button class="icon-button keyboard-guide-close" id="closeKeyboardGuide" type="button" aria-label="关闭键位教程"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <span class="eyebrow">KEYBOARD</span>
+      <h2 id="keyboardGuideTitle">两排，弹完整音域</h2>
+      <p>下排从 C3 到 C4，上排从 C#4 到 D5。两排都从左到右升高。</p>
+      <div class="keyboard-guide-rows" id="keyboardGuideRows"></div>
+      <div class="keyboard-guide-example">
+        <span>先试三个键</span>
+        <div><kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd></div>
+        <small>C3 · C#3 · D3</small>
+      </div>
+      <p class="keyboard-guide-input">电脑按两排键；手机和平板直接点琴键。</p>
+      <button class="btn btn-primary full-width" id="keyboardGuideStart" type="button" data-autofocus>开始弹</button>
     </div>
   </div>
 
@@ -2040,7 +2116,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.24 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.25 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -2117,7 +2193,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.24.0",
+    "appVersion": "1.25.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -7877,7 +7953,10 @@ window.PIANO_DATA = {
         "4–6 首可完整演奏的短曲",
         "中央 C 与 G/F 地标读谱",
         "每次视奏 8 小节并连续完成"
-      ]
+      ],
+      "focus": "地标读谱、五指位置与双手短曲",
+      "repertoire": ["欢乐颂", "G 大调小步舞曲"],
+      "advanceRule": "连续两次录制完整短曲，句尾不抢拍；陌生谱 8 小节连续完成。"
     },
     {
       "id": "build",
@@ -7890,7 +7969,10 @@ window.PIANO_DATA = {
         "C/G/F/A 小调音阶与琶音",
         "16–24 小节新曲独立拿下",
         "每周 2 次陌生谱视奏"
-      ]
+      ],
+      "focus": "音阶、琶音、双手协调与基础复调",
+      "repertoire": ["G 大调小步舞曲", "C 大调小奏鸣曲 Op.36 No.1"],
+      "advanceRule": "两升两降内音阶稳定 80 BPM；一首 24 小节作品完整录制；每周两次陌生谱视奏。"
     },
     {
       "id": "flow",
@@ -7903,7 +7985,10 @@ window.PIANO_DATA = {
         "二部创意曲选段",
         "30 分钟小型曲目单",
         "能分析常见和弦进行"
-      ]
+      ],
+      "focus": "复调分声部、和弦进行与曲目表达",
+      "repertoire": ["阿拉伯风格曲 Op.100 No.2", "C 大调前奏曲 BWV 846"],
+      "advanceRule": "完成一首 3 级作品和一首复调选段；能听辨并标注 I–IV–V–I 与相对小调和弦。"
     },
     {
       "id": "deep",
@@ -7916,7 +8001,10 @@ window.PIANO_DATA = {
         "独立安排 4–6 周学习计划",
         "完成一份 30–45 分钟曲目单",
         "视奏约 4–5 级"
-      ]
+      ],
+      "focus": "奏鸣曲结构、声部层次与长线曲目管理",
+      "repertoire": ["巴赫二部创意曲选段", "古典奏鸣曲乐章", "浪漫派小品"],
+      "advanceRule": "独立完成 4–6 周曲目计划；30–45 分钟曲目单至少两种风格；视奏达到 4–5 级。"
     },
     {
       "id": "mastery",
@@ -7929,7 +8017,10 @@ window.PIANO_DATA = {
         "8 级左右曲目 4–6 周拿下",
         "能完成小型独奏会",
         "可独立分析、指法、排练与演出"
-      ]
+      ],
+      "focus": "舞台演奏、独立排练与完整曲目单",
+      "repertoire": ["奏鸣曲完整乐章", "复调作品", "浪漫派作品"],
+      "advanceRule": "完成 30–45 分钟独奏会录音；曲目可在 4–6 周内独立拿下；具备公开演奏与复盘能力。"
     }
   ],
   "masteryNote": "“到精通”按业余高级标准定义。每周 4 小时约 208 小时/年；专业演奏级通常需要每周 15–25 小时，不在本计划承诺范围内。",
@@ -8818,11 +8909,41 @@ window.PIANO_DATA = {
     renderStages();
   }
 
+  function stagePractice(stage) {
+    return {
+      id: `stage-${stage.id}-${Date.now()}`,
+      sourceId: `stage-${stage.id}`,
+      title: `阶段训练：${stage.label}`,
+      week: 0,
+      day: 1,
+      duration: 60,
+      quick: true,
+      stageId: stage.id,
+      stageLabel: stage.label,
+      goal: `${stage.focus || stage.description} · 晋级标准：${stage.advanceRule}`,
+      steps: [
+        { start: 0, end: 8, minutes: 8, title: '热身与听感', category: '热身', detail: '先做肩膀、手腕和坐姿校准，再跟 60 BPM 空拍 2 小节。', cue: '松肩、踩实、先听再动' },
+        { start: 8, end: 20, minutes: 12, title: '技术与音阶', category: '技术', detail: `围绕“${stage.focus}”练一个技术单元：分手、慢速、连续三次正确。`, cue: '慢练不是走流程' },
+        { start: 20, end: 38, minutes: 18, title: '核心曲目拆解', category: '曲目', detail: `从 ${stage.repertoire?.join(' / ') || '当前阶段曲目'} 选 2–4 小节，拆分难点并逐步合手。`, cue: '一次只处理一个难点' },
+        { start: 38, end: 48, minutes: 10, title: '陌生谱视奏', category: '读谱', detail: '选 8–16 小节陌生谱，先看调号、拍号与节奏，再不停顿地走一遍。', cue: '连续比完美重要' },
+        { start: 48, end: 56, minutes: 8, title: '连接与表达', category: '曲目', detail: '把今天拆解的片段接回前后文，加入一个清楚的起句和收束。', cue: '让音乐先发生' },
+        { start: 56, end: 60, minutes: 4, title: '录音与晋级记录', category: '反馈', detail: `录下 20–30 秒，并对照晋级标准：${stage.advanceRule}`, cue: '只记录一个下一步' }
+      ],
+      sources: DATA.weeks[0]?.sessions?.[0]?.sources || []
+    };
+  }
+
+  function startStagePractice(stageId) {
+    const stage = (DATA.stages || []).find((item) => item.id === stageId);
+    if (!stage) return;
+    window.PIANO_OPEN_SESSION?.(stagePractice(stage));
+  }
+
   function renderStages() {
     const stageGrid = $('#stageGrid');
     if (!stageGrid) return;
     const colors = { mint: '#5bbd78', sun: '#d6ad2f', coral: '#e6806a', violet: '#9581ce', ink: '#4d6856' };
-    stageGrid.innerHTML = (DATA.stages || []).map((stage, index) => `<article class="stage-card" style="--stage-color:${colors[stage.color] || colors.mint}"><div class="stage-rank"><span>${escapeHtml(stage.range)}</span><em>${escapeHtml(stage.grade)}</em></div><h3>${escapeHtml(stage.label)}</h3><p>${escapeHtml(stage.description)}</p><ul>${(stage.goals || []).map((goal) => `<li>${escapeHtml(goal)}</li>`).join('')}</ul></article>`).join('');
+    stageGrid.innerHTML = (DATA.stages || []).map((stage, index) => `<button type="button" class="stage-card" data-stage-practice="${escapeHtml(stage.id)}" style="--stage-color:${colors[stage.color] || colors.mint}"><div class="stage-rank"><span>${escapeHtml(stage.range)}</span><em>${escapeHtml(stage.grade)}</em></div><h3>${escapeHtml(stage.label)}</h3><p>${escapeHtml(stage.description)}</p><div class="stage-focus">${escapeHtml(stage.focus || '')}</div><ul>${(stage.goals || []).map((goal) => `<li>${escapeHtml(goal)}</li>`).join('')}</ul><span class="stage-start">开始 60 分钟训练 →</span></button>`).join('');
     $('#masteryFootnote').textContent = DATA.masteryNote || '';
   }
 
@@ -9034,7 +9155,7 @@ window.PIANO_DATA = {
     sessionsForWeek, currentWeekData, currentSessionData, streakCount,
     addReviewItem, completeReviewItem, dueReviewItems,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
-    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar,
+    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar, startStagePractice,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
       Object.assign(state, structuredClone(defaultState), nextState || {});
@@ -9649,7 +9770,7 @@ window.PIANO_DATA = {
     $('#lessonTitle').textContent = session.title;
     $('#lessonGoal').textContent = session.goal;
     const planLength = document.querySelector('#lessonPlanLength');
-    if (planLength) planLength.textContent = session.repertoireId ? `曲目训练 · ${session.duration} 分钟` : session.quick ? '5 分钟快练' : `今天的 ${session.duration} 分钟`;
+    if (planLength) planLength.textContent = session.repertoireId ? `曲目训练 · ${session.duration} 分钟` : session.stageId ? `阶段训练 · ${session.duration} 分钟` : session.quick ? '5 分钟快练' : `今天的 ${session.duration} 分钟`;
     $('#lessonSteps').innerHTML = session.steps.map((step, index) => `<div class="lesson-step" data-step="${index}"><span class="lesson-step-num">${String(index + 1).padStart(2, '0')}</span><span><strong>${step.title}</strong><small>${step.start}–${step.end} 分 · ${step.minutes} 分钟</small></span></div>`).join('');
     $('#lessonModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -9685,6 +9806,8 @@ window.PIANO_DATA = {
     $('#lessonModal').classList.add('hidden');
     if (session.repertoireId) {
       $('#completeSummary').textContent = `曲目阶段完成 · ${session.title.replace('曲目训练：','')}`;
+    } else if (session.stageId) {
+      $('#completeSummary').textContent = `阶段训练完成 · ${session.stageLabel || session.title.replace('阶段训练：','')}`;
     } else if (session.quick) {
       $('#completeSummary').textContent = `5 分钟快练完成 · ${session.title.replace('5 分钟快练：','')}`;
     } else if (!passed) {
@@ -9711,9 +9834,9 @@ window.PIANO_DATA = {
       }
       return count;
     })();
-    $('#completeXp').textContent = session.repertoireId ? '+15' : session.quick ? '+5' : passed ? '+20' : '+0';
+    $('#completeXp').textContent = session.repertoireId ? '+15' : session.stageId ? '+15' : session.quick ? '+5' : passed ? '+20' : '+0';
     const saveButton = document.querySelector('#saveCompletion');
-    if (saveButton) saveButton.textContent = !passed ? '保存练习，继续巩固' : session.repertoireId ? '保存阶段并返回曲目' : session.quick ? '保存快练' : '保存，继续下一课';
+    if (saveButton) saveButton.textContent = !passed ? '保存练习，继续巩固' : session.repertoireId ? '保存阶段并返回曲目' : session.stageId ? '保存阶段训练' : session.quick ? '保存快练' : '保存，继续下一课';
     const masteryEl = document.querySelector('#completeMastery');
     if (masteryEl) masteryEl.textContent = mastery ? `${mastery.best}%` : '未测';
     const completeSessions = document.querySelector('#completeSessionCount');
@@ -9762,7 +9885,8 @@ window.PIANO_DATA = {
       return;
     }
     if (!finished.quick) state.completed[finished.id] = { ...entry, completedAt: entry.completedAt, mastery: state.mastery?.[finished.id] || null };
-    if (finished.quick) entry.type = finished.repertoireId ? 'repertoire' : 'quick';
+    if (finished.quick) entry.type = finished.repertoireId ? 'repertoire' : finished.stageId ? 'stage' : 'quick';
+    if (finished.stageId) { entry.stageId = finished.stageId; entry.stageLabel = finished.stageLabel || ''; }
     const reviewSourceId = finished.sourceId || finished.id.replace(/-quick$/, '').replace(/-review-.*$/, '');
     if (finished.sourceId && /^复习：/.test(finished.title)) {
       APP.completeReviewItem(reviewSourceId, rating >= 3);
@@ -9788,10 +9912,12 @@ window.PIANO_DATA = {
     updateProgressDisplay();
     $('#completeModal').classList.add('hidden');
     completionPreview = null;
-    APP.showToast(finished.repertoireId ? '曲目阶段已保存，继续下一阶段。' : '已保存。下一课已经准备好。');
+    APP.showToast(finished.repertoireId ? '曲目阶段已保存，继续下一阶段。' : finished.stageId ? '阶段训练已保存，继续积累这次的关键动作。' : '已保存。下一课已经准备好。');
     if (finished.repertoireId) {
       APP.updateNav('repertoire');
       setTimeout(() => APP.renderRepertoire(), 180);
+    } else if (finished.stageId) {
+      APP.updateNav('path');
     } else {
       APP.updateNav('today');
       setTimeout(() => openSession(APP.currentSessionData().id), 500);
@@ -10190,36 +10316,36 @@ window.PIANO_DATA = {
 
 
   const RHYTHM_LEAD_BEATS = 3.5;
+  // Two physical keyboard rows. Each row is a continuous chromatic run from low to high.
+  // Lower row: C3-C4 (Z X C V B N M , . / ; ' Enter)
+  // Upper row: C#4-D5 (Q W E R T Y U I O P [ ] \)
+  const RHYTHM_KEYBOARD_ROWS = [
+    {
+      label: '下排 · 低音 C3–C4',
+      keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';', "'", 'Enter'],
+      notes: [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60]
+    },
+    {
+      label: '上排 · 高音 C#4–D5',
+      keys: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+      notes: [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 74]
+    }
+  ];
+  const RHYTHM_KEY_BY_NOTE = new Map(RHYTHM_KEYBOARD_ROWS.flatMap((row) => row.notes.map((note, index) => [note, row.keys[index]])));
   const RHYTHM_WHITE_KEYS = [
-    { note: 48, name: 'C3', pc: 0, key: 'z' },
-    { note: 50, name: 'D3', pc: 2, key: 'x' },
-    { note: 52, name: 'E3', pc: 4, key: 'c' },
-    { note: 53, name: 'F3', pc: 5, key: 'v' },
-    { note: 55, name: 'G3', pc: 7, key: 'b' },
-    { note: 57, name: 'A3', pc: 9, key: 'n' },
-    { note: 59, name: 'B3', pc: 11, key: 'm' },
-    { note: 60, name: 'C4', pc: 0, key: 'q' },
-    { note: 62, name: 'D4', pc: 2, key: 'w' },
-    { note: 64, name: 'E4', pc: 4, key: 'e' },
-    { note: 65, name: 'F4', pc: 5, key: 'r' },
-    { note: 67, name: 'G4', pc: 7, key: 't' },
-    { note: 69, name: 'A4', pc: 9, key: 'y' },
-    { note: 71, name: 'B4', pc: 11, key: 'u' },
-    { note: 72, name: 'C5', pc: 0, key: 'i' },
-    { note: 74, name: 'D5', pc: 2, key: 'o' }
-  ];
+    { note: 48, name: 'C3', pc: 0 }, { note: 50, name: 'D3', pc: 2 }, { note: 52, name: 'E3', pc: 4 },
+    { note: 53, name: 'F3', pc: 5 }, { note: 55, name: 'G3', pc: 7 }, { note: 57, name: 'A3', pc: 9 },
+    { note: 59, name: 'B3', pc: 11 }, { note: 60, name: 'C4', pc: 0 }, { note: 62, name: 'D4', pc: 2 },
+    { note: 64, name: 'E4', pc: 4 }, { note: 65, name: 'F4', pc: 5 }, { note: 67, name: 'G4', pc: 7 },
+    { note: 69, name: 'A4', pc: 9 }, { note: 71, name: 'B4', pc: 11 }, { note: 72, name: 'C5', pc: 0 },
+    { note: 74, name: 'D5', pc: 2 }
+  ].map((key) => ({ ...key, key: RHYTHM_KEY_BY_NOTE.get(key.note) }));
   const RHYTHM_BLACK_KEYS = [
-    { note: 49, name: 'C#3', pc: 1, key: 's' },
-    { note: 51, name: 'D#3', pc: 3, key: 'd' },
-    { note: 54, name: 'F#3', pc: 6, key: 'g' },
-    { note: 56, name: 'G#3', pc: 8, key: 'h' },
-    { note: 58, name: 'A#3', pc: 10, key: 'j' },
-    { note: 61, name: 'C#4', pc: 1, key: '2' },
-    { note: 63, name: 'D#4', pc: 3, key: '3' },
-    { note: 66, name: 'F#4', pc: 6, key: '5' },
-    { note: 68, name: 'G#4', pc: 8, key: '6' },
-    { note: 70, name: 'A#4', pc: 10, key: '7' }
-  ];
+    { note: 49, name: 'C#3', pc: 1 }, { note: 51, name: 'D#3', pc: 3 }, { note: 54, name: 'F#3', pc: 6 },
+    { note: 56, name: 'G#3', pc: 8 }, { note: 58, name: 'A#3', pc: 10 }, { note: 61, name: 'C#4', pc: 1 },
+    { note: 63, name: 'D#4', pc: 3 }, { note: 66, name: 'F#4', pc: 6 }, { note: 68, name: 'G#4', pc: 8 },
+    { note: 70, name: 'A#4', pc: 10 }
+  ].map((key) => ({ ...key, key: RHYTHM_KEY_BY_NOTE.get(key.note) }));
   const FREE_PLAY_MIN_OFFSET = -2;
   const FREE_PLAY_MAX_OFFSET = 2;
 
@@ -10271,12 +10397,31 @@ window.PIANO_DATA = {
   let freeTempo = Math.max(40, Math.min(208, Number(localStorage.getItem('pianopath-free-tempo')) || 80));
   let pianoLandscapeRequested = false;
   let pianoFullscreenOwned = false;
+  let keyboardGuideOrigin = 'general';
+
+  const RHYTHM_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+  function computerKeyLabel(value) {
+    return value === 'Enter' ? '↵' : value === '\\' ? '\\' : value.toUpperCase();
+  }
 
   function pianoKeyboardMarkup(whiteKeys, blackKeys) {
     const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
-    const white = whiteKeys.map((key) => `<button type="button" class="rhythm-key white" data-note="${key.note}" data-key="${key.key}" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
-    const black = blackKeys.map((key, index) => `<button type="button" class="rhythm-key black" data-note="${key.note}" data-key="${key.key}" style="left:${blackLeft[index]}%" aria-label="${key.name}，键盘 ${key.key}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${key.key.toUpperCase()}</small></button>`).join('');
+    const keyMarkup = (key, extra = '') => `<button type="button" class="rhythm-key ${key.black ? 'black' : 'white'}" data-note="${key.note}" data-key="${key.key}" ${extra} aria-label="${key.name}，键盘 ${computerKeyLabel(key.key)}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${computerKeyLabel(key.key)}</small></button>`;
+    const white = whiteKeys.map((key) => keyMarkup(key)).join('');
+    const black = blackKeys.map((key, index) => keyMarkup({ ...key, black: true }, `style="left:${blackLeft[index]}%"`)).join('');
     return white + black;
+  }
+
+  function keyboardGuideMarkup() {
+    return RHYTHM_KEYBOARD_ROWS.map((row) => {
+      const keys = row.keys.map((key, index) => {
+        const note = row.notes[index];
+        const black = [1, 3, 6, 8, 10].includes(note % 12);
+        return `<span class="keyboard-guide-key ${black ? 'black' : 'white'}"><b>${computerKeyLabel(key)}</b><small>${RHYTHM_NOTE_NAMES[note % 12]}${Math.floor(note / 12) - 1}</small></span>`;
+      }).join('');
+      return `<div class="keyboard-guide-row"><header><strong>${row.label.split(' · ')[0]}</strong><span>${row.label.split(' · ')[1]}</span></header><div class="keyboard-guide-keys">${keys}</div></div>`;
+    }).join('');
   }
 
   function rhythmKeyboardMarkup() {
@@ -10486,7 +10631,27 @@ window.PIANO_DATA = {
     document.querySelectorAll('#freeBeatDots i').forEach((dot) => dot.classList.remove('active'));
   }
 
-  function openFreePiano() {
+  function openKeyboardGuide(origin = 'general') {
+    const modal = document.querySelector('#keyboardGuideModal');
+    const rows = document.querySelector('#keyboardGuideRows');
+    if (!modal || !rows) return;
+    keyboardGuideOrigin = origin;
+    rows.innerHTML = keyboardGuideMarkup();
+    const start = document.querySelector('#keyboardGuideStart');
+    if (start) start.textContent = origin === 'freeplay' ? '开始自由弹' : origin === 'rhythm' ? '去选曲目' : '知道了';
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeKeyboardGuide() {
+    const modal = document.querySelector('#keyboardGuideModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    modal.classList.add('hidden');
+    localStorage.setItem('pianopath-keyboard-guide-seen', '1');
+    document.body.style.overflow = document.querySelector('#rhythmPianoModal:not(.hidden)') ? 'hidden' : '';
+  }
+
+  function openFreePiano(showGuide = true) {
     stopRhythmPiano();
     stopFreePlay();
     freePlayActive = true;
@@ -10509,6 +10674,9 @@ window.PIANO_DATA = {
     renderFreePlayKeyboard();
     setFreeTempo(freeTempo);
     syncPianoLandscapeState();
+    const guideShown = showGuide && localStorage.getItem('pianopath-keyboard-guide-seen') !== '1';
+    if (guideShown) openKeyboardGuide('freeplay');
+    return guideShown;
   }
 
   function saveFreePlaySession() {
@@ -10544,6 +10712,7 @@ window.PIANO_DATA = {
   }
 
   function closeFreePiano() {
+    closeKeyboardGuide();
     saveFreePlaySession();
     stopFreePlay();
     pianoLandscapeRequested = false;
@@ -10589,6 +10758,7 @@ window.PIANO_DATA = {
   }
 
   function closeRhythmPiano() {
+    closeKeyboardGuide();
     if (freePlayActive) saveFreePlaySession();
     stopRhythmPiano();
     stopFreePlay();
@@ -10786,14 +10956,15 @@ window.PIANO_DATA = {
   function handleRhythmKeydown(event) {
     const modal = document.querySelector('#rhythmPianoModal');
     if (!rhythmActive || rhythmPaused || !modal || modal.classList.contains('hidden')) return;
+    if (document.querySelector('#keyboardGuideModal:not(.hidden)')) return;
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
     if (event.code === 'Space') {
       event.preventDefault();
       toggleRhythmPause();
       return;
     }
-    const key = event.key;
-    const target = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((candidate) => candidate.key.toLowerCase() === key.toLowerCase());
+    const key = event.key.toLowerCase();
+    const target = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((candidate) => candidate.key.toLowerCase() === key);
     if (!target) return;
     event.preventDefault();
     pressRhythmKey(target.note);
@@ -10802,9 +10973,11 @@ window.PIANO_DATA = {
   function handleFreePianoKeydown(event) {
     const modal = document.querySelector('#rhythmPianoModal');
     if (!freePlayActive || !modal || modal.classList.contains('hidden')) return;
+    if (document.querySelector('#keyboardGuideModal:not(.hidden)')) return;
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
     const keys = rhythmKeysForOffset(freePlayOctaveOffset);
-    const target = [...keys.white, ...keys.black].find((candidate) => candidate.key.toLowerCase() === event.key.toLowerCase());
+    const key = event.key.toLowerCase();
+    const target = [...keys.white, ...keys.black].find((candidate) => candidate.key.toLowerCase() === key);
     if (!target) return;
     event.preventDefault();
     playFreePianoNote(target.note);
@@ -10827,8 +11000,8 @@ window.PIANO_DATA = {
     document.querySelector('#startRhythmPianoHome')?.addEventListener('click', openRhythmPiano);
     document.querySelector('#closeRhythmPiano')?.addEventListener('click', closeRhythmPiano);
     document.querySelector('#startFreePiano')?.addEventListener('click', () => {
-      openFreePiano();
-      if (window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
+      const guideShown = openFreePiano();
+      if (!guideShown && window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
     });
     document.querySelector('#freePlayBack')?.addEventListener('click', closeFreePiano);
     document.querySelector('#freePlayBackBottom')?.addEventListener('click', closeFreePiano);
@@ -10844,6 +11017,14 @@ window.PIANO_DATA = {
     document.querySelector('#freeTempoDown')?.addEventListener('click', () => setFreeTempo(freeTempo - 4));
     document.querySelector('#freeTempoUp')?.addEventListener('click', () => setFreeTempo(freeTempo + 4));
     document.querySelector('#freeMetronomeToggle')?.addEventListener('click', toggleFreeMetronome);
+    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => openKeyboardGuide('rhythm'));
+    document.querySelector('#freePlayKeyboardGuide')?.addEventListener('click', () => openKeyboardGuide('freeplay'));
+    document.querySelector('#closeKeyboardGuide')?.addEventListener('click', closeKeyboardGuide);
+    document.querySelector('#keyboardGuideStart')?.addEventListener('click', () => {
+      const startFromFreePlay = keyboardGuideOrigin === 'freeplay';
+      closeKeyboardGuide();
+      if (startFromFreePlay && window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
+    });
     document.addEventListener('keydown', handleFreePianoKeydown);
     document.querySelector('#rhythmKeyboard')?.addEventListener('pointerdown', (event) => {
       const key = event.target.closest('.rhythm-key');
@@ -10858,7 +11039,10 @@ window.PIANO_DATA = {
     document.querySelector('#rhythmFullscreen')?.addEventListener('click', async () => {
       try { await document.querySelector('#rhythmPianoCard')?.requestFullscreen?.(); } catch (error) {}
     });
-    document.querySelector('#rhythmHowTo')?.addEventListener('click', () => APP.showToast('低音白键 Z X C V B N M，黑键 S D G H J；高音白键 Q W E R T Y U I O，黑键 2 3 5 6 7。'));
+    document.querySelectorAll('[data-open-keyboard-guide]').forEach((button) => button.addEventListener('click', () => openKeyboardGuide('rhythm')));
+    document.querySelector('#keyboardGuideModal')?.addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) closeKeyboardGuide();
+    });
     document.querySelectorAll('[data-rhythm-filter]').forEach((button) => {
       button.addEventListener('click', () => {
         rhythmDifficulty = button.dataset.rhythmFilter;
@@ -11286,6 +11470,11 @@ window.PIANO_DATA = {
         APP.renderRepertoire(repertoireFilterButton.dataset.repertoireFilter);
         return;
       }
+      const stagePracticeButton = event.target.closest('[data-stage-practice]');
+      if (stagePracticeButton) {
+        APP.startStagePractice(stagePracticeButton.dataset.stagePractice);
+        return;
+      }
     });
 
     $('#startToday').addEventListener('click', () => openSession(APP.currentSessionData().id));
@@ -11586,6 +11775,7 @@ window.PIANO_DATA = {
         else if (backdrop.id === 'warmupModal') closeWarmup();
         else if (backdrop.id === 'noteGameModal') closeNoteGame();
         else if (backdrop.id === 'playAlongModal') closePlayAlong();
+        else if (backdrop.id === 'keyboardGuideModal') closeKeyboardGuide();
         else if (backdrop.id === 'rhythmPianoModal') closeRhythmPiano();
         else if (backdrop.id === 'legalViewModal') closeLegalView();
         else if (backdrop.id === 'videoModal') closeVideo();
@@ -11597,6 +11787,7 @@ window.PIANO_DATA = {
         if (document.querySelector('#confirmActionModal') && !document.querySelector('#confirmActionModal').classList.contains('hidden')) { closeConfirmAction(); return; }
         if (document.querySelector('#deleteAccountModal') && !document.querySelector('#deleteAccountModal').classList.contains('hidden')) { closeDeleteAccountConfirm(); return; }
         if (document.querySelector('#legalViewModal') && !document.querySelector('#legalViewModal').classList.contains('hidden')) { closeLegalView(); return; }
+        if (document.querySelector('#keyboardGuideModal') && !document.querySelector('#keyboardGuideModal').classList.contains('hidden')) { closeKeyboardGuide(); return; }
         if (freePlayActive) { closeFreePiano(); return; }
         if (document.querySelector('#rhythmPianoModal') && !document.querySelector('#rhythmPianoModal').classList.contains('hidden')) { closeRhythmPiano(); return; }
         if (document.querySelector('#playAlongModal') && !document.querySelector('#playAlongModal').classList.contains('hidden')) { closePlayAlong(); return; }
@@ -11615,6 +11806,8 @@ window.PIANO_DATA = {
   APP.openRhythmPiano = openRhythmPiano;
   APP.finishRhythmPiano = finishRhythmPiano;
   APP.openFreePiano = openFreePiano;
+  APP.openKeyboardGuide = openKeyboardGuide;
+  APP.closeKeyboardGuide = closeKeyboardGuide;
   APP.enterPianoLandscape = enterPianoLandscape;
   APP.exitPianoLandscape = exitPianoLandscape;
   APP.getPianoLandscapeSnapshot = () => ({

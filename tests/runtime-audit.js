@@ -22,13 +22,14 @@ for (const file of runtimeFiles) {
 const app = fs.readFileSync('app.js', 'utf8');
 const expected = {
   playAlongLowerBlack: "input: 's'",
-  rhythmLowerBlackEnd: "key: 'j'",
-  rhythmUpperWhiteEnd: "key: 'o'",
-  rhythmUpperBlackEnd: "key: '7'"
+  lowerKeyboardRow: "keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';'",
+  upperKeyboardRow: "keys: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']'",
+  keyboardGuide: 'function keyboardGuideMarkup()'
 };
 for (const [label, fragment] of Object.entries(expected)) {
   if (!app.includes(fragment)) issues.push(`app.js: missing ${label} keyboard mapping`);
 }
-if ((app.match(/data-key="\$\{key\.key\}"/g) || []).length < 2) issues.push('app.js: rhythm keys must expose data-key');
-console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'two-octave', issues }, null, 2));
+if (!app.includes('data-key="${key.key}"')) issues.push('app.js: rhythm keys must expose data-key');
+if (!fs.readFileSync('index.html', 'utf8').includes('id="keyboardGuideModal"')) issues.push('index.html: keyboard guide modal missing');
+console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'two-row-chromatic', issues }, null, 2));
 assert.deepEqual(issues, []);

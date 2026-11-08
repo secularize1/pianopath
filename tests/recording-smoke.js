@@ -107,6 +107,8 @@ async function openLesson(page, base) {
     assert.equal(await page.locator('.history-recording').count(), 1, 'history playback button missing');
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).history.find((entry) => entry.recording));
     assert.equal(stored.recording.id, saved.recordingId, 'history recording metadata id mismatch');
+    assert.ok(stored.recording.deviceId, 'recording metadata must record the owning device');
+    assert.equal(stored.recording.deviceId, await page.evaluate(() => window.PIANO_APP.getRecordingDeviceId()), 'recording device id mismatch');
     assert.equal(Object.prototype.hasOwnProperty.call(stored.recording, 'blob'), false, 'audio blob must not enter localStorage');
 
     await page.locator('.history-recording').evaluate((button) => button.click());
@@ -132,6 +134,16 @@ async function openLesson(page, base) {
       request.onerror = () => reject(request.error);
     }), saved.recordingId);
     assert.equal(deletedAudio, false, 'recording blob was not removed from IndexedDB');
+    await page.evaluate(() => {
+      const current = JSON.parse(localStorage.getItem('pianopath-state-v1'));
+      current.history = [{ id: 'remote-recording-entry', type: 'quick', title: '另一台设备的练习', week: 1, date: '2026-11-08', minutes: 5, rating: 3, ratingLabel: '已记录', recording: { id: 'remote-recording', durationSeconds: 12, mimeType: 'audio/webm', deviceId: 'another-device-id' }, completedAt: new Date().toISOString() }];
+      window.PIANO_APP.replaceState(current);
+      window.PIANO_APP.persist();
+      window.PIANO_APP.updateNav('stats');
+    });
+    await page.waitForTimeout(150);
+    assert.equal(await page.locator('.history-recording.remote').count(), 1, 'remote recording should be labeled as device-bound');
+    assert.match(await page.locator('.history-recording.remote').innerText(), /原设备录音/, 'remote recording label missing');
     assert.equal(errors.length, 0, `recording runtime errors: ${errors.join('; ')}`);
     await context.close();
 

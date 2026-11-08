@@ -6,8 +6,8 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const PAGES = [
-  { file: 'privacy.html', title: '隐私政策', terms: ['本机', '账户', '删除', '未成年人', '麦克风', 'IndexedDB'] },
-  { file: 'terms.html', title: '服务条款', terms: ['账户', '版权', '练习安全', '责任边界', '录音'] }
+  { file: 'privacy.html', title: '隐私政策', terms: ['本机', '账户', '删除', '未成年人', '麦克风', 'IndexedDB', '设备'] },
+  { file: 'terms.html', title: '服务条款', terms: ['账户', '版权', '练习安全', '责任边界', '录音', '设备'] }
 ];
 
 (async () => {

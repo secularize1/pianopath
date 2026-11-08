@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.26.1 — 2026-11-08
+
+- Changed the keyboard tutorial from free exploration to an ordered `C3 → C#3 → D3` guided sequence.
+- Highlights the next target key and only advances when that exact note is played.
+- Wrong notes still preview their pitch but keep progress unchanged and show a recovery cue.
+- Added desktop/mobile regression coverage for target highlighting, wrong-key recovery and ordered completion.
+
 ## 1.26.0 — 2026-11-08
 
 - Made every key in the two-row keyboard tutorial playable by physical keyboard, pointer and touch.

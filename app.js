@@ -2093,7 +2093,8 @@
   let pianoLandscapeRequested = false;
   let pianoFullscreenOwned = false;
   let keyboardGuideOrigin = 'general';
-  let keyboardGuidePracticed = new Set();
+  let keyboardGuideStep = 0;
+  const KEYBOARD_GUIDE_SEQUENCE = [48, 49, 50];
 
   const RHYTHM_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -2131,18 +2132,40 @@
     }))).find((candidate) => candidate.code === event.code || candidate.key.toLowerCase() === event.key.toLowerCase());
   }
 
+  function syncKeyboardGuideTarget() {
+    const expected = KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep];
+    document.querySelectorAll('.keyboard-guide-key').forEach((key) => key.classList.toggle('target', Number(key.dataset.guideNote) === expected));
+    const instrumentKey = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((key) => key.note === expected);
+    const status = document.querySelector('#keyboardGuideStatus');
+    if (status && instrumentKey && keyboardGuideStep < KEYBOARD_GUIDE_SEQUENCE.length) status.textContent = `先找 ${instrumentKey.name} · 按 ${computerKeyLabel(instrumentKey.key)}`;
+  }
+
   function previewKeyboardGuideKey(note, key) {
     playTone(261.63 * Math.pow(2, (note - 60) / 12), .28);
     const target = document.querySelector(`.keyboard-guide-key[data-guide-note="${note}"]`);
     target?.classList.add('pressed');
     setTimeout(() => target?.classList.remove('pressed'), 180);
-    keyboardGuidePracticed.add(note);
-    const status = document.querySelector('#keyboardGuideStatus');
-    if (status) status.textContent = `${key.name} · ${computerKeyLabel(key.key)}`;
-    const count = document.querySelector('#keyboardGuideCount');
+    const expected = KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep];
+    if (note === expected) {
+      keyboardGuideStep = Math.min(KEYBOARD_GUIDE_SEQUENCE.length, keyboardGuideStep + 1);
+      const count = document.querySelector('#keyboardGuideCount');
+      if (count) count.textContent = keyboardGuideStep >= KEYBOARD_GUIDE_SEQUENCE.length ? '3 / 3 ✓' : `${keyboardGuideStep} / 3`;
+    }
     const progress = document.querySelector('.keyboard-guide-progress');
-    if (count) count.textContent = keyboardGuidePracticed.size >= 3 ? '3 / 3 ✓' : `${keyboardGuidePracticed.size} / 3`;
-    if (progress) progress.classList.toggle('complete', keyboardGuidePracticed.size >= 3);
+    const complete = keyboardGuideStep >= KEYBOARD_GUIDE_SEQUENCE.length;
+    if (progress) progress.classList.toggle('complete', complete);
+    const status = document.querySelector('#keyboardGuideStatus');
+    if (status) {
+      if (complete) status.textContent = '三键都找到了，开始弹吧。';
+      else if (note === expected) {
+        const next = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((item) => item.note === KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep]);
+        status.textContent = next ? `很好 · 下一个 ${next.name}（${computerKeyLabel(next.key)}）` : `${key.name} · ${computerKeyLabel(key.key)}`;
+      } else {
+        const expectedKey = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((item) => item.note === expected);
+        status.textContent = `${key.name} 也能弹 · 先找 ${expectedKey?.name || ''}（${expectedKey ? computerKeyLabel(expectedKey.key) : ''}）`;
+      }
+    }
+    syncKeyboardGuideTarget();
   }
 
   function handleKeyboardGuideKeydown(event) {
@@ -2370,13 +2393,14 @@
     rows.innerHTML = keyboardGuideMarkup();
     const start = document.querySelector('#keyboardGuideStart');
     if (start) start.textContent = origin === 'freeplay' ? '开始自由弹' : origin === 'rhythm' ? '去选曲目' : '知道了';
-    keyboardGuidePracticed = new Set();
+    keyboardGuideStep = 0;
     const status = document.querySelector('#keyboardGuideStatus');
     if (status) status.textContent = '按任意琴键试听；手机可直接点。';
     const count = document.querySelector('#keyboardGuideCount');
     if (count) count.textContent = '0 / 3';
     document.querySelector('.keyboard-guide-progress')?.classList.remove('complete');
     modal.classList.remove('hidden');
+    syncKeyboardGuideTarget();
     document.body.style.overflow = 'hidden';
   }
 

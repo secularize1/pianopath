@@ -1404,6 +1404,8 @@ button, input, select, textarea { font-family: inherit; }
 .keyboard-guide-key.black b { border-color:#6e8072; background:#34473a; color:#f2f7ed; }
 .keyboard-guide-key.black small { color:#c2d2c2; }
 .keyboard-guide-key:hover { box-shadow:0 3px 10px rgba(41,70,51,.12); }
+.keyboard-guide-key.target { box-shadow:0 0 0 3px #f0c84e,0 5px 12px rgba(94,79,27,.18); transform:translateY(-3px); }
+.keyboard-guide-key.black.target { transform:translateY(3px); }
 .keyboard-guide-key.pressed { background:#e4f4d8; box-shadow:inset 0 0 0 2px #78b47c; }
 .keyboard-guide-key.black.pressed { background:#527559; transform:translateY(10px); }
 .keyboard-guide-progress { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:10px; margin-top:13px; padding:9px 12px; border-radius:10px; background:#edf6e9; color:#66806b; }
@@ -2131,7 +2133,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.26 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.26.1 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>
@@ -2208,7 +2210,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.26.0",
+    "appVersion": "1.26.1",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -10416,7 +10418,8 @@ window.PIANO_DATA = {
   let pianoLandscapeRequested = false;
   let pianoFullscreenOwned = false;
   let keyboardGuideOrigin = 'general';
-  let keyboardGuidePracticed = new Set();
+  let keyboardGuideStep = 0;
+  const KEYBOARD_GUIDE_SEQUENCE = [48, 49, 50];
 
   const RHYTHM_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -10454,18 +10457,40 @@ window.PIANO_DATA = {
     }))).find((candidate) => candidate.code === event.code || candidate.key.toLowerCase() === event.key.toLowerCase());
   }
 
+  function syncKeyboardGuideTarget() {
+    const expected = KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep];
+    document.querySelectorAll('.keyboard-guide-key').forEach((key) => key.classList.toggle('target', Number(key.dataset.guideNote) === expected));
+    const instrumentKey = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((key) => key.note === expected);
+    const status = document.querySelector('#keyboardGuideStatus');
+    if (status && instrumentKey && keyboardGuideStep < KEYBOARD_GUIDE_SEQUENCE.length) status.textContent = `先找 ${instrumentKey.name} · 按 ${computerKeyLabel(instrumentKey.key)}`;
+  }
+
   function previewKeyboardGuideKey(note, key) {
     playTone(261.63 * Math.pow(2, (note - 60) / 12), .28);
     const target = document.querySelector(`.keyboard-guide-key[data-guide-note="${note}"]`);
     target?.classList.add('pressed');
     setTimeout(() => target?.classList.remove('pressed'), 180);
-    keyboardGuidePracticed.add(note);
-    const status = document.querySelector('#keyboardGuideStatus');
-    if (status) status.textContent = `${key.name} · ${computerKeyLabel(key.key)}`;
-    const count = document.querySelector('#keyboardGuideCount');
+    const expected = KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep];
+    if (note === expected) {
+      keyboardGuideStep = Math.min(KEYBOARD_GUIDE_SEQUENCE.length, keyboardGuideStep + 1);
+      const count = document.querySelector('#keyboardGuideCount');
+      if (count) count.textContent = keyboardGuideStep >= KEYBOARD_GUIDE_SEQUENCE.length ? '3 / 3 ✓' : `${keyboardGuideStep} / 3`;
+    }
     const progress = document.querySelector('.keyboard-guide-progress');
-    if (count) count.textContent = keyboardGuidePracticed.size >= 3 ? '3 / 3 ✓' : `${keyboardGuidePracticed.size} / 3`;
-    if (progress) progress.classList.toggle('complete', keyboardGuidePracticed.size >= 3);
+    const complete = keyboardGuideStep >= KEYBOARD_GUIDE_SEQUENCE.length;
+    if (progress) progress.classList.toggle('complete', complete);
+    const status = document.querySelector('#keyboardGuideStatus');
+    if (status) {
+      if (complete) status.textContent = '三键都找到了，开始弹吧。';
+      else if (note === expected) {
+        const next = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((item) => item.note === KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep]);
+        status.textContent = next ? `很好 · 下一个 ${next.name}（${computerKeyLabel(next.key)}）` : `${key.name} · ${computerKeyLabel(key.key)}`;
+      } else {
+        const expectedKey = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((item) => item.note === expected);
+        status.textContent = `${key.name} 也能弹 · 先找 ${expectedKey?.name || ''}（${expectedKey ? computerKeyLabel(expectedKey.key) : ''}）`;
+      }
+    }
+    syncKeyboardGuideTarget();
   }
 
   function handleKeyboardGuideKeydown(event) {
@@ -10693,13 +10718,14 @@ window.PIANO_DATA = {
     rows.innerHTML = keyboardGuideMarkup();
     const start = document.querySelector('#keyboardGuideStart');
     if (start) start.textContent = origin === 'freeplay' ? '开始自由弹' : origin === 'rhythm' ? '去选曲目' : '知道了';
-    keyboardGuidePracticed = new Set();
+    keyboardGuideStep = 0;
     const status = document.querySelector('#keyboardGuideStatus');
     if (status) status.textContent = '按任意琴键试听；手机可直接点。';
     const count = document.querySelector('#keyboardGuideCount');
     if (count) count.textContent = '0 / 3';
     document.querySelector('.keyboard-guide-progress')?.classList.remove('complete');
     modal.classList.remove('hidden');
+    syncKeyboardGuideTarget();
     document.body.style.overflow = 'hidden';
   }
 

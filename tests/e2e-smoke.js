@@ -212,18 +212,24 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     if (name === 'mobile') {
       assert.equal(await page.evaluate(() => [...document.querySelectorAll('.keyboard-guide-keys')].every((row) => row.scrollWidth <= row.clientWidth + 1)), true, `${name}: keyboard tutorial rows should fit without internal scrolling`);
     }
+    assert.equal(await page.locator('.keyboard-guide-key.target').getAttribute('data-guide-note'), '48', `${name}: first tutorial target missing`);
     await page.keyboard.press('z');
     await page.waitForTimeout(40);
-    assert.equal(await page.locator('#keyboardGuideStatus').innerText(), 'C3 · Z', `${name}: tutorial keyboard preview failed`);
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '1 / 3', `${name}: tutorial keyboard progress wrong`);
+    assert.equal(await page.locator('.keyboard-guide-key.target').getAttribute('data-guide-note'), '49', `${name}: second tutorial target missing`);
+    await page.locator('.keyboard-guide-key[data-guide-note="55"]').click();
+    await page.waitForTimeout(40);
+    assert.equal(await page.locator('#keyboardGuideCount').innerText(), '1 / 3', `${name}: wrong tutorial key advanced progress`);
+    assert.match(await page.locator('#keyboardGuideStatus').innerText(), /先找 C#3/, `${name}: wrong tutorial key gave no recovery cue`);
     await page.locator('.keyboard-guide-key[data-guide-note="49"]').click();
     await page.waitForTimeout(40);
-    assert.equal(await page.locator('#keyboardGuideStatus').innerText(), 'C#3 · X', `${name}: tutorial pointer preview failed`);
+    assert.equal(await page.locator('#keyboardGuideCount').innerText(), '2 / 3', `${name}: tutorial pointer preview failed`);
     await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: '某', code: 'KeyC', bubbles: true })));
     await page.waitForTimeout(40);
-    assert.equal(await page.locator('#keyboardGuideStatus').innerText(), 'D3 · C', `${name}: tutorial third-key preview failed`);
+    assert.equal(await page.locator('#keyboardGuideStatus').innerText(), '三键都找到了，开始弹吧。', `${name}: tutorial third-key preview failed`);
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '3 / 3 ✓', `${name}: tutorial completion count wrong`);
     assert.equal(await page.locator('.keyboard-guide-progress').getAttribute('class'), 'keyboard-guide-progress complete', `${name}: tutorial completion state missing`);
+    assert.equal((await page.evaluate(() => window.PIANO_APP.getFreePianoSnapshot())).keyCount, 0, `${name}: tutorial previews polluted free-play stats`);
     await page.locator('#keyboardGuideStart').click();
     await page.waitForTimeout(150);
     assert.equal(await page.locator('#rhythmFreePlay').isVisible(), true, `${name}: free-play panel missing`);

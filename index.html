@@ -437,6 +437,15 @@
               <button class="text-button hidden" id="deleteRecording" type="button">删除</button>
             </div>
             <audio id="recordingAudio" controls hidden></audio>
+            <div class="recording-check hidden" id="recordingCheck">
+              <div class="recording-check-head"><strong>录音体检</strong><span>只检查声音，不评价演奏</span></div>
+              <div class="recording-check-metrics">
+                <span><small>长度</small><strong id="recordingCheckDuration">—</strong></span>
+                <span><small>音量</small><strong id="recordingCheckLevel">—</strong></span>
+                <span><small>静音</small><strong id="recordingCheckSilence">—</strong></span>
+              </div>
+              <p id="recordingCheckTip">录完后，这里会给出下一条可执行的录音建议。</p>
+            </div>
           </section>
           <div class="lesson-source" id="lessonSource"></div>
           <section class="checkpoint-panel hidden" id="checkpointPanel">
@@ -675,7 +684,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.31 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.32 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -751,6 +760,15 @@
       <h2 id="recordingModalTitle">回放录音</h2>
       <p class="recording-modal-meta" id="recordingModalMeta"></p>
       <audio id="historyRecordingAudio" controls preload="metadata"></audio>
+      <div class="recording-check hidden" id="historyRecordingCheck">
+        <div class="recording-check-head"><strong>录音体检</strong><span>只检查声音，不评价演奏</span></div>
+        <div class="recording-check-metrics">
+          <span><small>长度</small><strong id="historyRecordingCheckDuration">—</strong></span>
+          <span><small>音量</small><strong id="historyRecordingCheckLevel">—</strong></span>
+          <span><small>静音</small><strong id="historyRecordingCheckSilence">—</strong></span>
+        </div>
+        <p id="historyRecordingCheckTip"></p>
+      </div>
       <div class="recording-modal-actions"><a class="btn btn-soft" id="historyRecordingDownload" href="#" download>下载</a><button class="btn danger-button" id="historyRecordingDelete" type="button">删除录音</button></div>
     </div>
   </div>

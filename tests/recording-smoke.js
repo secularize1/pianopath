@@ -73,6 +73,23 @@ async function openLesson(page, base) {
     const initial = await page.evaluate(() => window.PIANO_APP.getRecordingSnapshot());
     assert.equal(initial.supported, true, 'recording should be supported on local HTTP');
     assert.equal(initial.uploadsRecording, false, 'recording must remain local-only');
+    const diagnostics = await page.evaluate(() => {
+      const make = (value, n = 24000) => Float32Array.from({ length: n }, () => value);
+      return {
+        silence: window.PIANO_APP.analyzeRecordingSamples(make(0), 48000, 20),
+        quiet: window.PIANO_APP.analyzeRecordingSamples(make(.04), 48000, 20),
+        good: window.PIANO_APP.analyzeRecordingSamples(make(.18), 48000, 20),
+        clipped: window.PIANO_APP.analyzeRecordingSamples(make(1), 48000, 20)
+      };
+    });
+    assert.equal(diagnostics.silence.level, '太小', 'silence diagnostics failed');
+    assert.equal(diagnostics.silence.silent, true, 'silence flag missing');
+    assert.equal(diagnostics.quiet.level, '偏轻', 'quiet diagnostics failed');
+    assert.equal(diagnostics.quiet.silent, false, 'audible quiet recording was misclassified as silent');
+    assert.equal(diagnostics.good.level, '合适', 'healthy diagnostics failed');
+    assert.equal(diagnostics.clipped.level, '过响', 'clipping diagnostics failed');
+    assert.equal(diagnostics.clipped.clipped, true, 'clipped flag missing');
+    assert.ok(diagnostics.good.rmsDb > diagnostics.quiet.rmsDb, 'RMS comparison failed');
 
     await page.locator('#startRecording').click();
     await page.waitForFunction(() => window.PIANO_APP.getRecordingSnapshot().state === 'recording', null, { timeout: 5000 });
@@ -94,7 +111,10 @@ async function openLesson(page, base) {
     assert.ok((await page.locator('#downloadRecording').getAttribute('download')).includes('.webm'), 'download filename missing');
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).history?.length || 0), 0, 'recording should not create fake history before completion');
     assert.equal(await page.evaluate(async () => (await indexedDB.databases()).some((db) => db.name === 'pianopath-recordings-v1')), true, 'IndexedDB recording store missing');
-
+    assert.equal((await page.evaluate(() => window.PIANO_APP.getRecordingSnapshot())).analysis !== null, true, 'recording analysis missing');
+    assert.equal(await page.locator('#recordingCheck').isVisible(), true, 'recording analysis card missing');
+    assert.match(await page.locator('#recordingCheckLevel').innerText(), /太小|偏轻|合适|过响|断续/, 'recording level not rendered');
+    assert.match(await page.locator('#recordingCheckTip').innerText(), /麦克风|片段|小节|琴声|录音|声音|连接/, 'recording analysis tip missing');
     await page.locator('#finishSession').click();
     await page.waitForTimeout(250);
     await page.locator('#saveCompletion').click();
@@ -114,6 +134,8 @@ async function openLesson(page, base) {
     await page.locator('.history-recording').evaluate((button) => button.click());
     await page.waitForFunction(() => !document.querySelector('#recordingModal').classList.contains('hidden'), null, { timeout: 5000 });
     assert.equal(await page.locator('#historyRecordingAudio').getAttribute('src') !== null, true, 'history playback source missing');
+    assert.equal(await page.locator('#historyRecordingCheck').isVisible(), true, 'history recording analysis missing');
+    assert.match(await page.locator('#historyRecordingCheckLevel').innerText(), /太小|偏轻|合适|过响|断续/, 'history recording level missing');
     await page.locator('#historyRecordingDelete').click();
     await page.waitForFunction(() => !document.querySelector('#confirmActionModal').classList.contains('hidden'), null, { timeout: 3000 });
     await page.keyboard.press('Escape');
@@ -184,7 +206,7 @@ async function openLesson(page, base) {
     assert.equal(fileErrors.length, 0, `standalone recording errors: ${fileErrors.join('; ')}`);
     await fileContext.close();
 
-    console.log(JSON.stringify({ ok: true, active, saved, historyRecording: stored.recording, denied: 'recoverable', standalone: 'graceful' }, null, 2));
+    console.log(JSON.stringify({ ok: true, active, saved, historyRecording: stored.recording, diagnostics, denied: 'recoverable', standalone: 'graceful' }, null, 2));
   } finally {
     if (browser) await browser.close();
     if (server) {

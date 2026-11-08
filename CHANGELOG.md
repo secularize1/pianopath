@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.32.0 — 2026-11-08
+
+- Added on-device audio diagnostics after recording: duration, RMS level, peak/clipping, active-audio ratio and silence.
+- Added actionable next-practice guidance for quiet, clipped, silent and intermittent recordings.
+- Persisted a small analysis summary with recording metadata while keeping raw audio in IndexedDB only.
+- Added analysis rendering in both the in-lesson recording panel and the history playback dialog.
+- Added regression coverage for analysis persistence, in-lesson rendering and history rendering.
+
 ## 1.31.0 — 2026-11-08
 
 - Added an in-lesson record-and-review panel with a 60-second limit and explicit microphone permission.

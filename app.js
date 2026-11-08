@@ -910,7 +910,7 @@
       items: [
         ['保存什么', '学习计划、进度、练习记录与可选账户信息。主动录音时，音频只存本机；录音记录信息可随进度同步，但不含音频。注册账户时，服务端保存邮箱、昵称和密码哈希，不保存明文密码。'],
         ['保存在哪里', '游客数据默认保存在当前浏览器。学习进度可同步到账户服务；录音音频只进入本机 IndexedDB，不上传。录音的记录信息随学习记录同步，不包含音频。'],
-        ['麦克风', '只有点击“开始录音”后才请求麦克风。音频不会用于训练或分析；你可以随时回放、下载或删除，其他设备只会看到“原设备录音”。'],
+        ['麦克风', '只有点击“开始录音”后才请求麦克风。音频不会上传，也不会用于模型训练；只在本机做音量、削波和静音等基础检测，帮助你复盘。你可以随时回放、下载或删除。'],
         ['用于什么', '课程进度、跨设备同步、复习提醒、数据恢复与账户安全。不接入广告画像，不出售个人数据。'],
         ['你能做什么', '随时导出备份、查看或删除本机录音、清除本机数据、退出登录或删除账户与云端进度。删除账户不会自动清除本机记录。'],
         ['政策版本', '2026-11-08']
@@ -972,7 +972,16 @@
       durationSeconds: Number(metadata.durationSeconds) || 0,
       mimeType: metadata.mimeType || '',
       createdAt: metadata.createdAt || new Date().toISOString(),
-      deviceId: metadata.deviceId || RECORDING_DEVICE_ID
+      deviceId: metadata.deviceId || RECORDING_DEVICE_ID,
+      analysis: metadata.analysis ? {
+        level: metadata.analysis.level || '合适',
+        rmsDb: Number(metadata.analysis.rmsDb) || 0,
+        peakDb: Number(metadata.analysis.peakDb) || 0,
+        activeRatio: Number(metadata.analysis.activeRatio) || 0,
+        silent: Boolean(metadata.analysis.silent),
+        clipped: Boolean(metadata.analysis.clipped),
+        tip: String(metadata.analysis.tip || '').slice(0, 180)
+      } : null
     };
   }
 
@@ -992,6 +1001,7 @@
     metadata: null,
     objectUrl: '',
     replaceId: null,
+    analysis: null,
     supported: Boolean(navigator.mediaDevices?.getUserMedia && window.MediaRecorder),
     error: ''
   };
@@ -1207,6 +1217,97 @@
     return recordingDbPromise;
   }
 
+  function analyzeRecordingSamples(channel, sampleRate = 48000, durationSeconds = 0) {
+    const step = Math.max(1, Math.floor((Number(sampleRate) || 48000) / 50));
+    let sumSquares = 0;
+    let peak = 0;
+    let samples = 0;
+    let active = 0;
+    const threshold = .008;
+    for (let index = 0; index < channel.length; index += step) {
+      const value = channel[index];
+      const abs = Math.abs(value);
+      peak = Math.max(peak, abs);
+      sumSquares += value * value;
+      if (abs >= threshold) active += 1;
+      samples += 1;
+    }
+    const rms = samples ? Math.sqrt(sumSquares / samples) : 0;
+    const activeRatio = samples ? active / samples : 0;
+    const peakDb = peak > 0 ? 20 * Math.log10(peak) : -100;
+    const rmsDb = rms > 0 ? 20 * Math.log10(rms) : -100;
+    const clipped = peak >= .985;
+    const silent = activeRatio < .025 || rmsDb < -48;
+    let level = '合适';
+    let tip = '音量清楚，保留这一段，回放时只记一个下次要改的连接。';
+    if (silent) {
+      level = '太小';
+      tip = '先把麦克风靠近琴一点或提高输入音量，再录 15–30 秒。';
+    } else if (peakDb < -24) {
+      level = '偏轻';
+      tip = '声音能听见但余量偏大；下次把麦克风靠近一点，避免远处环境声盖住琴声。';
+    } else if (clipped) {
+      level = '过响';
+      tip = '峰值已经削波；下次离麦克风远一点或降低输入增益，再听一遍。';
+    } else if (activeRatio < .12) {
+      level = '断续';
+      tip = '有效声音占比偏低；下次从一个小节连续弹到下一个落点，不要只录单音。';
+    }
+    return {
+      durationSeconds: Math.round(Number(durationSeconds) || 0),
+      rmsDb: Math.round(rmsDb),
+      peakDb: Math.round(peakDb),
+      activeRatio: Math.round(activeRatio * 100),
+      level,
+      silent,
+      clipped,
+      tip
+    };
+  }
+
+  function analyzeRecordingBuffer(buffer) {
+    return analyzeRecordingSamples(buffer.getChannelData(0), buffer.sampleRate, buffer.duration);
+  }
+
+  async function decodeRecordingBlob(blob) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx || !blob) return null;
+    const arrayBuffer = await blob.arrayBuffer();
+    const ctx = new Ctx();
+    try {
+      return await new Promise((resolve, reject) => ctx.decodeAudioData(arrayBuffer, resolve, reject));
+    } finally {
+      ctx.close?.().catch?.(() => {});
+    }
+  }
+
+  async function analyzeRecordingBlob(blob) {
+    try {
+      const buffer = await decodeRecordingBlob(blob);
+      return buffer ? analyzeRecordingBuffer(buffer) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function renderRecordingAnalysis(analysis, prefix = 'recordingCheck') {
+    const panel = document.querySelector(`#${prefix}`);
+    if (!panel) return;
+    panel.classList.toggle('hidden', !analysis);
+    if (!analysis) return;
+    const duration = document.querySelector(`#${prefix}Duration`);
+    const level = document.querySelector(`#${prefix}Level`);
+    const silence = document.querySelector(`#${prefix}Silence`);
+    const tip = document.querySelector(`#${prefix}Tip`);
+    if (duration) duration.textContent = `${analysis.durationSeconds} 秒`;
+    if (level) {
+      level.textContent = analysis.level;
+      level.dataset.level = analysis.level;
+    }
+    if (silence) silence.textContent = analysis.silent ? '明显' : `${analysis.activeRatio}% 有声`;
+    if (tip) tip.textContent = analysis.tip;
+  }
+
   async function putRecordingRecord(record) {
     const db = await openRecordingDb();
     return new Promise((resolve, reject) => {
@@ -1321,6 +1422,7 @@
     recordingState.mimeType = '';
     recordingState.id = null;
     recordingState.metadata = null;
+    recordingState.analysis = null;
     recordingState.error = '';
     if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
     recordingState.objectUrl = '';
@@ -1334,6 +1436,7 @@
     recordingState.stream = null;
     const download = document.querySelector('#downloadRecording');
     if (download) download.removeAttribute('href');
+    renderRecordingAnalysis(null, 'recordingCheck');
     setRecordingStatus('准备好后开始录音', recordingState.supported ? '麦克风只在你点击后启用 · 最长 60 秒' : '需在本地服务或 HTTPS 中录音');
     syncRecordingControls();
   }
@@ -1415,13 +1518,15 @@
           return;
         }
         const id = `recording-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const analysis = await analyzeRecordingBlob(blob);
         const metadata = {
           id,
           ...context,
           durationSeconds,
           mimeType: recordingState.mimeType,
           createdAt: new Date().toISOString(),
-          deviceId: RECORDING_DEVICE_ID
+          deviceId: RECORDING_DEVICE_ID,
+          analysis
         };
         try {
           await putRecordingRecord({ id, blob, metadata });
@@ -1434,6 +1539,7 @@
           recordingState.blob = blob;
           recordingState.id = id;
           recordingState.metadata = metadata;
+          recordingState.analysis = analysis;
           recordingState.elapsed = durationSeconds;
           if (recordingState.objectUrl) URL.revokeObjectURL(recordingState.objectUrl);
           recordingState.objectUrl = URL.createObjectURL(blob);
@@ -1445,7 +1551,8 @@
             download.href = recordingState.objectUrl;
             download.download = recordingFileName(metadata);
           }
-          setRecordingStatus('录音已保存在本机', `${formatRecordingDuration(durationSeconds)} · 可以回放或下载`);
+          renderRecordingAnalysis(analysis, 'recordingCheck');
+          setRecordingStatus('录音已保存在本机', `${formatRecordingDuration(durationSeconds)} · ${analysis?.level || '可以回放'} · 不上传`);
           syncRecordingControls();
           APP.showToast('录音已保存，不会上传服务器。');
         } catch (error) {
@@ -1499,6 +1606,7 @@
       const record = await getRecordingRecord(metadata.id);
       if (!record?.blob || !session) return;
       recordingState.metadata = { ...metadata, ...(record.metadata || {}) };
+      recordingState.analysis = recordingState.metadata.analysis || await analyzeRecordingBlob(record.blob);
       recordingState.id = metadata.id;
       recordingState.blob = record.blob;
       recordingState.mimeType = metadata.mimeType || record.blob.type || 'audio/webm';
@@ -1510,6 +1618,7 @@
         download.href = recordingState.objectUrl;
         download.download = recordingFileName(recordingState.metadata);
       }
+      renderRecordingAnalysis(recordingState.analysis, 'recordingCheck');
       setRecordingStatus('上次的录音还在', `${formatRecordingDuration(recordingState.elapsed)} · 可以回放或继续练习`);
       syncRecordingControls();
     } catch (error) {
@@ -1541,6 +1650,7 @@
     if (audio) { audio.pause?.(); audio.removeAttribute('src'); audio.load?.(); }
     if (historyRecording?.objectUrl) URL.revokeObjectURL(historyRecording.objectUrl);
     historyRecording = null;
+    renderRecordingAnalysis(null, 'historyRecordingCheck');
     modal?.classList.add('hidden');
     document.body.style.overflow = document.querySelector('.modal-backdrop:not(.hidden)') ? 'hidden' : '';
     syncModalFocus();
@@ -4350,12 +4460,14 @@
     hasRecording: Boolean(recordingState.metadata && recordingState.blob),
     recordingId: recordingState.metadata?.id || null,
     mimeType: recordingState.mimeType || '',
+    analysis: recordingState.analysis || null,
     error: recordingState.error || '',
     source: location.protocol === 'file:' ? 'file' : 'http',
     uploadsRecording: false
   });
   APP.getHistoryRecordingIds = () => state.history.filter((entry) => entry.recording?.id).map((entry) => entry.recording.id);
   APP.getRecordingDeviceId = () => RECORDING_DEVICE_ID;
+  APP.analyzeRecordingSamples = (samples, sampleRate = 48000, durationSeconds = 0) => analyzeRecordingSamples(samples, sampleRate, durationSeconds);
   APP.openHistoryRecording = async (id) => {
     const entry = state.history.find((item) => item.recording?.id === id);
     const record = await getRecordingRecord(id);
@@ -4364,6 +4476,7 @@
     historyRecording = { entry, record, objectUrl: URL.createObjectURL(record.blob) };
     document.querySelector('#recordingModalTitle').textContent = entry.title;
     document.querySelector('#recordingModalMeta').textContent = `${formatRecordingDuration(entry.recording.durationSeconds)} · ${entry.date} · 本机录音`;
+    renderRecordingAnalysis(entry.recording.analysis || await analyzeRecordingBlob(record.blob), 'historyRecordingCheck');
     const audio = document.querySelector('#historyRecordingAudio');
     audio.src = historyRecording.objectUrl;
     const download = document.querySelector('#historyRecordingDownload');

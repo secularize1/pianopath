@@ -44,5 +44,8 @@ if (!app.includes('new Blob(recordingState.chunks')) issues.push('app.js: local 
 if (!app.includes('putRecordingRecord')) issues.push('app.js: local recording persistence missing');
 if (!app.includes('uploadsRecording: false')) issues.push('app.js: recording upload boundary missing');
 if (app.includes('recordingState.metadata =') && !app.includes('recording: recordingState.metadata ?')) issues.push('app.js: recording metadata not attached to completion');
+if (!app.includes('function analyzeRecordingBuffer(')) issues.push('app.js: local recording analysis missing');
+if (!app.includes('renderRecordingAnalysis(')) issues.push('app.js: recording analysis UI missing');
+if (!app.includes('analysis: recordingState.analysis || null')) issues.push('app.js: recording analysis snapshot missing');
 console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', issues }, null, 2));
 assert.deepEqual(issues, []);

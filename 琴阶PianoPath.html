@@ -1527,6 +1527,9 @@ button, input, select, textarea { font-family: inherit; }
 .recording-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .recording-head h3 { margin:5px 0 0; font-size:16px; letter-spacing:-.3px; }
 .recording-head .text-button { color:#9a766d; font-size:9px; }
+.recording-task { display:grid; gap:3px; margin-top:14px; padding:10px 12px; border-radius:10px; background:#fff8e9; border:1px solid #efe3bd; }
+.recording-task span { color:#9c8b5c; font-size:8px; font-weight:800; }
+.recording-task strong { color:#695a32; font-size:10px; line-height:1.55; }
 .recording-body { display:flex; align-items:center; gap:11px; margin-top:14px; padding:11px 12px; border:1px solid #f0e2dc; border-radius:12px; background:#fff; }
 .recording-orb { display:grid; place-items:center; width:31px; height:31px; flex:0 0 auto; border-radius:50%; background:#fff0ec; color:#c66b5d; font-size:12px; transition:background .2s ease, box-shadow .2s ease; }
 .recording-orb.active { background:#c75c50; color:#fff; box-shadow:0 0 0 6px rgba(199,92,80,.12); animation:recordingPulse 1.4s ease-in-out infinite; }
@@ -1576,6 +1579,8 @@ button, input, select, textarea { font-family: inherit; }
   .recording-button { padding:0 8px; font-size:9px; }
   .recording-panel { padding:13px; }
   .recording-head h3 { font-size:14px; }
+  .recording-task { margin-top:10px; padding:8px 9px; }
+  .recording-task strong { font-size:9px; }
   .recording-body { padding:9px; gap:8px; }
   .recording-copy strong { font-size:10px; }
   .recording-copy small { font-size:8px; }
@@ -2002,6 +2007,7 @@ button, input, select, textarea { font-family: inherit; }
               <div><span class="eyebrow">RECORD & REVIEW</span><h3 id="recordingTitle">录一段，听清一个下一步</h3></div>
               <button class="text-button" id="closeRecording" type="button">收起</button>
             </div>
+            <div class="recording-task"><span>这一条录什么</span><strong id="recordingTask">录当前练习段落，连续弹 15–30 秒</strong></div>
             <div class="recording-body">
               <span class="recording-orb" id="recordingOrb" aria-hidden="true">●</span>
               <div class="recording-copy"><strong id="recordingStatus">准备好后开始录音</strong><small id="recordingHint">麦克风只在你点击后启用 · 最长 60 秒</small></div>
@@ -2271,7 +2277,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.33 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.34 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -2346,6 +2352,7 @@ button, input, select, textarea { font-family: inherit; }
       <span class="eyebrow">RECORDING</span>
       <h2 id="recordingModalTitle">回放录音</h2>
       <p class="recording-modal-meta" id="recordingModalMeta"></p>
+      <div class="recording-task"><span>这条录音的任务</span><strong id="historyRecordingTask">未记录任务说明</strong></div>
       <audio id="historyRecordingAudio" controls preload="metadata"></audio>
       <div class="recording-check hidden" id="historyRecordingCheck">
         <div class="recording-check-head"><strong>录音体检</strong><span>只检查声音，不评价演奏</span></div>
@@ -2377,7 +2384,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.33.0",
+    "appVersion": "1.34.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -9465,6 +9472,7 @@ window.PIANO_DATA = {
       mimeType: metadata.mimeType || '',
       createdAt: metadata.createdAt || new Date().toISOString(),
       deviceId: metadata.deviceId || RECORDING_DEVICE_ID,
+      task: String(metadata.task || '未记录任务说明').slice(0, 180),
       analysis: metadata.analysis ? {
         level: metadata.analysis.level || '合适',
         rmsDb: Number(metadata.analysis.rmsDb) || 0,
@@ -9999,6 +10007,7 @@ window.PIANO_DATA = {
     const panel = document.querySelector('#recordingPanel');
     if (!panel) return;
     panel.classList.remove('hidden');
+    syncRecordingTask();
     if (!recordingState.supported || location.protocol === 'file:') {
       setRecordingStatus('此环境暂不能录音', '用 HTTPS 或本地服务打开后即可录音；播放和练习不受影响');
     } else if (!recordingState.recorder && !recordingState.metadata) {
@@ -10017,6 +10026,23 @@ window.PIANO_DATA = {
     syncRecordingControls();
   }
 
+  function recordingTaskFor(type = '') {
+    if (!session) return '录当前练习段落，连续弹 15–30 秒。';
+    if (session.repertoireId) return `录下 ${session.title.replace('曲目训练：', '')} 当前阶段的 10–20 秒，重点听连接是否连续。`;
+    if (session.stageId) return `录下 ${session.stageLabel || '当前阶段'} 的核心片段 20–30 秒，对照晋级标准。`;
+    if (session.quick) return `录下 ${session.title.replace('5 分钟快练：', '')} 的当前小段 10–15 秒，只检查一个动作。`;
+    if (type === 'review') return '录下上次卡住的两小节，慢速连续弹 15–30 秒。';
+    return '录下当前练习段落 15–30 秒，连续弹到下一个落点，不停下来修正。';
+  }
+
+  function syncRecordingTask() {
+    const type = session?.sourceId && /^复习：/.test(session.title || '') ? 'review' : '';
+    const task = recordingTaskFor(type);
+    const label = document.querySelector('#recordingTask');
+    if (label) label.textContent = task;
+    return task;
+  }
+
   function recordedStepContext() {
     const step = session?.steps?.[stepIndex] || {};
     return {
@@ -10024,7 +10050,8 @@ window.PIANO_DATA = {
       sourceId: session?.sourceId || '',
       title: session?.title || '钢琴练习',
       stepIndex,
-      stepTitle: step.title || ''
+      stepTitle: step.title || '',
+      task: syncRecordingTask()
     };
   }
 
@@ -10256,6 +10283,7 @@ window.PIANO_DATA = {
     $('#stepTitle').textContent = step.title;
     $('#stepDetail').textContent = step.detail;
     $('#stepCue').textContent = step.cue;
+    syncRecordingTask();
     const firstSource = session.sources.map((id) => DATA.resources.videos.find((item) => item.id === id)).find(Boolean);
     $('#lessonSource').innerHTML = firstSource ? `对应来源：<a href="${firstSource.url}" target="_blank" rel="noreferrer noopener">${firstSource.creator} · ${firstSource.title}</a>` : '';
     const checkpoint = APP.state.mastery?.[session.id];
@@ -13023,6 +13051,7 @@ window.PIANO_DATA = {
     hasRecording: Boolean(recordingState.metadata && recordingState.blob),
     recordingId: recordingState.metadata?.id || null,
     mimeType: recordingState.mimeType || '',
+    task: recordingState.metadata?.task || syncRecordingTask(),
     analysis: recordingState.analysis || null,
     comparison: recordingState.comparison || null,
     error: recordingState.error || '',
@@ -13033,6 +13062,8 @@ window.PIANO_DATA = {
   APP.getRecordingDeviceId = () => RECORDING_DEVICE_ID;
   APP.analyzeRecordingSamples = (samples, sampleRate = 48000, durationSeconds = 0) => analyzeRecordingSamples(samples, sampleRate, durationSeconds);
   APP.compareRecordingAnalysis = (previous, current) => compareRecordingAnalysis(previous, current);
+  APP.getRecordingTask = () => syncRecordingTask();
+  APP.recordingTaskFor = (type = '') => recordingTaskFor(type);
   APP.openHistoryRecording = async (id) => {
     const entry = state.history.find((item) => item.recording?.id === id);
     const record = await getRecordingRecord(id);
@@ -13041,6 +13072,7 @@ window.PIANO_DATA = {
     historyRecording = { entry, record, objectUrl: URL.createObjectURL(record.blob) };
     document.querySelector('#recordingModalTitle').textContent = entry.title;
     document.querySelector('#recordingModalMeta').textContent = `${formatRecordingDuration(entry.recording.durationSeconds)} · ${entry.date} · 本机录音`;
+    document.querySelector('#historyRecordingTask').textContent = entry.recording.task || '未记录任务说明';
     renderRecordingAnalysis(entry.recording.analysis || await analyzeRecordingBlob(record.blob), 'historyRecordingCheck');
     renderRecordingCompare(entry.recording.comparison || null, 'historyRecordingCompare');
     const audio = document.querySelector('#historyRecordingAudio');

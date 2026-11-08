@@ -973,6 +973,7 @@
       mimeType: metadata.mimeType || '',
       createdAt: metadata.createdAt || new Date().toISOString(),
       deviceId: metadata.deviceId || RECORDING_DEVICE_ID,
+      task: String(metadata.task || '未记录任务说明').slice(0, 180),
       analysis: metadata.analysis ? {
         level: metadata.analysis.level || '合适',
         rmsDb: Number(metadata.analysis.rmsDb) || 0,
@@ -1507,6 +1508,7 @@
     const panel = document.querySelector('#recordingPanel');
     if (!panel) return;
     panel.classList.remove('hidden');
+    syncRecordingTask();
     if (!recordingState.supported || location.protocol === 'file:') {
       setRecordingStatus('此环境暂不能录音', '用 HTTPS 或本地服务打开后即可录音；播放和练习不受影响');
     } else if (!recordingState.recorder && !recordingState.metadata) {
@@ -1525,6 +1527,23 @@
     syncRecordingControls();
   }
 
+  function recordingTaskFor(type = '') {
+    if (!session) return '录当前练习段落，连续弹 15–30 秒。';
+    if (session.repertoireId) return `录下 ${session.title.replace('曲目训练：', '')} 当前阶段的 10–20 秒，重点听连接是否连续。`;
+    if (session.stageId) return `录下 ${session.stageLabel || '当前阶段'} 的核心片段 20–30 秒，对照晋级标准。`;
+    if (session.quick) return `录下 ${session.title.replace('5 分钟快练：', '')} 的当前小段 10–15 秒，只检查一个动作。`;
+    if (type === 'review') return '录下上次卡住的两小节，慢速连续弹 15–30 秒。';
+    return '录下当前练习段落 15–30 秒，连续弹到下一个落点，不停下来修正。';
+  }
+
+  function syncRecordingTask() {
+    const type = session?.sourceId && /^复习：/.test(session.title || '') ? 'review' : '';
+    const task = recordingTaskFor(type);
+    const label = document.querySelector('#recordingTask');
+    if (label) label.textContent = task;
+    return task;
+  }
+
   function recordedStepContext() {
     const step = session?.steps?.[stepIndex] || {};
     return {
@@ -1532,7 +1551,8 @@
       sourceId: session?.sourceId || '',
       title: session?.title || '钢琴练习',
       stepIndex,
-      stepTitle: step.title || ''
+      stepTitle: step.title || '',
+      task: syncRecordingTask()
     };
   }
 
@@ -1764,6 +1784,7 @@
     $('#stepTitle').textContent = step.title;
     $('#stepDetail').textContent = step.detail;
     $('#stepCue').textContent = step.cue;
+    syncRecordingTask();
     const firstSource = session.sources.map((id) => DATA.resources.videos.find((item) => item.id === id)).find(Boolean);
     $('#lessonSource').innerHTML = firstSource ? `对应来源：<a href="${firstSource.url}" target="_blank" rel="noreferrer noopener">${firstSource.creator} · ${firstSource.title}</a>` : '';
     const checkpoint = APP.state.mastery?.[session.id];
@@ -4531,6 +4552,7 @@
     hasRecording: Boolean(recordingState.metadata && recordingState.blob),
     recordingId: recordingState.metadata?.id || null,
     mimeType: recordingState.mimeType || '',
+    task: recordingState.metadata?.task || syncRecordingTask(),
     analysis: recordingState.analysis || null,
     comparison: recordingState.comparison || null,
     error: recordingState.error || '',
@@ -4541,6 +4563,8 @@
   APP.getRecordingDeviceId = () => RECORDING_DEVICE_ID;
   APP.analyzeRecordingSamples = (samples, sampleRate = 48000, durationSeconds = 0) => analyzeRecordingSamples(samples, sampleRate, durationSeconds);
   APP.compareRecordingAnalysis = (previous, current) => compareRecordingAnalysis(previous, current);
+  APP.getRecordingTask = () => syncRecordingTask();
+  APP.recordingTaskFor = (type = '') => recordingTaskFor(type);
   APP.openHistoryRecording = async (id) => {
     const entry = state.history.find((item) => item.recording?.id === id);
     const record = await getRecordingRecord(id);
@@ -4549,6 +4573,7 @@
     historyRecording = { entry, record, objectUrl: URL.createObjectURL(record.blob) };
     document.querySelector('#recordingModalTitle').textContent = entry.title;
     document.querySelector('#recordingModalMeta').textContent = `${formatRecordingDuration(entry.recording.durationSeconds)} · ${entry.date} · 本机录音`;
+    document.querySelector('#historyRecordingTask').textContent = entry.recording.task || '未记录任务说明';
     renderRecordingAnalysis(entry.recording.analysis || await analyzeRecordingBlob(record.blob), 'historyRecordingCheck');
     renderRecordingCompare(entry.recording.comparison || null, 'historyRecordingCompare');
     const audio = document.querySelector('#historyRecordingAudio');

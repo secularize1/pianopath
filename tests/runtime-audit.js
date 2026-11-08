@@ -50,5 +50,7 @@ if (!app.includes('analysis: recordingState.analysis || null')) issues.push('app
 if (!app.includes('function compareRecordingAnalysis(')) issues.push('app.js: recording A/B comparison missing');
 if (!app.includes('renderRecordingCompare(')) issues.push('app.js: recording comparison UI missing');
 if (!app.includes('comparison: recordingState.comparison || null')) issues.push('app.js: recording comparison snapshot missing');
+if (!app.includes('function recordingTaskFor(')) issues.push('app.js: practice-specific recording task missing');
+if (!app.includes('task: recordingState.metadata?.task || syncRecordingTask()')) issues.push('app.js: recording task snapshot missing');
 console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', issues }, null, 2));
 assert.deepEqual(issues, []);

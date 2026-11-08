@@ -424,6 +424,7 @@
               <div><span class="eyebrow">RECORD & REVIEW</span><h3 id="recordingTitle">录一段，听清一个下一步</h3></div>
               <button class="text-button" id="closeRecording" type="button">收起</button>
             </div>
+            <div class="recording-task"><span>这一条录什么</span><strong id="recordingTask">录当前练习段落，连续弹 15–30 秒</strong></div>
             <div class="recording-body">
               <span class="recording-orb" id="recordingOrb" aria-hidden="true">●</span>
               <div class="recording-copy"><strong id="recordingStatus">准备好后开始录音</strong><small id="recordingHint">麦克风只在你点击后启用 · 最长 60 秒</small></div>
@@ -693,7 +694,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.33 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.34 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -768,6 +769,7 @@
       <span class="eyebrow">RECORDING</span>
       <h2 id="recordingModalTitle">回放录音</h2>
       <p class="recording-modal-meta" id="recordingModalMeta"></p>
+      <div class="recording-task"><span>这条录音的任务</span><strong id="historyRecordingTask">未记录任务说明</strong></div>
       <audio id="historyRecordingAudio" controls preload="metadata"></audio>
       <div class="recording-check hidden" id="historyRecordingCheck">
         <div class="recording-check-head"><strong>录音体检</strong><span>只检查声音，不评价演奏</span></div>

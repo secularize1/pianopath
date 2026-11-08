@@ -70,6 +70,19 @@ async function openLesson(page, base) {
     page.on('pageerror', (error) => errors.push(error.message));
     await openLesson(page, base);
 
+    const taskBefore = await page.locator('#recordingTask').innerText();
+    assert.match(taskBefore, /录下当前练习段落|录下.*秒|连续弹/, 'recording task guidance missing');
+    assert.equal((await page.evaluate(() => window.PIANO_APP.getRecordingSnapshot())).task, taskBefore, 'recording snapshot task mismatch');
+    const taskTypes = await page.evaluate(() => {
+      const app = window.PIANO_APP;
+      const task = app.recordingTaskFor;
+      return { original: app.getRecordingTask(), withType: task('review'), functionSource: String(task) };
+    });
+    assert.equal(typeof taskTypes.original, 'string', 'recording task should be a string');
+    assert.equal(typeof taskTypes.withType, 'string', 'recording task helper should accept a practice type');
+    assert.match(taskTypes.withType, /卡住|慢速|练习段落/, 'review recording task missing');
+    assert.match(taskTypes.original, /录下|连续/, 'recording task guidance missing');
+
     const initial = await page.evaluate(() => window.PIANO_APP.getRecordingSnapshot());
     assert.equal(initial.supported, true, 'recording should be supported on local HTTP');
     assert.equal(initial.uploadsRecording, false, 'recording must remain local-only');
@@ -171,12 +184,14 @@ async function openLesson(page, base) {
     assert.ok(stored.recording.deviceId, 'recording metadata must record the owning device');
     assert.equal(stored.recording.deviceId, await page.evaluate(() => window.PIANO_APP.getRecordingDeviceId()), 'recording device id mismatch');
     assert.equal(Object.prototype.hasOwnProperty.call(stored.recording, 'blob'), false, 'audio blob must not enter localStorage');
+    assert.equal(stored.recording.task, taskBefore, 'recording task context was not persisted');
 
     await page.locator('.history-recording').evaluate((button) => button.click());
     await page.waitForFunction(() => !document.querySelector('#recordingModal').classList.contains('hidden'), null, { timeout: 5000 });
     assert.equal(await page.locator('#historyRecordingAudio').getAttribute('src') !== null, true, 'history playback source missing');
     assert.equal(await page.locator('#historyRecordingCheck').isVisible(), true, 'history recording analysis missing');
     assert.match(await page.locator('#historyRecordingCheckLevel').innerText(), /太小|偏轻|合适|过响|断续/, 'history recording level missing');
+    assert.equal(await page.locator('#historyRecordingTask').innerText(), taskBefore, 'history recording task missing');
     assert.equal(await page.locator('#historyRecordingCompare').isVisible(), true, 'history A/B comparison missing');
     assert.match(await page.locator('#historyRecordingCompareBefore').innerText(), /dB/, 'history previous take missing');
     assert.match(await page.locator('#historyRecordingCompareAfter').innerText(), /dB/, 'history current take missing');

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.34.0 — 2026-11-08
+
+- Added practice-specific recording prompts for lessons, quick practice, repertoire, long-term stages and reviews.
+- Displayed the concrete recording task inside the recording panel and persisted it with the recording metadata.
+- Restored the original recording task in the history playback dialog.
+- Added regression coverage for task guidance, snapshot exposure and persisted task context.
+
 ## 1.33.0 — 2026-11-08
 
 - Added A/B comparison when replacing a recording: previous vs current level, RMS and effective-audio trend.

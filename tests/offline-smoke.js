@@ -75,7 +75,7 @@ async function waitForServer(url) {
       if (!keys.includes(expectedCache)) return false;
       const cache = await caches.open(expectedCache);
       const urls = (await cache.keys()).map((request) => request.url);
-      return ['/app.js', '/data.js', '/styles.css', '/assets/audio/piano/C4v13.mp3'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
+      return ['/app.js', '/data.js', '/styles.css', '/assets/audio/piano/C4v3.mp3', '/assets/audio/piano/C4v16.mp3', '/assets/audio/piano/C8v11.mp3'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
     }, cacheVersion, { timeout: 20000 });
     const cached = await page.evaluate(async (expectedCache) => {
       const keys = await caches.keys();
@@ -86,6 +86,18 @@ async function waitForServer(url) {
     assert.ok(cached.keys.includes(cacheVersion), `cache ${cacheVersion} missing`);
     assert.ok(cached.urls.length > 0, `offline app shell is incomplete: ${cached.urls.join(', ')}`);
     await context.setOffline(true);
+    for (const sample of ['/assets/audio/piano/C4v3.mp3', '/assets/audio/piano/C4v16.mp3', '/assets/audio/piano/C8v11.mp3']) {
+      const response = await page.evaluate(async (url) => {
+        try {
+          const fetched = await fetch(url);
+          return { ok: fetched.ok, bytes: (await fetched.arrayBuffer()).byteLength };
+        } catch (error) {
+          return { ok: false, bytes: 0, error: error.message };
+        }
+      }, sample);
+      assert.equal(response.ok, true, `offline piano sample unavailable: ${sample}`);
+      assert.ok(response.bytes > 10000, `offline piano sample is truncated: ${sample}`);
+    }
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(1000);
     assert.equal(await page.locator('#todayPage').isVisible(), true, 'offline home unavailable');

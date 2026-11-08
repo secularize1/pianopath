@@ -247,6 +247,15 @@
           <article class="stat-card"><span>完成课次</span><strong id="statSessions">0 <small>/ 48</small></strong><em id="statSessionsHint">第一周还在等你</em></article>
           <article class="stat-card"><span>视奏次数</span><strong id="statSight">0 <small>次</small></strong><em>陌生谱，不停顿</em></article>
         </section>
+        <section class="weekly-recap card" id="weeklyRecap">
+          <div class="weekly-recap-head"><div><span class="eyebrow">WEEKLY RECAP</span><h3>本周复盘</h3></div><span class="weekly-recap-range" id="weeklyRecapRange">—</span></div>
+          <div class="weekly-recap-grid">
+            <article><small>练习</small><strong id="weeklyRecapMinutes">0 分钟</strong><em id="weeklyRecapCompare">从今天开始</em></article>
+            <article><small>出勤</small><strong id="weeklyRecapDays">0 / 4 天</strong><em id="weeklyRecapStreak">连续 0 天</em></article>
+            <article><small>下一重点</small><strong id="weeklyRecapFocus">先完成第一课</strong><em id="weeklyRecapFocusHint">建立你的能力基线</em></article>
+          </div>
+          <button class="weekly-recap-action" id="weeklyRecapAction" type="button">开始今日练习 →</button>
+        </section>
         <section class="stats-grid">
           <article class="card heatmap-card">
             <div class="section-heading compact"><div><span class="eyebrow">LAST 12 WEEKS</span><h3>练习热力</h3></div><span class="tiny-pill">分钟</span></div>
@@ -694,7 +703,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.34 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.35 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>

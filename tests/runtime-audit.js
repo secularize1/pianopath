@@ -29,7 +29,11 @@ const expected = {
   whitePhysicalCodes: "codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote', 'Enter', 'NumpadDecimal', 'NumpadEnter', 'NumpadAdd']",
   blackPhysicalCodes: "codes: ['Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9', 'Numpad0']",
   pianoSampleEngine: 'PIANO_SAMPLE_SOURCES',
-  pianoSynthFallback: 'function playSynthPiano(freq, duration)'
+  pianoVelocityLayers: 'const PIANO_VELOCITY_LAYERS = [3, 7, 11, 13, 16]',
+  pianoRoom: 'function createPianoRoomImpulse(context)',
+  pianoPointerVelocity: 'function pianoVelocityFromPointer(event)',
+  pianoCacheCap: 'const PIANO_SAMPLE_CACHE_BYTES = 150 * 1024 * 1024',
+  pianoSynthFallback: 'function playSynthPiano(freq, duration, velocity = .68)'
 };
 for (const [label, fragment] of Object.entries(expected)) {
   if (!app.includes(fragment)) issues.push(`app.js: missing ${label} keyboard mapping`);
@@ -37,7 +41,11 @@ for (const [label, fragment] of Object.entries(expected)) {
 if (!app.includes('data-key="${key.key}"')) issues.push('app.js: rhythm keys must expose data-key');
 if (!app.includes('data-code="${key.code}"')) issues.push('app.js: rhythm keys must expose physical key codes');
 if (!app.includes('function blackKeyGeometry(')) issues.push('app.js: black keys must use piano geometry');
-if (!fs.existsSync('assets/audio/piano/C4v13.mp3') || !fs.existsSync('assets/audio/piano/A0v13.mp3') || !fs.existsSync('assets/audio/piano/C8v13.mp3')) issues.push('assets: Salamander piano samples missing');
+for (const layer of [3, 7, 11, 13, 16]) {
+  for (const zone of ['A0', 'C4', 'C8']) {
+    if (!fs.existsSync(`assets/audio/piano/${zone}v${layer}.mp3`)) issues.push(`assets: Salamander piano layer ${layer} ${zone} missing`);
+  }
+}
 if (!fs.readFileSync('index.html', 'utf8').includes('id="keyboardGuideModal"')) issues.push('index.html: keyboard guide modal missing');
 if (!app.includes('navigator.mediaDevices.getUserMedia')) issues.push('app.js: microphone permission flow missing');
 if (!app.includes('new Blob(recordingState.chunks')) issues.push('app.js: local audio blob creation missing');
@@ -52,5 +60,8 @@ if (!app.includes('renderRecordingCompare(')) issues.push('app.js: recording com
 if (!app.includes('comparison: recordingState.comparison || null')) issues.push('app.js: recording comparison snapshot missing');
 if (!app.includes('function recordingTaskFor(')) issues.push('app.js: practice-specific recording task missing');
 if (!app.includes('task: recordingState.metadata?.task || syncRecordingTask()')) issues.push('app.js: recording task snapshot missing');
+if (!app.includes('function weeklyRecapData(')) issues.push('app.js: weekly recap calculation missing');
+if (!app.includes('function renderWeeklyRecap(')) issues.push('app.js: weekly recap rendering missing');
+if (!app.includes('APP.getWeeklyRecap = () => APP.weeklyRecapData()')) issues.push('app.js: weekly recap test bridge missing');
 console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', issues }, null, 2));
 assert.deepEqual(issues, []);

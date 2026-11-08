@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.35.0 — 2026-11-08
+
+- Added weekly recap with current/previous week minutes, attendance, streak and a weakness-driven next action.
+- Rebuilt the sampled piano around five Salamander Grand Piano V3 velocity layers (3 / 7 / 11 / 13 / 16) across 30 A0–C8 zones.
+- Bundled 150 local MP3 samples and added on-demand decoding with a 150 MB decoded-buffer cache cap.
+- Added touch pressure/depth velocity, velocity-aware keyboard and rhythm input, and a velocity-aware synthesized fallback.
+- Added subtle concert-room convolution, gentle body/air filtering, rumble removal and lighter master compression.
+- Expanded audio, offline-cache and weekly-recap regression coverage.
+
 ## 1.34.0 — 2026-11-08
 
 - Added practice-specific recording prompts for lessons, quick practice, repertoire, long-term stages and reviews.

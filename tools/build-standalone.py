@@ -24,7 +24,27 @@ def main() -> None:
     data = (ROOT / "data.js").read_text(encoding="utf-8")
     app = (ROOT / "app.js").read_text(encoding="utf-8")
 
-    local_assets = sorted(set(re.findall(r"assets/[A-Za-z0-9_./-]+", html + css + data + app)))
+    # The web build derives piano sample paths from a zone manifest. A single-file
+    # build needs literal data URIs so the file can be opened directly from disk.
+    piano_start = app.index("  const PIANO_SAMPLE_ZONES =")
+    piano_end = app.index("  const PIANO_VELOCITY_LAYERS =", piano_start)
+    zones = re.findall(r"\['([^']+)', '([^']+)', (\d+)\]", app[piano_start:piano_end])
+    if not zones:
+        raise SystemExit("Piano zone manifest not found.")
+    layers = (3, 7, 11, 13, 16)
+    samples: list[str] = []
+    for name, file, midi in zones:
+        for layer in layers:
+            relative = f"assets/audio/piano/{file}v{layer}.mp3"
+            samples.append(f'    ["{name}", "{data_uri(relative)}", {midi}, {layer}]')
+    sources_line = '  const PIANO_SAMPLE_SOURCES = PIANO_SAMPLE_ZONES.flatMap(([name, file, midi]) => (\n    PIANO_VELOCITY_LAYERS.map((layer) => [name, `assets/audio/piano/${file}v${layer}.mp3`, midi, layer])\n  ));\n'
+    if sources_line not in app:
+        raise SystemExit("Piano sample manifest line not found.")
+    app = app.replace(sources_line, "  const PIANO_SAMPLE_SOURCES = [\n" + ",\n".join(samples) + "\n  ];\n", 1)
+    local_assets = sorted(
+        {asset for asset in set(re.findall(r"assets/[A-Za-z0-9_./-]+", html + css + data + app))
+         if not asset.startswith("assets/audio/piano/")}
+    )
     replacements: dict[str, str] = {}
     for relative in local_assets:
         if (ROOT / relative).is_file():

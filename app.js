@@ -766,6 +766,86 @@
     return { skills, weakest, avgMastery, completedLessons, reviewEntries };
   }
 
+  function weekKeysFor(offsetWeeks = 0) {
+    const monday = new Date();
+    monday.setHours(12, 0, 0, 0);
+    const dayOffset = (monday.getDay() + 6) % 7;
+    monday.setDate(monday.getDate() - dayOffset + offsetWeeks * 7);
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      return localDateKey(date);
+    });
+  }
+
+  function nextSkillFocus(report) {
+    if (!report?.weakest) return { key: 'read', label: '读谱', title: '先做一次视奏', hint: '建立读谱基线', action: 'today', actionLabel: '开始今日练习 →' };
+    if (report.weakest.key === 'read') return { ...report.weakest, title: '补一次视奏', hint: '先确认陌生谱能否连续走完', action: 'today', actionLabel: '去练视奏 →' };
+    if (report.weakest.key === 'technique') return { ...report.weakest, title: '回到技术闭环', hint: '把当前动作慢速做连续', action: 'today', actionLabel: '继续今日练习 →' };
+    if (report.weakest.key === 'repertoire') return { ...report.weakest, title: '选一首短曲', hint: '从 0–1 级曲目开始分阶段', action: 'repertoire', actionLabel: '打开曲目库 →' };
+    return { ...report.weakest, title: '练一次听辨', hint: '用两分钟找回音高和节奏', action: 'game', actionLabel: '开始听辨游戏 →' };
+  }
+
+  function weeklyRecapData() {
+    const currentKeys = weekKeysFor(0);
+    const previousKeys = weekKeysFor(-1);
+    const currentSet = new Set(currentKeys);
+    const previousSet = new Set(previousKeys);
+    const currentEntries = state.history.filter((entry) => currentSet.has(entry.date));
+    const previousEntries = state.history.filter((entry) => previousSet.has(entry.date));
+    const currentMinutes = currentEntries.reduce((sum, entry) => sum + Number(entry.minutes || 0), 0);
+    const previousMinutes = previousEntries.reduce((sum, entry) => sum + Number(entry.minutes || 0), 0);
+    const currentDays = new Set(currentEntries.map((entry) => entry.date)).size;
+    const previousDays = new Set(previousEntries.map((entry) => entry.date)).size;
+    const report = computeSkillProfile();
+    const focus = nextSkillFocus(report);
+    const profile = getPlanProfile();
+    const delta = currentMinutes - previousMinutes;
+    const comparison = !currentMinutes && !previousMinutes ? '从一次短练开始' : previousMinutes === 0 ? '本周第一次留下记录' : delta > 0 ? `比上周多 ${delta} 分钟` : delta === 0 ? '与上周练习量持平' : `比上周少 ${Math.abs(delta)} 分钟`;
+    const start = new Date(`${currentKeys[0]}T12:00:00`);
+    const end = new Date(`${currentKeys[6]}T12:00:00`);
+    const range = `${start.getMonth() + 1}/${start.getDate()}–${end.getMonth() + 1}/${end.getDate()}`;
+    return {
+      range,
+      currentMinutes,
+      previousMinutes,
+      currentDays,
+      previousDays,
+      targetDays: Math.max(1, Number(profile.daysPerWeek) || 4),
+      comparison,
+      streak: streakCount(),
+      focus,
+      actionLabel: focus.actionLabel
+    };
+  }
+
+  function renderWeeklyRecap() {
+    const recap = weeklyRecapData();
+    const range = document.querySelector('#weeklyRecapRange');
+    const minutes = document.querySelector('#weeklyRecapMinutes');
+    const compare = document.querySelector('#weeklyRecapCompare');
+    const days = document.querySelector('#weeklyRecapDays');
+    const streak = document.querySelector('#weeklyRecapStreak');
+    const focus = document.querySelector('#weeklyRecapFocus');
+    const focusHint = document.querySelector('#weeklyRecapFocusHint');
+    const action = document.querySelector('#weeklyRecapAction');
+    if (range) range.textContent = recap.range;
+    if (minutes) minutes.textContent = `${recap.currentMinutes} 分钟`;
+    if (compare) {
+      compare.textContent = recap.comparison;
+      compare.dataset.trend = recap.currentMinutes > recap.previousMinutes ? 'up' : recap.currentMinutes < recap.previousMinutes ? 'down' : 'same';
+    }
+    if (days) days.textContent = `${recap.currentDays} / ${recap.targetDays} 天`;
+    if (streak) streak.textContent = `连续 ${recap.streak} 天`;
+    if (focus) focus.textContent = recap.focus.title;
+    if (focusHint) focusHint.textContent = recap.focus.hint;
+    if (action) {
+      action.textContent = recap.actionLabel;
+      action.dataset.focus = recap.focus.key;
+      action.dataset.target = recap.focus.action;
+    }
+  }
+
   function renderSkillReport() {
     const grid = document.querySelector('#skillReportGrid');
     if (!grid) return;
@@ -773,8 +853,8 @@
     document.querySelector('#skillLevel').textContent = `Lv.${window.PIANO_APP.levelForXp(window.PIANO_APP.totalXp()).level}`;
     document.querySelector('#skillReportNote').textContent = report.avgMastery ? `掌握检查平均 ${Math.round(report.avgMastery)}% · 共 ${report.completedLessons} 课` : '完成练习和掌握检查后，这里会更新。';
     grid.innerHTML = report.skills.map((skill) => `<div class="skill-meter"><div class="skill-meter-top"><span>${skill.label}</span><strong>${skill.value}%</strong></div><div class="skill-meter-bar"><i style="width:${skill.value}%"></i></div><small>${skill.detail}</small></div>`).join('');
-    const focus = report.weakest.key === 'read' ? '先做一次视奏，建立读谱基线。' : report.weakest.key === 'technique' ? '先完成当前课程的技术闭环。' : report.weakest.key === 'repertoire' ? '从曲目库选一首 0–1 级曲子开始。' : '去玩一次听声音辨音。';
-    document.querySelector('#skillFocusText').textContent = focus;
+    const focus = nextSkillFocus(report);
+    document.querySelector('#skillFocusText').textContent = `${focus.title}：${focus.hint}。`;
     document.querySelector('#skillFocusButton').dataset.skillFocus = report.weakest.key;
   }
 
@@ -785,6 +865,7 @@
 
   function renderStats() {
     renderSkillReport();
+    renderWeeklyRecap();
     const total = totalMinutes();
     const sessions = Object.keys(state.completed).length;
     const sight = state.history.filter((entry) => Number(entry.sightDone || 0) > 0).length;
@@ -886,7 +967,7 @@
     sessionsForWeek, currentWeekData, currentSessionData, streakCount,
     addReviewItem, completeReviewItem, dueReviewItems, reviewSessionFor,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
-    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar, startStagePractice,
+    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar, startStagePractice, weeklyRecapData,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
       Object.assign(state, structuredClone(defaultState), nextState || {});
@@ -2575,33 +2656,88 @@
     $$('.install-button').forEach((button) => button.classList.add('hidden'));
   }
 
-  const PIANO_SAMPLE_SOURCES = [
-    ['A0', 'assets/audio/piano/A0v13.mp3', 21], ['C1', 'assets/audio/piano/C1v13.mp3', 24],
-    ['D#1', 'assets/audio/piano/Ds1v13.mp3', 27], ['F#1', 'assets/audio/piano/Fs1v13.mp3', 30],
-    ['A1', 'assets/audio/piano/A1v13.mp3', 33], ['C2', 'assets/audio/piano/C2v13.mp3', 36],
-    ['D#2', 'assets/audio/piano/Ds2v13.mp3', 39], ['F#2', 'assets/audio/piano/Fs2v13.mp3', 42],
-    ['A2', 'assets/audio/piano/A2v13.mp3', 45], ['C3', 'assets/audio/piano/C3v13.mp3', 48],
-    ['D#3', 'assets/audio/piano/Ds3v13.mp3', 51], ['F#3', 'assets/audio/piano/Fs3v13.mp3', 54],
-    ['A3', 'assets/audio/piano/A3v13.mp3', 57], ['C4', 'assets/audio/piano/C4v13.mp3', 60],
-    ['D#4', 'assets/audio/piano/Ds4v13.mp3', 63], ['F#4', 'assets/audio/piano/Fs4v13.mp3', 66],
-    ['A4', 'assets/audio/piano/A4v13.mp3', 69], ['C5', 'assets/audio/piano/C5v13.mp3', 72],
-    ['D#5', 'assets/audio/piano/Ds5v13.mp3', 75], ['F#5', 'assets/audio/piano/Fs5v13.mp3', 78],
-    ['A5', 'assets/audio/piano/A5v13.mp3', 81], ['C6', 'assets/audio/piano/C6v13.mp3', 84],
-    ['D#6', 'assets/audio/piano/Ds6v13.mp3', 87], ['F#6', 'assets/audio/piano/Fs6v13.mp3', 90],
-    ['A6', 'assets/audio/piano/A6v13.mp3', 93], ['C7', 'assets/audio/piano/C7v13.mp3', 96],
-    ['D#7', 'assets/audio/piano/Ds7v13.mp3', 99], ['F#7', 'assets/audio/piano/Fs7v13.mp3', 102],
-    ['A7', 'assets/audio/piano/A7v13.mp3', 105], ['C8', 'assets/audio/piano/C8v13.mp3', 108]
+  const PIANO_SAMPLE_ZONES = [
+    ['A0', 'A0', 21], ['C1', 'C1', 24], ['D#1', 'Ds1', 27], ['F#1', 'Fs1', 30],
+    ['A1', 'A1', 33], ['C2', 'C2', 36], ['D#2', 'Ds2', 39], ['F#2', 'Fs2', 42],
+    ['A2', 'A2', 45], ['C3', 'C3', 48], ['D#3', 'Ds3', 51], ['F#3', 'Fs3', 54],
+    ['A3', 'A3', 57], ['C4', 'C4', 60], ['D#4', 'Ds4', 63], ['F#4', 'Fs4', 66],
+    ['A4', 'A4', 69], ['C5', 'C5', 72], ['D#5', 'Ds5', 75], ['F#5', 'Fs5', 78],
+    ['A5', 'A5', 81], ['C6', 'C6', 84], ['D#6', 'Ds6', 87], ['F#6', 'Fs6', 90],
+    ['A6', 'A6', 93], ['C7', 'C7', 96], ['D#7', 'Ds7', 99], ['F#7', 'Fs7', 102],
+    ['A7', 'A7', 105], ['C8', 'C8', 108]
   ];
-  const PIANO_SAMPLE_LAYER = 13;
+  const PIANO_VELOCITY_LAYERS = [3, 7, 11, 13, 16];
+  const PIANO_DEFAULT_VELOCITY_LAYER = 11;
+  const PIANO_SAMPLE_SOURCES = PIANO_SAMPLE_ZONES.flatMap(([name, file, midi]) => (
+    PIANO_VELOCITY_LAYERS.map((layer) => [name, `assets/audio/piano/${file}v${layer}.mp3`, midi, layer])
+  ));
   const PIANO_SAMPLE_SOURCE_NAME = 'Salamander Grand Piano V3';
+  const PIANO_ROOM_NAME = 'subtle-concert-room';
+  const PIANO_SAMPLE_CACHE_BYTES = 150 * 1024 * 1024;
+  const PIANO_PRELOAD_LAYER = 11;
+  const PIANO_DETAIL_ZONES = new Set([60]);
   let pianoAudioContext = null;
   let pianoMasterGain = null;
+  let pianoSamplesPreloadPromise = null;
+  let pianoSampleBytes = 0;
   const pianoSampleBuffers = new Map();
   const pianoSampleLoading = new Map();
-  let pianoSamplesPreloading = false;
+  const pianoSampleLastUsed = new Map();
   let sampledPlaybackCount = 0;
   let synthPlaybackCount = 0;
   let lastPlaybackEngine = 'none';
+  let lastVelocity = 0;
+  let lastVelocityLayer = null;
+
+  function clampPianoVelocity(value) {
+    const numeric = Number(value);
+    return Math.max(.05, Math.min(1, Number.isFinite(numeric) ? numeric : .68));
+  }
+
+  function pianoVelocityLayer(velocity) {
+    const value = clampPianoVelocity(velocity);
+    if (value < .24) return 3;
+    if (value < .46) return 7;
+    if (value < .68) return 11;
+    if (value < .87) return 13;
+    return 16;
+  }
+
+  function pianoVelocityFromPointer(event) {
+    const pointerType = event?.pointerType || 'mouse';
+    const pressure = Number(event?.pressure);
+    if ((pointerType === 'touch' || pointerType === 'pen') && Number.isFinite(pressure) && pressure > .02 && pressure < .995) {
+      return clampPianoVelocity(.24 + pressure * .72 + (Math.random() - .5) * .025);
+    }
+    if (pointerType === 'touch') {
+      const key = event?.target?.closest?.('.rhythm-key, .keyboard-guide-key');
+      const rect = key?.getBoundingClientRect?.();
+      if (rect?.height) {
+        const depth = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+        return clampPianoVelocity(.38 + depth * .52);
+      }
+      return .62;
+    }
+    return clampPianoVelocity(.66 + (Math.random() - .5) * .04);
+  }
+
+  function createPianoRoomImpulse(context) {
+    const seconds = 1.15;
+    const length = Math.max(1, Math.floor(context.sampleRate * seconds));
+    const impulse = context.createBuffer(2, length, context.sampleRate);
+    for (let channel = 0; channel < 2; channel += 1) {
+      const data = impulse.getChannelData(channel);
+      let filtered = 0;
+      for (let index = 0; index < length; index += 1) {
+        const noise = Math.random() * 2 - 1;
+        filtered += (noise - filtered) * .28;
+        const envelope = Math.pow(1 - index / length, 2.7);
+        const early = index < context.sampleRate * .045 && (channel ? index % 941 === 0 : index % 877 === 0) ? .35 : 0;
+        data[index] = (filtered * envelope + early) * .72;
+      }
+    }
+    return impulse;
+  }
 
   function getPianoAudioContext() {
     if (pianoAudioContext) return pianoAudioContext;
@@ -2609,15 +2745,35 @@
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return null;
       pianoAudioContext = new AudioCtx();
+      const body = pianoAudioContext.createBiquadFilter();
+      body.type = 'lowshelf';
+      body.frequency.value = 190;
+      body.gain.value = .8;
+      const air = pianoAudioContext.createBiquadFilter();
+      air.type = 'highshelf';
+      air.frequency.value = 7200;
+      air.gain.value = -1.15;
+      const rumble = pianoAudioContext.createBiquadFilter();
+      rumble.type = 'highpass';
+      rumble.frequency.value = 30;
+      rumble.Q.value = .55;
       const compressor = pianoAudioContext.createDynamicsCompressor();
-      compressor.threshold.value = -14;
-      compressor.knee.value = 12;
-      compressor.ratio.value = 3;
-      compressor.attack.value = .006;
-      compressor.release.value = .25;
+      compressor.threshold.value = -10;
+      compressor.knee.value = 15;
+      compressor.ratio.value = 2;
+      compressor.attack.value = .012;
+      compressor.release.value = .32;
       pianoMasterGain = pianoAudioContext.createGain();
-      pianoMasterGain.gain.value = .82;
-      pianoMasterGain.connect(compressor).connect(pianoAudioContext.destination);
+      pianoMasterGain.gain.value = .72;
+      const dry = pianoAudioContext.createGain();
+      dry.gain.value = .96;
+      const wet = pianoAudioContext.createGain();
+      wet.gain.value = .075;
+      const convolver = pianoAudioContext.createConvolver();
+      convolver.buffer = createPianoRoomImpulse(pianoAudioContext);
+      pianoMasterGain.connect(body).connect(air).connect(rumble).connect(compressor);
+      compressor.connect(dry).connect(pianoAudioContext.destination);
+      compressor.connect(wet).connect(convolver).connect(pianoAudioContext.destination);
       return pianoAudioContext;
     } catch (error) {
       return null;
@@ -2628,10 +2784,67 @@
     return location.protocol !== 'file:' || String(path).startsWith('data:');
   }
 
+  function pianoSampleKey(midi, layer) {
+    return `${midi}:${layer}`;
+  }
+
+  function pianoSampleSecondsForZone(midi) {
+    if (midi <= 33) return 7;
+    if (midi <= 45) return 6;
+    if (midi <= 57) return 5.4;
+    if (midi <= 69) return 4.8;
+    if (midi <= 81) return 4;
+    if (midi <= 93) return 3.3;
+    return 2.8;
+  }
+
+  function trimPianoBuffer(context, buffer, midi) {
+    const targetSeconds = Math.min(buffer.duration, pianoSampleSecondsForZone(midi));
+    const length = Math.max(1, Math.floor(targetSeconds * buffer.sampleRate));
+    if (length >= buffer.length) return buffer;
+    const trimmed = context.createBuffer(buffer.numberOfChannels, length, buffer.sampleRate);
+    const fadeLength = Math.min(Math.floor(buffer.sampleRate * .16), length);
+    for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+      const source = buffer.getChannelData(channel);
+      const target = trimmed.getChannelData(channel);
+      target.set(source.subarray(0, length));
+      for (let index = 0; index < fadeLength; index += 1) {
+        target[length - fadeLength + index] *= 1 - index / fadeLength;
+      }
+    }
+    return trimmed;
+  }
+
+  function pianoBufferBytes(buffer) {
+    return Number(buffer?.length || 0) * Math.max(1, Number(buffer?.numberOfChannels) || 1) * 4;
+  }
+
+  function touchPianoSample(key) {
+    if (!pianoSampleBuffers.has(key)) return;
+    pianoSampleLastUsed.delete(key);
+    pianoSampleLastUsed.set(key, Date.now());
+  }
+
+  function evictPianoSamples() {
+    if (pianoSampleBytes <= PIANO_SAMPLE_CACHE_BYTES) return;
+    for (const key of pianoSampleLastUsed.keys()) {
+      if (pianoSampleBytes <= PIANO_SAMPLE_CACHE_BYTES) break;
+      const buffer = pianoSampleBuffers.get(key);
+      if (!buffer) continue;
+      pianoSampleBuffers.delete(key);
+      pianoSampleBytes = Math.max(0, pianoSampleBytes - pianoBufferBytes(buffer));
+      pianoSampleLastUsed.delete(key);
+    }
+  }
+
   function loadPianoSample(source) {
-    const [name, path, midi] = source;
-    if (pianoSampleBuffers.has(midi)) return Promise.resolve(pianoSampleBuffers.get(midi));
-    if (pianoSampleLoading.has(midi)) return pianoSampleLoading.get(midi);
+    const [, path, midi, layer] = source;
+    const key = pianoSampleKey(midi, layer);
+    if (pianoSampleBuffers.has(key)) {
+      touchPianoSample(key);
+      return Promise.resolve(pianoSampleBuffers.get(key));
+    }
+    if (pianoSampleLoading.has(key)) return pianoSampleLoading.get(key);
     const ctx = getPianoAudioContext();
     if (!ctx || !canLoadPianoSamples(path)) return Promise.resolve(null);
     const loading = fetch(path)
@@ -2641,122 +2854,202 @@
       })
       .then((buffer) => new Promise((resolve, reject) => ctx.decodeAudioData(buffer, resolve, reject)))
       .then((buffer) => {
-        pianoSampleBuffers.set(midi, buffer);
-        return buffer;
+        const trimmed = trimPianoBuffer(ctx, buffer, midi);
+        pianoSampleBuffers.set(key, trimmed);
+        pianoSampleBytes += pianoBufferBytes(trimmed);
+        touchPianoSample(key);
+        evictPianoSamples();
+        return trimmed;
       })
       .catch(() => null)
-      .finally(() => pianoSampleLoading.delete(midi));
-    pianoSampleLoading.set(midi, loading);
+      .finally(() => pianoSampleLoading.delete(key));
+    pianoSampleLoading.set(key, loading);
     return loading;
   }
 
+  async function preloadPianoSources(sources, concurrency = 4) {
+    const queue = [...sources];
+    const loaded = [];
+    const worker = async () => {
+      while (queue.length) {
+        const source = queue.shift();
+        const buffer = await loadPianoSample(source);
+        if (buffer) loaded.push(buffer);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, Math.max(1, sources.length)) }, worker));
+    return loaded;
+  }
+
+  function pianoCoreSources() {
+    const base = PIANO_SAMPLE_SOURCES.filter((source) => source[3] === PIANO_PRELOAD_LAYER);
+    const detail = PIANO_SAMPLE_SOURCES.filter((source) => PIANO_DETAIL_ZONES.has(source[2]));
+    return [...new Map([...base, ...detail].map((source) => [pianoSampleKey(source[2], source[3]), source])).values()];
+  }
+
   function preloadPianoSamples() {
-    if (pianoSamplesPreloading) return Promise.resolve([...pianoSampleBuffers.values()]);
-    pianoSamplesPreloading = true;
-    return Promise.all(PIANO_SAMPLE_SOURCES.map(loadPianoSample)).then((buffers) => buffers.filter(Boolean));
+    if (pianoSamplesPreloadPromise) return pianoSamplesPreloadPromise;
+    pianoSamplesPreloadPromise = preloadPianoSources(pianoCoreSources(), 4)
+      .then((buffers) => {
+        refreshPianoSoundHint();
+        return buffers;
+      })
+      .finally(() => {
+        pianoSamplesPreloadPromise = null;
+      });
+    return pianoSamplesPreloadPromise;
+  }
+
+  function nearestPianoZone(midi) {
+    return PIANO_SAMPLE_ZONES.reduce((best, source) => (
+      Math.abs(source[2] - midi) < Math.abs(best[2] - midi) ? source : best
+    ), PIANO_SAMPLE_ZONES[0]);
+  }
+
+  function pianoSourceFor(midi, layer) {
+    const zone = nearestPianoZone(midi);
+    return PIANO_SAMPLE_SOURCES.find((source) => source[2] === zone[2] && source[3] === layer) || null;
+  }
+
+  function preloadPianoRange(midis = [], layers = [PIANO_DEFAULT_VELOCITY_LAYER]) {
+    const zones = new Set(midis.map((midi) => nearestPianoZone(Number(midi))[2]));
+    const layerSet = new Set(layers);
+    const pending = PIANO_SAMPLE_SOURCES.filter((source) => zones.has(source[2]) && layerSet.has(source[3]));
+    if (!pending.length) return Promise.resolve([]);
+    return preloadPianoSources(pending, 3);
+  }
+
+  function resolveLoadedPianoSample(midi, layer) {
+    const zone = nearestPianoZone(midi);
+    const candidates = [
+      PIANO_SAMPLE_SOURCES.find((source) => source[2] === zone[2] && source[3] === layer),
+      ...PIANO_VELOCITY_LAYERS
+        .filter((candidate) => candidate !== layer)
+        .sort((a, b) => Math.abs(a - layer) - Math.abs(b - layer))
+        .map((candidate) => pianoSourceFor(midi, candidate)),
+      ...PIANO_SAMPLE_SOURCES
+        .filter((source) => source[3] === layer && source[2] !== zone[2])
+        .sort((a, b) => Math.abs(a[2] - midi) - Math.abs(b[2] - midi)),
+      ...PIANO_SAMPLE_SOURCES
+        .filter((source) => source[2] !== zone[2] || source[3] !== layer)
+        .sort((a, b) => Math.abs(a[2] - midi) - Math.abs(b[2] - midi) || Math.abs(a[3] - layer) - Math.abs(b[3] - layer))
+    ].filter(Boolean);
+    for (const source of candidates) {
+      const key = pianoSampleKey(source[2], source[3]);
+      const buffer = pianoSampleBuffers.get(key);
+      if (buffer) {
+        touchPianoSample(key);
+        return { source, buffer };
+      }
+    }
+    return null;
   }
 
   function refreshPianoSoundHint() {
     const hint = document.querySelector('#freePlayHint');
     if (!hint) return;
     const sampled = pianoSampleBuffers.size > 0;
-    hint.textContent = sampled ? '三角钢琴 · 触屏或键盘演奏' : '合成钢琴 · 触屏或键盘演奏';
+    hint.textContent = sampled ? '三角钢琴 · 5 层力度 · 触屏或键盘' : '合成钢琴 · 触屏或键盘';
   }
 
-  function nearestPianoSample(midi) {
-    return PIANO_SAMPLE_SOURCES.reduce((best, source) => Math.abs(source[2] - midi) < Math.abs(best[2] - midi) ? source : best, PIANO_SAMPLE_SOURCES[0]);
-  }
-
-  function playSampledPiano(midi, duration) {
+  function playSampledPiano(midi, duration, velocity = .68) {
     const ctx = getPianoAudioContext();
     if (!ctx) return false;
-    const sample = nearestPianoSample(midi);
-    const buffer = pianoSampleBuffers.get(sample[2]);
-    if (!buffer) return false;
+    const value = clampPianoVelocity(velocity);
+    const layer = pianoVelocityLayer(value);
+    const target = pianoSourceFor(midi, layer);
+    const exactLoaded = target && pianoSampleBuffers.has(pianoSampleKey(target[2], target[3]));
+    if (target && !exactLoaded) loadPianoSample(target);
+    const resolved = resolveLoadedPianoSample(midi, layer);
+    if (!resolved) return false;
     ctx.resume?.().catch?.(() => {});
     const source = ctx.createBufferSource();
     const gain = ctx.createGain();
     const now = ctx.currentTime;
-    source.buffer = buffer;
-    source.playbackRate.value = Math.pow(2, (midi - sample[2]) / 12);
-    // Keep the recorded piano envelope intact. The source samples already carry
-    // the strike and natural decay; only trim the tail so several notes can ring together.
-    const audibleDuration = (Number(buffer.duration) || 2.5) / source.playbackRate.value;
+    source.buffer = resolved.buffer;
+    source.playbackRate.value = Math.pow(2, (midi - resolved.source[2]) / 12);
+    const audibleDuration = (Number(resolved.buffer.duration) || 2.5) / source.playbackRate.value;
     const tail = Math.max(1.1, Math.min(8, audibleDuration));
-    const releaseStart = now + Math.max(.3, tail - .35);
-    gain.gain.setValueAtTime(.78, now);
-    gain.gain.setValueAtTime(.78, releaseStart);
+    const releaseStart = now + Math.max(.3, tail - .24);
+    const velocityTrim = layer === 16 ? .9 : layer === 3 ? 1.05 : 1;
+    gain.gain.setValueAtTime(.8 * velocityTrim, now);
+    gain.gain.setValueAtTime(.8 * velocityTrim, releaseStart);
     gain.gain.exponentialRampToValueAtTime(.0008, now + tail);
     source.connect(gain).connect(pianoMasterGain);
     source.start(now);
     source.stop(now + tail + .03);
     sampledPlaybackCount += 1;
     lastPlaybackEngine = 'sample';
+    lastVelocity = value;
+    lastVelocityLayer = resolved.source[3];
     return true;
   }
 
-  function playSynthPiano(freq, duration) {
+  function playSynthPiano(freq, duration, velocity = .68) {
     const ctx = getPianoAudioContext();
     if (!ctx) return;
     ctx.resume?.().catch?.(() => {});
+    const value = clampPianoVelocity(velocity);
     const now = ctx.currentTime;
     const envelope = ctx.createGain();
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(Math.min(5200, freq * 12), now);
-    filter.Q.value = .7;
+    filter.frequency.setValueAtTime(Math.min(6200, freq * (8 + value * 7)), now);
+    filter.Q.value = .65;
+    const peak = .07 + value * .13;
     envelope.gain.setValueAtTime(.0001, now);
-    envelope.gain.exponentialRampToValueAtTime(.16, now + .012);
-    envelope.gain.exponentialRampToValueAtTime(.075, now + .09);
-    envelope.gain.exponentialRampToValueAtTime(.001, now + Math.max(duration, .34));
+    envelope.gain.exponentialRampToValueAtTime(peak, now + .009);
+    envelope.gain.exponentialRampToValueAtTime(peak * .42, now + .105);
+    envelope.gain.exponentialRampToValueAtTime(.001, now + Math.max(duration, .42));
     envelope.connect(filter).connect(pianoMasterGain);
     [
-      { type: 'triangle', ratio: 1, level: .62, detune: 0 },
-      { type: 'sine', ratio: 2, level: .24, detune: 2 },
-      { type: 'sine', ratio: 3, level: .10, detune: -2 }
+      { type: 'triangle', ratio: 1, level: .6, detune: 0 },
+      { type: 'sine', ratio: 2, level: .23, detune: 1.5 },
+      { type: 'sine', ratio: 3, level: .08, detune: -1.8 },
+      { type: 'sine', ratio: 4.02, level: .045, detune: 2.2 }
     ].forEach((voice) => {
       const osc = ctx.createOscillator();
       const voiceGain = ctx.createGain();
       osc.type = voice.type;
       osc.frequency.value = freq * voice.ratio;
-      osc.detune.value = voice.detune;
-      voiceGain.gain.value = voice.level;
+      osc.detune.value = voice.detune + (Math.random() - .5) * 1.2;
+      voiceGain.gain.value = voice.level * (.7 + value * .3);
       osc.connect(voiceGain).connect(envelope);
       osc.start(now);
-      osc.stop(now + Math.max(duration, .4));
+      osc.stop(now + Math.max(duration, .46));
     });
-    const clickBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * .045), ctx.sampleRate);
+    const clickBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * .04), ctx.sampleRate);
     const clickData = clickBuffer.getChannelData(0);
-    for (let index = 0; index < clickData.length; index += 1) clickData[index] = (Math.random() * 2 - 1) * (1 - index / clickData.length);
+    for (let index = 0; index < clickData.length; index += 1) {
+      clickData[index] = (Math.random() * 2 - 1) * (1 - index / clickData.length) * value;
+    }
     const click = ctx.createBufferSource();
     const clickGain = ctx.createGain();
     click.buffer = clickBuffer;
-    clickGain.gain.setValueAtTime(.055, now);
-    clickGain.gain.exponentialRampToValueAtTime(.001, now + .045);
+    clickGain.gain.setValueAtTime(.04, now);
+    clickGain.gain.exponentialRampToValueAtTime(.001, now + .04);
     click.connect(clickGain).connect(pianoMasterGain);
     click.start(now);
     synthPlaybackCount += 1;
     lastPlaybackEngine = 'synth';
+    lastVelocity = value;
+    lastVelocityLayer = null;
   }
 
-  function playTone(freq=440, duration=.24, midiOverride=null) {
+  function playTone(freq = 440, duration = .24, midiOverride = null, velocity = .68) {
     try {
       const midi = Number.isFinite(Number(midiOverride)) ? Number(midiOverride) : Math.round(69 + 12 * Math.log2(freq / 440));
-      if (!playSampledPiano(midi, duration)) {
-        playSynthPiano(freq, duration);
-        if (PIANO_SAMPLE_SOURCES.some(([, path]) => canLoadPianoSamples(path))) {
-          loadPianoSample(nearestPianoSample(midi)).then((buffer) => {
-            if (buffer && !freePlayActive && !rhythmActive) playSampledPiano(midi, duration);
-          });
-        }
-      }
+      const value = clampPianoVelocity(velocity);
+      const target = pianoSourceFor(midi, pianoVelocityLayer(value));
+      if (target && !pianoSampleBuffers.has(pianoSampleKey(target[2], target[3]))) loadPianoSample(target);
+      if (!playSampledPiano(midi, duration, value)) playSynthPiano(freq, duration, value);
     } catch (error) {}
   }
 
   function ensurePianoSamplesLoaded() {
     const hint = document.querySelector('#freePlayHint');
     if (hint && pianoSampleBuffers.size === 0) hint.textContent = '三角钢琴音色加载中…';
-    preloadPianoSamples().then(refreshPianoSoundHint);
+    preloadPianoSamples();
   }
 
   function updateNoteGame() {
@@ -3096,11 +3389,12 @@
     if (up) up.disabled = freePlayOctaveOffset >= FREE_PLAY_MAX_OFFSET;
   }
 
-  function playFreePianoNote(note) {
+  function playFreePianoNote(note, velocity = .68) {
     const keys = rhythmKeysForOffset(freePlayOctaveOffset);
     const key = [...keys.white, ...keys.black].find((candidate) => candidate.note === note);
     if (!key) return;
-    playTone(261.63 * Math.pow(2, (note - 60) / 12), .34, note);
+    playTone(261.63 * Math.pow(2, (note - 60) / 12), .34, note, velocity);
+    preloadPianoRange([note], [pianoVelocityLayer(velocity)]);
     freePlayKeyCount += 1;
     freePlayNotes.add(note);
     const keyCountLabel = document.querySelector('#freePlayKeyCount');
@@ -3529,7 +3823,7 @@
     }
   }
 
-  function pressRhythmKey(note) {
+  function pressRhythmKey(note, velocity = .68) {
     if (!rhythmActive || rhythmPaused) return;
     const key = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((candidate) => candidate.note === note);
     if (!key) return;
@@ -3544,7 +3838,8 @@
         target = event;
       }
     }
-    playTone(261.63 * Math.pow(2, (note - 60) / 12), .22, note);
+    playTone(261.63 * Math.pow(2, (note - 60) / 12), .22, note, velocity);
+    preloadPianoRange([note], [pianoVelocityLayer(velocity)]);
     const keyElement = document.querySelector(`.rhythm-key[data-note="${note}"]`);
     keyElement?.classList.add('pressed');
     setTimeout(() => keyElement?.classList.remove('pressed'), 130);
@@ -3613,7 +3908,7 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     if (event.target?.closest?.('button, a')) event.target.blur();
-    pressRhythmKey(target.note);
+    pressRhythmKey(target.note, .7);
   }
 
   function handleFreePianoKeydown(event) {
@@ -3627,7 +3922,7 @@
     const target = candidates.find((candidate) => candidate.code === event.code) || candidates.find((candidate) => candidate.key.toLowerCase() === key);
     if (!target) return;
     event.preventDefault();
-    playFreePianoNote(target.note);
+    playFreePianoNote(target.note, .68);
   }
 
   function toggleRhythmPause() {
@@ -3657,7 +3952,7 @@
       const key = event.target.closest('.rhythm-key');
       if (!key) return;
       event.preventDefault();
-      playFreePianoNote(Number(key.dataset.note));
+      playFreePianoNote(Number(key.dataset.note), pianoVelocityFromPointer(event));
     });
     document.querySelector('#freeOctaveDown')?.addEventListener('click', () => changeFreePlayOctave(-1));
     document.querySelector('#freeOctaveUp')?.addEventListener('click', () => changeFreePlayOctave(1));
@@ -3684,7 +3979,7 @@
       const key = event.target.closest('.rhythm-key');
       if (!key) return;
       event.preventDefault();
-      pressRhythmKey(Number(key.dataset.note));
+      pressRhythmKey(Number(key.dataset.note), pianoVelocityFromPointer(event));
     });
     document.querySelector('#rhythmPlayAgain')?.addEventListener('click', () => startRhythmPiano(rhythmSong?.id));
     document.querySelector('#rhythmChooseAnother')?.addEventListener('click', openRhythmPiano);
@@ -4271,6 +4566,12 @@
       else if (focus === 'repertoire') APP.updateNav('repertoire');
       else APP.updateNav('today');
     });
+    document.querySelector('#weeklyRecapAction')?.addEventListener('click', (event) => {
+      const target = event.currentTarget.dataset.target;
+      if (target === 'repertoire') APP.updateNav('repertoire');
+      else if (target === 'game') openNoteGame();
+      else APP.updateNav('today');
+    });
     $('#customizeTop')?.addEventListener('click', openSettings);
     $('#closeSettings')?.addEventListener('click', closeSettings);
     $('#planForm')?.addEventListener('submit', generatePlan);
@@ -4542,8 +4843,18 @@
   APP.updateProgressDisplay = updateProgressDisplay;
   APP.finishSession = finishSession;
   APP.preloadPianoSamples = preloadPianoSamples;
-  APP.previewPianoNote = (midi) => playTone(440 * Math.pow(2, (Number(midi) - 69) / 12), .45, Number(midi));
-  APP.getAudioSnapshot = () => ({ engine: 'sampled-grand-piano', samples: PIANO_SAMPLE_SOURCES.length, loaded: pianoSampleBuffers.size, sampleSource: PIANO_SAMPLE_SOURCE_NAME, velocityLayer: PIANO_SAMPLE_LAYER, sampleRange: 'A0–C8', sampledPlaybackCount, synthPlaybackCount, lastPlaybackEngine, fallback: 'multi-layer-synth' });
+  APP.previewPianoNote = (midi, velocity = .68) => playTone(440 * Math.pow(2, (Number(midi) - 69) / 12), .45, Number(midi), clampPianoVelocity(velocity));
+  APP.previewPianoLayer = async (midi, velocity = .68) => {
+    const value = clampPianoVelocity(velocity);
+    const target = pianoSourceFor(Number(midi), pianoVelocityLayer(value));
+    if (!target) return false;
+    const buffer = await loadPianoSample(target);
+    if (!buffer) return false;
+    return playSampledPiano(Number(midi), .45, value);
+  };
+  APP.getAudioSnapshot = () => ({ engine: 'sampled-grand-piano', samples: PIANO_SAMPLE_ZONES.length, loadedZones: new Set([...pianoSampleBuffers.keys()].map((key) => Number(key.split(':')[0]))).size, loaded: pianoSampleBuffers.size, totalSamples: PIANO_SAMPLE_SOURCES.length, sampleSource: PIANO_SAMPLE_SOURCE_NAME, velocityLayers: PIANO_VELOCITY_LAYERS.slice(), velocityLayer: lastVelocityLayer || PIANO_DEFAULT_VELOCITY_LAYER, lastVelocity, sampleRange: 'A0–C8', sampledPlaybackCount, synthPlaybackCount, lastPlaybackEngine, room: PIANO_ROOM_NAME, fallback: 'multi-layer-synth' });
+  APP.preloadPianoRange = preloadPianoRange;
+  APP.getPianoCacheSnapshot = () => ({ entries: pianoSampleBuffers.size, zones: new Set([...pianoSampleBuffers.keys()].map((key) => Number(key.split(':')[0]))).size, bytes: pianoSampleBytes, limitBytes: PIANO_SAMPLE_CACHE_BYTES, velocityLayers: PIANO_VELOCITY_LAYERS.slice() });
   APP.getKeyboardMap = () => RHYTHM_KEYBOARD_ROWS.map((row) => ({ type: row.type, notes: row.notes.slice(), keys: row.keys.slice(), codes: row.codes.slice() }));
   APP.getRecordingSnapshot = () => ({
     supported: recordingState.supported && location.protocol !== 'file:',
@@ -4560,6 +4871,7 @@
     uploadsRecording: false
   });
   APP.getHistoryRecordingIds = () => state.history.filter((entry) => entry.recording?.id).map((entry) => entry.recording.id);
+  APP.getWeeklyRecap = () => APP.weeklyRecapData();
   APP.getRecordingDeviceId = () => RECORDING_DEVICE_ID;
   APP.analyzeRecordingSamples = (samples, sampleRate = 48000, durationSeconds = 0) => analyzeRecordingSamples(samples, sampleRate, durationSeconds);
   APP.compareRecordingAnalysis = (previous, current) => compareRecordingAnalysis(previous, current);

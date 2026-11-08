@@ -19,6 +19,15 @@
 - **PWA**：可安装到桌面、离线打开，带 Service Worker 缓存。
 - **主题**：亮色与深色模式。
 
+### 1.35 五层力度与本周复盘
+
+- 电子琴升级为 Salamander Grand Piano V3 的 5 个真实力度层（vel 3 / 7 / 11 / 13 / 16），轻触与重击会使用不同的原始击弦样本，不再只是把同一个音量调大。
+- 保留 A0–C8 的 30 个跨音区采样；共 150 个本地 MP3，按音区和力度按需解码；解码缓存上限 150 MB，避免手机长时间弹奏时持续占内存。
+- 音色链路加入轻量演奏厅混响、低频琴体补偿、高频收敛、次声过滤和更宽松的动态压缩；手机扬声器下更清楚，和弦也不容易被压扁。
+- 触屏支持按压力/落键深度模拟力度；电脑键盘使用稳定的中等力度；合成兜底同样响应力度。
+- “记录”页新增本周复盘：本周/上周分钟对比、出勤天数、连续学习、薄弱能力对应的下一步行动。
+- 音频回归检查 150/150 本地文件、30 个音区、5 个力度层、A0–C8 实际播放、混响空间与解码缓存上限。
+
 ### 1.34 带任务的录音复盘
 
 - 课内新增“录音复盘”：点击后才请求麦克风，最长 60 秒；停止后可立即回放、下载或重录。
@@ -265,7 +274,7 @@ npm run test:legal
 npm run test:content
 ```
 
-前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 默认启动隔离的本地服务验证当前构建；设置 `PIANOPATH_OFFLINE_REMOTE=1` 时才检查线上 Service Worker 缓存。`test:audio` 在本地 HTTP 服务上解码 30 个 Salamander 钢琴采样并确认首音实际走采样引擎。`test:recording` 使用模拟麦克风验证录音、IndexedDB、历史回放、删除、拒绝授权和单文件降级。
+前端 E2E 需要 Playwright 与 Chromium；本项目在当前工作区使用内置 Playwright 与 Edge。`test:offline` 默认启动隔离的本地服务验证当前构建；设置 `PIANOPATH_OFFLINE_REMOTE=1` 时才检查线上 Service Worker 缓存。`test:audio` 在本地 HTTP 服务上验证 30 个音区、5 个力度层和 150 个 Salamander 采样文件，并确认弱、中、强触键与实际首音都走采样引擎。`test:recording` 使用模拟麦克风验证录音、IndexedDB、历史回放、删除、拒绝授权和单文件降级。
 
 ## 快速开始
 
@@ -371,7 +380,7 @@ GitHub Pages 无后端，应用会使用浏览器本地存储；前端功能完�
 
 封面图来自原平台公开页面或本地制作的品牌封面，仅用于资源导航。应用不包含受版权保护的曲谱；教材与考纲通过官方链接跳转。
 
-虚拟钢琴使用 Alexander Holm 录制的 Salamander Grand Piano V3 采样，许可为 CC BY 3.0；来源与修改说明见 `assets/audio/piano/README.md`。
+虚拟钢琴使用 Alexander Holm 录制的 Salamander Grand Piano V3 五层力度采样，许可为 CC BY 3.0；来源、文件清单与修改说明见 `assets/audio/piano/README.md`。
 
 ## License
 

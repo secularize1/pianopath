@@ -685,10 +685,71 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('.skill-meter').count(), 4, `${name}: skill meters missing`);
     assert.ok((await page.locator('#skillFocusText').innerText()).length > 0, `${name}: next skill suggestion missing`);
     assert.equal(await page.locator('#importData').isVisible(), true, `${name}: backup import missing`);
+
+    // Weekly recap: current vs previous week, attendance and next action.
+    assert.equal(await page.locator('#weeklyRecap').isVisible(), true, `${name}: weekly recap missing`);
+    const recapStateBefore = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')));
+    await page.evaluate(() => {
+      const current = JSON.parse(localStorage.getItem('pianopath-state-v1'));
+      const dayKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const startOfWeek = (offsetWeeks = 0) => {
+        const date = new Date();
+        date.setHours(12, 0, 0, 0);
+        date.setDate(date.getDate() - ((date.getDay() + 6) % 7) + offsetWeeks * 7);
+        return date;
+      };
+      const currentMonday = startOfWeek(0);
+      const currentWednesday = new Date(currentMonday);
+      currentWednesday.setDate(currentMonday.getDate() + 2);
+      const previousMonday = startOfWeek(-1);
+      current.history = [
+        { id: 'recap-current-1', type: 'lesson', title: '本周练习一', date: dayKey(currentMonday), minutes: 60, rating: 4, ratingLabel: '很顺', sightDone: 1 },
+        { id: 'recap-current-2', type: 'quick', title: '本周练习二', date: dayKey(currentWednesday), minutes: 30, rating: 3, ratingLabel: '刚刚好' },
+        { id: 'recap-previous-1', type: 'lesson', title: '上周练习', date: dayKey(previousMonday), minutes: 20, rating: 3, ratingLabel: '刚刚好' }
+      ];
+      current.completed = {};
+      current.mastery = {};
+      current.repertoire = {};
+      current.playAlong = {};
+      current.gameSessions = [];
+      window.PIANO_APP.replaceState(current);
+      window.PIANO_APP.persist();
+      window.PIANO_APP.updateNav('stats');
+    });
+    await page.waitForTimeout(200);
+    const recap = await page.evaluate(() => window.PIANO_APP.getWeeklyRecap());
+    assert.equal(await page.locator('#weeklyRecapMinutes').innerText(), '90 分钟', `${name}: weekly recap minute label is not explicit`);
+    assert.equal(await page.locator('#weeklyRecapCompare').getAttribute('data-trend'), 'up', `${name}: weekly recap trend is not marked as up`);
+    assert.equal(recap.currentMinutes, 90, `${name}: weekly recap minutes wrong`);
+    assert.equal(recap.previousMinutes, 20, `${name}: previous week minutes wrong`);
+    assert.equal(recap.currentDays, 2, `${name}: weekly recap attendance wrong`);
+    assert.match(recap.comparison, /多 70 分钟/, `${name}: weekly recap comparison wrong`);
+    assert.match(await page.locator('#weeklyRecapMinutes').innerText(), /90 分钟/, `${name}: weekly recap minutes not rendered`);
+    assert.match(await page.locator('#weeklyRecapDays').innerText(), /2 \/ \d+ 天/, `${name}: weekly recap days not rendered`);
+    assert.ok((await page.locator('#weeklyRecapFocus').innerText()).length > 0, `${name}: next weekly focus missing`);
+    assert.equal(await page.locator('#weeklyRecapAction').isVisible(), true, `${name}: weekly recap action missing`);
+    const recapTarget = await page.locator('#weeklyRecapAction').getAttribute('data-target');
+    assert.ok(['today', 'repertoire', 'game'].includes(recapTarget), `${name}: weekly recap action has no valid target`);
+    await page.locator('#weeklyRecapAction').click();
+    await page.waitForTimeout(180);
+    if (recapTarget === 'repertoire') assert.equal(await page.locator('#repertoirePage').isVisible(), true, `${name}: weekly recap did not open repertoire`);
+    else if (recapTarget === 'game') assert.equal(await page.locator('#noteGameModal').isVisible(), true, `${name}: weekly recap did not open note game`);
+    else assert.equal(await page.locator('#todayPage').isVisible(), true, `${name}: weekly recap did not open today`);
+    if (await page.locator('#noteGameModal').isVisible()) await page.locator('#closeNoteGame').click();
+    await page.evaluate((saved) => {
+      window.PIANO_APP.replaceState(saved);
+      window.PIANO_APP.persist();
+      window.PIANO_APP.renderAll();
+      window.PIANO_APP.updateNav('stats');
+    }, recapStateBefore);
+    await page.waitForTimeout(180);
+
     const backupPath = path.join(ROOT, 'tests', `backup-${name}.json`);
     fs.writeFileSync(backupPath, JSON.stringify({ profile: { weeklyMinutes: 180, daysPerWeek: 3, sessionMinutes: 60, level: 'basic', style: 'mixed', goal: '导入回归' }, completed: { 'week-1-session-1': { date: '2026-11-07', completedAt: '2026-11-07T08:00:00.000Z' } }, mastery: { 'week-1-session-1': { score: 2, total: 3, updatedAt: '2026-11-07T08:00:00.000Z' } }, repertoire: { 'ode-to-joy': { phaseIndex: 1, updatedAt: '2026-11-07T08:00:00.000Z' } }, playAlong: { 'c-five': { attempts: 2, bestAccuracy: 88, xp: 10 } }, reviews: { 'week-1-session-1': { sourceId: 'week-1-session-1', dueAt: '2026-11-08T08:00:00.000Z', level: 1 } }, history: [{ id: 'imported-practice', type: 'lesson', title: '导入练习', week: 1, date: '2026-11-07', minutes: 60, rating: 4, ratingLabel: '已记录', notes: '测试记录', sightDone: 1, completedAt: '2026-11-07T08:00:00.000Z' }], gameSessions: [{ id: 'game-1', score: 10 }], quickPractice: { lastStartedAt: '2026-11-07T08:00:00.000Z' }, unexpected: 'ignored' }));
     await page.locator('#importDataInput').setInputFiles(backupPath);
     await page.waitForTimeout(350);
+    await page.evaluate(() => window.PIANO_APP.updateNav('stats'));
+    await page.waitForTimeout(120);
     const importedBackup = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')));
     assert.equal(importedBackup.profile.weeklyMinutes, 180, `${name}: imported plan not restored`);
     assert.equal(importedBackup.unexpected, undefined, `${name}: unknown backup fields were imported`);
@@ -722,6 +783,10 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.match(await page.locator('#historyList').innerText(), /完成第一次练习/, `${name}: empty history state missing`);
     const emptyState = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')));
     assert.deepEqual(emptyState.history, [], `${name}: empty history state was not persisted`);
+    const clearedRecap = await page.evaluate(() => window.PIANO_APP.getWeeklyRecap());
+    assert.equal(clearedRecap.currentMinutes, 0, `${name}: weekly recap minutes did not reset`);
+    assert.equal(clearedRecap.currentDays, 0, `${name}: weekly recap attendance did not reset`);
+    assert.match(await page.locator('#weeklyRecapMinutes').innerText(), /0 分钟/, `${name}: rendered weekly recap did not reset`);
     fs.unlinkSync(backupPath);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.equal(overflow, 0, `${name}: horizontal overflow ${overflow}px`);

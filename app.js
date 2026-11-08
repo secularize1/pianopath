@@ -8,7 +8,7 @@
   const MASTERY_PASS_PERCENT = 67;
 
   const defaultState = {
-    profile: { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '', startWeek: 1, practiceDays: [1, 3, 5, 6] },
+    profile: { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '', startWeek: 1, practiceDays: [1, 3, 5, 6], practiceTime: '20:00' },
     completed: {},
     history: [],
     activeSession: null,
@@ -198,6 +198,11 @@
     return [...unique, ...defaults].slice(0, wanted);
   }
 
+  function sanitizePracticeTime(value) {
+    const match = String(value || '').match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    return match ? `${match[1]}:${match[2]}` : '20:00';
+  }
+
   function relativePracticeDayLabel(practiceDay) {
     const now = new Date();
     now.setHours(12, 0, 0, 0);
@@ -212,6 +217,65 @@
     return `${relativePracticeDayLabel(practiceDay)} · ${date.getMonth() + 1}/${date.getDate()}`;
   }
 
+  function icsEscape(value) {
+    return String(value ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  }
+
+  function icsDateTime(date) {
+    const pad = (value) => String(value).padStart(2, '0');
+    return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}00Z`;
+  }
+
+  function calendarEventsForProfile(profile) {
+    const time = sanitizePracticeTime(profile.practiceTime).split(':').map(Number);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const events = [];
+    for (let week = 0; week < 12; week += 1) {
+      for (const practiceDay of profile.practiceDays) {
+        const date = new Date(today);
+        const delta = (practiceDay - today.getDay() + 7) % 7;
+        date.setDate(today.getDate() + delta + week * 7);
+        date.setHours(time[0], time[1], 0, 0);
+        events.push({ date, minutes: profile.sessionMinutes, day: practiceDay });
+      }
+    }
+    return events.sort((a, b) => a.date - b.date);
+  }
+
+  function buildPracticeCalendar(profile) {
+    const events = calendarEventsForProfile(profile);
+    const stamp = icsDateTime(new Date());
+    const body = events.map((event, index) => {
+      const end = new Date(event.date.getTime() + event.minutes * 60000);
+      return [
+        'BEGIN:VEVENT',
+        `UID:pianopath-${localDateKey(event.date)}-${index}@local`,
+        `DTSTAMP:${stamp}`,
+        `DTSTART:${icsDateTime(event.date)}`,
+        `DTEND:${icsDateTime(end)}`,
+        `SUMMARY:${icsEscape('琴阶 · 钢琴练习')}`,
+        `DESCRIPTION:${icsEscape('打开琴阶，完成今天的钢琴练习。')}`,
+        'END:VEVENT'
+      ].join('\r\n');
+    }).join('\r\n');
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//PianoPath//Practice Schedule//ZH-CN', 'CALSCALE:GREGORIAN', body, 'END:VCALENDAR', ''].join('\r\n');
+  }
+
+  function exportPracticeCalendar(profileOverride = null) {
+    const profile = profileOverride && typeof profileOverride === 'object' ? profileOverride : getPlanProfile();
+    const blob = new Blob([buildPracticeCalendar(profile)], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'pianopath-practice.ics';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    window.PIANO_APP?.showToast('日历文件已生成，打开它即可加入系统日历。');
+  }
+
   function practiceDayLabel(dayValue) {
     return PRACTICE_DAYS.find((day) => day.value === Number(dayValue))?.label || '';
   }
@@ -219,8 +283,9 @@
   function getPlanProfile() {
     const days = Math.max(1, Math.min(7, Number(state.profile.daysPerWeek) || 4));
     const practiceDays = normalizePracticeDays(state.profile.practiceDays, days);
+    const practiceTime = sanitizePracticeTime(state.profile.practiceTime);
     const sessionMinutes = Math.max(10, Number(state.profile.sessionMinutes) || 60);
-    return { ...state.profile, daysPerWeek: days, practiceDays, sessionMinutes, weeklyMinutes: days * sessionMinutes };
+    return { ...state.profile, daysPerWeek: days, practiceDays, practiceTime, sessionMinutes, weeklyMinutes: days * sessionMinutes };
   }
 
   function dateForPracticeDay(practiceDay) {
@@ -313,6 +378,7 @@
         id: duplicate ? `${base.id}-p${index + 1}` : base.id,
         day: index + 1,
         practiceDay: orderedDays[index % orderedDays.length],
+        practiceTime: profile.practiceTime,
         duration: profile.sessionMinutes,
         steps: adaptSteps(base, profile.sessionMinutes),
         adapted: profile.sessionMinutes !== 60 || profile.daysPerWeek !== 4
@@ -445,7 +511,7 @@
       const setText = (selector, value) => { const element = document.querySelector(selector); if (element) element.textContent = value; };
       setText('#homeStage', `第 ${current.week} 周 · ${week.phase}`);
       const resumable = state.activeSession && state.activeSession.id === current.id;
-      setText('#homeLessonIndex', `${resumable ? '继续 · ' : ''}${formattedNextPracticeDay(current.practiceDay)} · 第 ${current.day} 次`);
+      setText('#homeLessonIndex', `${resumable ? '继续 · ' : ''}${formattedNextPracticeDay(current.practiceDay)} · ${current.practiceTime} · 第 ${current.day} 次`);
       setText('#homeLessonTitle', current.title);
       setText('#homeLessonGoal', current.goal);
       setText('#homeLessonDuration', `${current.duration} 分钟`);
@@ -464,7 +530,7 @@
         const stepLabel = ['学', '练', '合', '录'][index % 4] || String(index + 1);
         return `<button class="week-trail-item ${done ? 'done' : ''} ${isCurrent ? 'current' : ''} ${locked ? 'locked' : ''}" data-session="${escapeHtml(item.id)}" type="button" ${locked ? 'aria-disabled="true" tabindex="-1"' : ''}>
           <span class="trail-node">${done ? '✓' : stepLabel}</span>
-          <span class="trail-copy"><small>${escapeHtml(formattedPracticeDay(item.practiceDay))} · ${item.duration} 分钟</small><strong>${escapeHtml(item.title)}</strong><em>${escapeHtml(item.goal)}</em></span>
+          <span class="trail-copy"><small>${escapeHtml(formattedPracticeDay(item.practiceDay))} · ${escapeHtml(item.practiceTime)} · ${item.duration} 分钟</small><strong>${escapeHtml(item.title)}</strong><em>${escapeHtml(item.goal)}</em></span>
           ${isCurrent ? '<span class="trail-now">现在</span>' : ''}
         </button>`;
       }).join('');
@@ -751,7 +817,7 @@
     sessionsForWeek, currentWeekData, currentSessionData, streakCount,
     addReviewItem, completeReviewItem, dueReviewItems,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
-    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay,
+    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
       Object.assign(state, structuredClone(defaultState), nextState || {});
@@ -1336,6 +1402,7 @@
       weeklyMinutes,
       daysPerWeek,
       practiceDays: APP.defaultPracticeDays(daysPerWeek),
+      practiceTime: APP.sanitizePracticeTime(APP.state.profile.practiceTime),
       sessionMinutes: Math.round(weeklyMinutes / daysPerWeek),
       level: onboardingChoices.level,
       style: onboardingChoices.style,
@@ -1538,6 +1605,16 @@
     }
     const summary = document.querySelector('#practiceDaySummary');
     if (summary) summary.textContent = selected.length ? `已选 ${selected.length} 天：${selected.map(APP.practiceDayLabel).join('、')}` : '至少选择 1 天';
+    updateCalendarHint();
+  }
+
+  function updateCalendarHint() {
+    const hint = document.querySelector('#calendarHint');
+    if (!hint) return;
+    const form = $('#planForm');
+    const days = APP.sanitizePracticeDays(draftPracticeDays);
+    const time = APP.sanitizePracticeTime(form?.practiceTime?.value);
+    hint.textContent = `${days.length ? `每周 ${days.map(APP.practiceDayLabel).join('、')}` : '尚未选择练习日'} ${time} · 未来 12 周`;
   }
 
   function openSettings() {
@@ -1548,9 +1625,11 @@
     form.level.value = profile.level || 'zero';
     form.style.value = profile.style || 'mixed';
     form.goal.value = profile.goal || '';
+    form.practiceTime.value = profile.practiceTime;
     draftPracticeDays = profile.practiceDays;
     renderPracticeDayPicker(draftPracticeDays);
     updateDerivedMinutes();
+    updateCalendarHint();
     const picker = document.querySelector('#practiceDayPicker');
     if (picker && !picker.children.length) renderPracticeDayPicker(APP.defaultPracticeDays(Number(profile.daysPerWeek) || 4));
     $('#settingsModal').classList.remove('hidden');
@@ -1575,6 +1654,7 @@
     const weeklyMinutes = Number(form.weeklyMinutes.value);
     const daysPerWeek = Number(form.daysPerWeek.value);
     const practiceDays = APP.sanitizePracticeDays(draftPracticeDays);
+    const practiceTime = APP.sanitizePracticeTime(form.practiceTime.value);
     if (practiceDays.length !== daysPerWeek) {
       draftPracticeDays = practiceDays;
       renderPracticeDayPicker(practiceDays);
@@ -1585,6 +1665,7 @@
       weeklyMinutes,
       daysPerWeek,
       practiceDays,
+      practiceTime,
       sessionMinutes: Math.max(10, Math.round(weeklyMinutes / daysPerWeek)),
       level: form.level.value,
       style: form.style.value,
@@ -3107,6 +3188,20 @@
     $('#customizeTop')?.addEventListener('click', openSettings);
     $('#closeSettings')?.addEventListener('click', closeSettings);
     $('#planForm')?.addEventListener('submit', generatePlan);
+    $('#planForm input[name="practiceTime"]')?.addEventListener('input', updateCalendarHint);
+    $('#exportCalendar')?.addEventListener('click', () => {
+      const form = $('#planForm');
+      const weeklyMinutes = Number(form.weeklyMinutes.value) || 240;
+      const daysPerWeek = Number(form.daysPerWeek.value) || 4;
+      APP.exportPracticeCalendar({
+        ...APP.getPlanProfile(),
+        practiceDays: APP.sanitizePracticeDays(draftPracticeDays),
+        practiceTime: APP.sanitizePracticeTime(form.practiceTime.value),
+        daysPerWeek,
+        sessionMinutes: Math.max(10, Math.round(weeklyMinutes / daysPerWeek)),
+        weeklyMinutes
+      });
+    });
     $$('select[name="weeklyMinutes"], select[name="daysPerWeek"]').forEach((select) => {
       select.addEventListener('change', () => {
         updateDerivedMinutes();
@@ -3120,6 +3215,7 @@
           }
           draftPracticeDays = next;
           renderPracticeDayPicker(draftPracticeDays);
+          updateCalendarHint();
         }
       });
     });
@@ -3132,6 +3228,7 @@
       else if (draftPracticeDays.length < limit) draftPracticeDays = [...draftPracticeDays, day];
       else APP.showToast(`这个计划每周练 ${limit} 天，请先取消一天。`);
       renderPracticeDayPicker(draftPracticeDays);
+      updateCalendarHint();
     });
     $('#reopenOnboarding')?.addEventListener('click', () => {
       closeSettings();
@@ -3150,7 +3247,7 @@
       });
     });
     $('#resetPlan')?.addEventListener('click', () => {
-      state.profile = { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '', startWeek: 1, practiceDays: APP.defaultPracticeDays(4) };
+      state.profile = { weeklyMinutes: 240, daysPerWeek: 4, sessionMinutes: 60, level: 'zero', style: 'mixed', goal: '', startWeek: 1, practiceDays: APP.defaultPracticeDays(4), practiceTime: '20:00' };
       state.activeSession = null;
       APP.persist();
       APP.renderAll();
@@ -3237,7 +3334,8 @@
             style: ['classical', 'pop', 'mixed'].includes(parsed.profile.style) ? parsed.profile.style : 'mixed',
             goal: String(parsed.profile.goal || '').slice(0, 80),
             startWeek: Math.max(1, Math.min(12, Number(parsed.profile.startWeek) || 1)),
-            practiceDays: APP.normalizePracticeDays(parsed.profile.practiceDays, daysPerWeek)
+            practiceDays: APP.normalizePracticeDays(parsed.profile.practiceDays, daysPerWeek),
+            practiceTime: APP.sanitizePracticeTime(parsed.profile.practiceTime)
           },
           completed: normalizeMap(parsed.completed),
           mastery: normalizeMap(parsed.mastery),

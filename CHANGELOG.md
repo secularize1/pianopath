@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.24.0 — 2026-11-08
+
+- Added a configurable practice start time to the weekly routine.
+- Added one-click export of 48 calendar events across the next 12 weeks as an ICS file.
+- Displayed the scheduled time in the home CTA and weekly trail.
+- Persisted reminder time through sync and backup import; server plans normalize old profiles.
+
 ## 1.23.0 — 2026-11-08
 
 - Added selectable practice weekdays to the personal plan and synchronized them with the weekly session count.

@@ -75,10 +75,12 @@ def main():
             "level": "zero",
             "style": "classical",
             "practiceDays": [2, 4, 6],
+            "practiceTime": "18:30",
         })
         assert status == 200 and planned["ok"] is True
         assert planned["profile"]["weeklyMinutes"] == 150
         assert planned["profile"]["practiceDays"] == [2, 4, 6]
+        assert planned["profile"]["practiceTime"] == "18:30"
         assert sum(planned["allocation"].values()) > 0
         email = f"test-{time.time_ns()}@example.com"
         status, no_consent, _ = request(base, "/api/auth/register", "POST", {"email": email, "password": "PianoPath123!", "name": "Test User"})

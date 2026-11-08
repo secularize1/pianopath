@@ -425,6 +425,18 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('#practiceDayPicker [data-practice-day="2"]').click();
     assert.match(await page.locator('#practiceDaySummary').innerText(), /周二/, `${name}: practice day did not update`);
     assert.equal(await page.locator('#practiceDayPicker .practice-day-chip.active').count(), 4, `${name}: practice day count exceeded plan`);
+    await page.locator('input[name="practiceTime"]').fill('18:30');
+    assert.match(await page.locator('#calendarHint').innerText(), /18:30/, `${name}: reminder time did not update`);
+    const downloadPromise = page.waitForEvent('download', { timeout: 5000 });
+    await page.locator('#exportCalendar').click();
+    const calendarDownload = await downloadPromise;
+    const calendarPath = path.join(ROOT, 'tests', `calendar-${name}.ics`);
+    await calendarDownload.saveAs(calendarPath);
+    const calendarText = fs.readFileSync(calendarPath, 'utf8');
+    fs.unlinkSync(calendarPath);
+    assert.equal((calendarText.match(/BEGIN:VEVENT/g) || []).length, 48, `${name}: calendar event count wrong`);
+    assert.match(calendarText, /BEGIN:VCALENDAR/, `${name}: calendar header missing`);
+    assert.match(calendarText, /T103000Z/, `${name}: calendar export ignored the current 18:30 time`);
     await page.locator('#planForm').evaluate((form) => form.requestSubmit());
     await page.waitForTimeout(300);
     const schedule = await page.evaluate(() => window.PIANO_APP.getPracticeSchedule());
@@ -433,6 +445,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     const storedPlan = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).profile);
     assert.equal(storedPlan.practiceDays.length, 4, `${name}: practice days were not persisted`);
     assert.equal(new Set(storedPlan.practiceDays).size, 4, `${name}: duplicate practice days persisted`);
+    assert.equal(storedPlan.practiceTime, '18:30', `${name}: reminder time was not persisted`);
     assert.ok(await page.locator('#homeLessonIndex').innerText(), `${name}: scheduled home date is missing`);
     await page.locator('#settingsModal').evaluate((modal) => modal.classList.remove('hidden'));
     await page.waitForTimeout(100);

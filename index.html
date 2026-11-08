@@ -622,12 +622,17 @@
           <div class="practice-day-grid" id="practiceDayPicker"></div>
           <p id="practiceDaySummary">已选 4 天</p>
         </fieldset>
+        <div class="practice-time-row">
+          <label><span>练习开始时间</span><input name="practiceTime" type="time" value="20:00" aria-label="练习开始时间"></label>
+          <button type="button" class="calendar-export-button" id="exportCalendar">加入系统日历</button>
+        </div>
+        <p class="calendar-hint" id="calendarHint">每周一、三、五、六 20:00 · 未来 12 周</p>
         <label><span>你的首要目标</span><input name="goal" type="text" maxlength="80" placeholder="例如：半年内能完整弹《天空之城》"></label>
         <div class="plan-tools"><button type="button" class="text-button" id="reopenOnboarding">重新选择目标</button><button type="button" class="text-button" id="resetPlan">恢复默认</button></div>
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.23 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.24 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

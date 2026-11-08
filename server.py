@@ -95,6 +95,9 @@ def make_plan(profile: dict) -> dict:
     style = str(profile.get("style", "mixed"))
     level = str(profile.get("level", "zero"))
     practice_days = normalize_practice_days(profile.get("practiceDays"), days)
+    practice_time = str(profile.get("practiceTime", "20:00"))
+    if not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", practice_time):
+        practice_time = "20:00"
     weekly = days * minutes
     focus = {
         "classical": ["读谱", "技术", "曲目", "复调", "表达"],
@@ -129,6 +132,7 @@ def make_plan(profile: dict) -> dict:
             "sessionMinutes": minutes,
             "weeklyMinutes": weekly,
             "practiceDays": practice_days,
+            "practiceTime": practice_time,
         },
         "summary": f"按每周 {days} 次 × {minutes} 分钟生成；总时长 {weekly // 60} 小时 {weekly % 60} 分钟。",
         "priority": priority,
@@ -385,7 +389,7 @@ class Handler(SimpleHTTPRequestHandler):
                     self.send_json({"ok": True, "state": json.loads(row["state_json"]), "revision": row["revision"], "updatedAt": row["updated_at"]})
             return
         if path == "/api/plan/default":
-            self.send_json(make_plan({"daysPerWeek": 4, "sessionMinutes": 60, "level": "zero", "style": "mixed"}))
+            self.send_json(make_plan({"daysPerWeek": 4, "sessionMinutes": 60, "level": "zero", "style": "mixed", "practiceTime": "20:00"}))
             return
         if path == "/api/curriculum":
             self.send_json(CURRICULUM)

@@ -212,6 +212,18 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     if (name === 'mobile') {
       assert.equal(await page.evaluate(() => [...document.querySelectorAll('.keyboard-guide-keys')].every((row) => row.scrollWidth <= row.clientWidth + 1)), true, `${name}: keyboard tutorial rows should fit without internal scrolling`);
     }
+    await page.keyboard.press('z');
+    await page.waitForTimeout(40);
+    assert.equal(await page.locator('#keyboardGuideStatus').innerText(), 'C3 · Z', `${name}: tutorial keyboard preview failed`);
+    assert.equal(await page.locator('#keyboardGuideCount').innerText(), '1 / 3', `${name}: tutorial keyboard progress wrong`);
+    await page.locator('.keyboard-guide-key[data-guide-note="49"]').click();
+    await page.waitForTimeout(40);
+    assert.equal(await page.locator('#keyboardGuideStatus').innerText(), 'C#3 · X', `${name}: tutorial pointer preview failed`);
+    await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: '某', code: 'KeyC', bubbles: true })));
+    await page.waitForTimeout(40);
+    assert.equal(await page.locator('#keyboardGuideStatus').innerText(), 'D3 · C', `${name}: tutorial third-key preview failed`);
+    assert.equal(await page.locator('#keyboardGuideCount').innerText(), '3 / 3 ✓', `${name}: tutorial completion count wrong`);
+    assert.equal(await page.locator('.keyboard-guide-progress').getAttribute('class'), 'keyboard-guide-progress complete', `${name}: tutorial completion state missing`);
     await page.locator('#keyboardGuideStart').click();
     await page.waitForTimeout(150);
     assert.equal(await page.locator('#rhythmFreePlay').isVisible(), true, `${name}: free-play panel missing`);
@@ -310,7 +322,9 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('#rhythmKeyboard .rhythm-key').count(), 26, `${name}: rhythm keyboard should have two octaves`);
     assert.equal(await page.locator('#rhythmLanes .rhythm-lane').count(), 16, `${name}: rhythm lanes should align with white keys`);
     assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="60"]').getAttribute('data-key'), 'Enter', `${name}: lower C4 keyboard mapping wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="60"]').getAttribute('data-code'), 'Enter', `${name}: lower C4 physical code wrong`);
     assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="61"]').getAttribute('data-key'), 'q', `${name}: upper C sharp keyboard mapping wrong`);
+    assert.equal(await page.locator('#rhythmKeyboard .rhythm-key[data-note="61"]').getAttribute('data-code'), 'KeyQ', `${name}: upper C sharp physical code wrong`);
     const rhythmKeyGroups = await page.evaluate(() => ({
       lower: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key')].filter((key) => Number(key.dataset.note) <= 60).sort((a, b) => Number(a.dataset.note) - Number(b.dataset.note)).map((key) => key.dataset.key),
       upper: [...document.querySelectorAll('#rhythmKeyboard .rhythm-key')].filter((key) => Number(key.dataset.note) > 60).sort((a, b) => Number(a.dataset.note) - Number(b.dataset.note)).map((key) => key.dataset.key)

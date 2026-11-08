@@ -2015,15 +2015,18 @@
     {
       label: '下排 · 低音 C3–C4',
       keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';', "'", 'Enter'],
+      codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote', 'Enter'],
       notes: [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60]
     },
     {
       label: '上排 · 高音 C#4–D5',
       keys: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
+      codes: ['KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash'],
       notes: [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 74]
     }
   ];
   const RHYTHM_KEY_BY_NOTE = new Map(RHYTHM_KEYBOARD_ROWS.flatMap((row) => row.notes.map((note, index) => [note, row.keys[index]])));
+  const RHYTHM_CODE_BY_NOTE = new Map(RHYTHM_KEYBOARD_ROWS.flatMap((row) => row.notes.map((note, index) => [note, row.codes[index]])));
   const RHYTHM_WHITE_KEYS = [
     { note: 48, name: 'C3', pc: 0 }, { note: 50, name: 'D3', pc: 2 }, { note: 52, name: 'E3', pc: 4 },
     { note: 53, name: 'F3', pc: 5 }, { note: 55, name: 'G3', pc: 7 }, { note: 57, name: 'A3', pc: 9 },
@@ -2031,13 +2034,13 @@
     { note: 64, name: 'E4', pc: 4 }, { note: 65, name: 'F4', pc: 5 }, { note: 67, name: 'G4', pc: 7 },
     { note: 69, name: 'A4', pc: 9 }, { note: 71, name: 'B4', pc: 11 }, { note: 72, name: 'C5', pc: 0 },
     { note: 74, name: 'D5', pc: 2 }
-  ].map((key) => ({ ...key, key: RHYTHM_KEY_BY_NOTE.get(key.note) }));
+  ].map((key) => ({ ...key, key: RHYTHM_KEY_BY_NOTE.get(key.note), code: RHYTHM_CODE_BY_NOTE.get(key.note) }));
   const RHYTHM_BLACK_KEYS = [
     { note: 49, name: 'C#3', pc: 1 }, { note: 51, name: 'D#3', pc: 3 }, { note: 54, name: 'F#3', pc: 6 },
     { note: 56, name: 'G#3', pc: 8 }, { note: 58, name: 'A#3', pc: 10 }, { note: 61, name: 'C#4', pc: 1 },
     { note: 63, name: 'D#4', pc: 3 }, { note: 66, name: 'F#4', pc: 6 }, { note: 68, name: 'G#4', pc: 8 },
     { note: 70, name: 'A#4', pc: 10 }
-  ].map((key) => ({ ...key, key: RHYTHM_KEY_BY_NOTE.get(key.note) }));
+  ].map((key) => ({ ...key, key: RHYTHM_KEY_BY_NOTE.get(key.note), code: RHYTHM_CODE_BY_NOTE.get(key.note) }));
   const FREE_PLAY_MIN_OFFSET = -2;
   const FREE_PLAY_MAX_OFFSET = 2;
 
@@ -2090,6 +2093,7 @@
   let pianoLandscapeRequested = false;
   let pianoFullscreenOwned = false;
   let keyboardGuideOrigin = 'general';
+  let keyboardGuidePracticed = new Set();
 
   const RHYTHM_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -2099,7 +2103,7 @@
 
   function pianoKeyboardMarkup(whiteKeys, blackKeys) {
     const blackLeft = [4.0, 10.25, 22.75, 29.0, 35.25, 47.75, 54.0, 66.5, 72.75, 79.0];
-    const keyMarkup = (key, extra = '') => `<button type="button" class="rhythm-key ${key.black ? 'black' : 'white'}" data-note="${key.note}" data-key="${key.key}" ${extra} aria-label="${key.name}，键盘 ${computerKeyLabel(key.key)}" aria-keyshortcuts="${key.key}"><span>${key.name.replace(/\d/, '')}</span><small>${computerKeyLabel(key.key)}</small></button>`;
+    const keyMarkup = (key, extra = '') => `<button type="button" class="rhythm-key ${key.black ? 'black' : 'white'}" data-note="${key.note}" data-key="${key.key}" data-code="${key.code}" ${extra} aria-label="${key.name}，键盘 ${computerKeyLabel(key.key)}" aria-keyshortcuts="${computerKeyLabel(key.key)}"><span>${key.name.replace(/\d/, '')}</span><small>${computerKeyLabel(key.key)}</small></button>`;
     const white = whiteKeys.map((key) => keyMarkup(key)).join('');
     const black = blackKeys.map((key, index) => keyMarkup({ ...key, black: true }, `style="left:${blackLeft[index]}%"`)).join('');
     return white + black;
@@ -2109,11 +2113,46 @@
     return RHYTHM_KEYBOARD_ROWS.map((row) => {
       const keys = row.keys.map((key, index) => {
         const note = row.notes[index];
+        const code = row.codes[index];
         const black = [1, 3, 6, 8, 10].includes(note % 12);
-        return `<span class="keyboard-guide-key ${black ? 'black' : 'white'}"><b>${computerKeyLabel(key)}</b><small>${RHYTHM_NOTE_NAMES[note % 12]}${Math.floor(note / 12) - 1}</small></span>`;
+        const noteName = `${RHYTHM_NOTE_NAMES[note % 12]}${Math.floor(note / 12) - 1}`;
+        return `<button type="button" class="keyboard-guide-key ${black ? 'black' : 'white'}" data-guide-note="${note}" data-guide-code="${code}" aria-label="${noteName}，键盘 ${computerKeyLabel(key)}"><b>${computerKeyLabel(key)}</b><small>${noteName}</small></button>`;
       }).join('');
       return `<div class="keyboard-guide-row"><header><strong>${row.label.split(' · ')[0]}</strong><span>${row.label.split(' · ')[1]}</span></header><div class="keyboard-guide-keys">${keys}</div></div>`;
     }).join('');
+  }
+
+  function guideKeyForEvent(event) {
+    return RHYTHM_KEYBOARD_ROWS.flatMap((row) => row.keys.map((key, index) => ({
+      key,
+      code: row.codes[index],
+      note: row.notes[index],
+      name: `${RHYTHM_NOTE_NAMES[row.notes[index] % 12]}${Math.floor(row.notes[index] / 12) - 1}`
+    }))).find((candidate) => candidate.code === event.code || candidate.key.toLowerCase() === event.key.toLowerCase());
+  }
+
+  function previewKeyboardGuideKey(note, key) {
+    playTone(261.63 * Math.pow(2, (note - 60) / 12), .28);
+    const target = document.querySelector(`.keyboard-guide-key[data-guide-note="${note}"]`);
+    target?.classList.add('pressed');
+    setTimeout(() => target?.classList.remove('pressed'), 180);
+    keyboardGuidePracticed.add(note);
+    const status = document.querySelector('#keyboardGuideStatus');
+    if (status) status.textContent = `${key.name} · ${computerKeyLabel(key.key)}`;
+    const count = document.querySelector('#keyboardGuideCount');
+    const progress = document.querySelector('.keyboard-guide-progress');
+    if (count) count.textContent = keyboardGuidePracticed.size >= 3 ? '3 / 3 ✓' : `${keyboardGuidePracticed.size} / 3`;
+    if (progress) progress.classList.toggle('complete', keyboardGuidePracticed.size >= 3);
+  }
+
+  function handleKeyboardGuideKeydown(event) {
+    const modal = document.querySelector('#keyboardGuideModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+    const key = guideKeyForEvent(event);
+    if (!key) return;
+    event.preventDefault();
+    previewKeyboardGuideKey(key.note, key);
   }
 
   function rhythmKeyboardMarkup() {
@@ -2331,6 +2370,12 @@
     rows.innerHTML = keyboardGuideMarkup();
     const start = document.querySelector('#keyboardGuideStart');
     if (start) start.textContent = origin === 'freeplay' ? '开始自由弹' : origin === 'rhythm' ? '去选曲目' : '知道了';
+    keyboardGuidePracticed = new Set();
+    const status = document.querySelector('#keyboardGuideStatus');
+    if (status) status.textContent = '按任意琴键试听；手机可直接点。';
+    const count = document.querySelector('#keyboardGuideCount');
+    if (count) count.textContent = '0 / 3';
+    document.querySelector('.keyboard-guide-progress')?.classList.remove('complete');
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -2655,8 +2700,9 @@
       toggleRhythmPause();
       return;
     }
+    const keys = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS];
     const key = event.key.toLowerCase();
-    const target = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((candidate) => candidate.key.toLowerCase() === key);
+    const target = keys.find((candidate) => candidate.code === event.code) || keys.find((candidate) => candidate.key.toLowerCase() === key);
     if (!target) return;
     event.preventDefault();
     pressRhythmKey(target.note);
@@ -2669,7 +2715,8 @@
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
     const keys = rhythmKeysForOffset(freePlayOctaveOffset);
     const key = event.key.toLowerCase();
-    const target = [...keys.white, ...keys.black].find((candidate) => candidate.key.toLowerCase() === key);
+    const candidates = [...keys.white, ...keys.black];
+    const target = candidates.find((candidate) => candidate.code === event.code) || candidates.find((candidate) => candidate.key.toLowerCase() === key);
     if (!target) return;
     event.preventDefault();
     playFreePianoNote(target.note);
@@ -2712,6 +2759,13 @@
     document.querySelector('#rhythmHowTo')?.addEventListener('click', () => openKeyboardGuide('rhythm'));
     document.querySelector('#freePlayKeyboardGuide')?.addEventListener('click', () => openKeyboardGuide('freeplay'));
     document.querySelector('#closeKeyboardGuide')?.addEventListener('click', closeKeyboardGuide);
+    document.querySelector('#keyboardGuideRows')?.addEventListener('click', (event) => {
+      const button = event.target.closest('.keyboard-guide-key');
+      if (!button) return;
+      const key = guideKeyForEvent({ code: button.dataset.guideCode, key: '' });
+      if (key) previewKeyboardGuideKey(Number(button.dataset.guideNote), key);
+    });
+    document.addEventListener('keydown', handleKeyboardGuideKeydown);
     document.querySelector('#keyboardGuideStart')?.addEventListener('click', () => {
       const startFromFreePlay = keyboardGuideOrigin === 'freeplay';
       closeKeyboardGuide();

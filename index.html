@@ -592,9 +592,14 @@
     <div class="keyboard-guide-card">
       <button class="icon-button keyboard-guide-close" id="closeKeyboardGuide" type="button" aria-label="关闭键位教程"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <span class="eyebrow">KEYBOARD</span>
-      <h2 id="keyboardGuideTitle">两排，弹完整音域</h2>
+      <h2 id="keyboardGuideTitle">两排，弹出双八度</h2>
       <p>下排从 C3 到 C4，上排从 C#4 到 D5。两排都从左到右升高。</p>
       <div class="keyboard-guide-rows" id="keyboardGuideRows"></div>
+      <div class="keyboard-guide-progress" aria-live="polite">
+        <span>试弹</span>
+        <strong id="keyboardGuideStatus">按任意琴键试听；手机可直接点。</strong>
+        <span id="keyboardGuideCount">0 / 3</span>
+      </div>
       <div class="keyboard-guide-example">
         <span>先试三个键</span>
         <div><kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd></div>
@@ -650,7 +655,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.25 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.26 · <span id="storageStatus">离线可用</span></div>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
   </div>

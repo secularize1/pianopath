@@ -1381,12 +1381,21 @@ button, input, select, textarea { font-family: inherit; }
 .keyboard-guide-row header strong { color:#477959; font-size:11px; }
 .keyboard-guide-row header span { color:#91a094; font-size:10px; }
 .keyboard-guide-keys { display:grid; grid-template-columns:repeat(13,minmax(18px,1fr)); gap:4px; padding:10px; min-width:300px; }
-.keyboard-guide-key { display:grid; place-items:center; gap:5px; min-height:57px; padding:5px 2px; border-radius:8px; border:1px solid #d7dfd4; background:#fcfcf7; }
+.keyboard-guide-key { display:grid; place-items:center; gap:5px; min-height:57px; padding:5px 2px; border-radius:8px; border:1px solid #d7dfd4; background:#fcfcf7; color:inherit; font:inherit; cursor:pointer; touch-action:manipulation; transition:background .12s ease,box-shadow .12s ease; }
 .keyboard-guide-key b { display:grid; place-items:center; min-width:24px; min-height:24px; padding:0 5px; border-radius:6px; background:#fff; border:1px solid #d6dfd5; color:#385b43; font-size:12px; }
 .keyboard-guide-key small { color:#8c9b8f; font-size:8px; }
 .keyboard-guide-key.black { transform:translateY(6px); border-color:#405348; background:linear-gradient(#46594b,#27362c); }
 .keyboard-guide-key.black b { border-color:#6e8072; background:#34473a; color:#f2f7ed; }
 .keyboard-guide-key.black small { color:#c2d2c2; }
+.keyboard-guide-key:hover { box-shadow:0 3px 10px rgba(41,70,51,.12); }
+.keyboard-guide-key.pressed { background:#e4f4d8; box-shadow:inset 0 0 0 2px #78b47c; }
+.keyboard-guide-key.black.pressed { background:#527559; transform:translateY(10px); }
+.keyboard-guide-progress { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:10px; margin-top:13px; padding:9px 12px; border-radius:10px; background:#edf6e9; color:#66806b; }
+.keyboard-guide-progress > span:first-child { color:#4f8059; font-size:9px; font-weight:850; letter-spacing:.08em; }
+.keyboard-guide-progress strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; }
+.keyboard-guide-progress > span:last-child { padding:3px 7px; border-radius:999px; background:#fff; color:#4f8059; font-size:9px; font-weight:850; }
+.keyboard-guide-progress.complete { background:#dff2d5; box-shadow:inset 0 0 0 1px #b8daa8; }
+.keyboard-guide-progress.complete > span:last-child { background:#4b8d59; color:#fff; }
 .keyboard-guide-example { display:grid; grid-template-columns:auto auto 1fr; align-items:center; gap:12px; margin-top:16px; padding:12px 14px; border:1px solid #e6dfb5; border-radius:13px; background:#fff9dc; }
 .keyboard-guide-example > span { color:#7e713e; font-size:10px; font-weight:800; }
 .keyboard-guide-example div { display:flex; gap:4px; }
@@ -1401,6 +1410,7 @@ button, input, select, textarea { font-family: inherit; }
   .keyboard-guide-keys { gap:2px; padding:7px 6px; min-width:300px; }
   .keyboard-guide-key { min-height:50px; }
   .keyboard-guide-key b { min-width:22px; min-height:22px; font-size:11px; }
+  .keyboard-guide-progress { gap:7px; padding:8px 9px; }
   .keyboard-guide-example { grid-template-columns:1fr auto; gap:6px 10px; }
   .keyboard-guide-example small { grid-column:1/-1; }
   .keyboard-guide-card > p { padding-right:26px; }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.26.0 — 2026-11-08
+
+- Made every key in the two-row keyboard tutorial playable by physical keyboard, pointer and touch.
+- Switched piano input to physical `KeyboardEvent.code` values so IME composition, letter case and keyboard layout do not change the mapped note.
+- Added a three-key guided warm-up (`Z → X → C`) with audible notes, active-key feedback and a completion state.
+- Kept tutorial previews out of free-play counters and saved practice history.
+- Added desktop and mobile coverage for tutorial previews, IME-resistant key codes and progress completion.
+
 ## 1.25.0 — 2026-11-08
 
 - Replaced the split four-group computer mapping with two continuous chromatic rows: `Z–Enter` for C3–C4 and `Q–\\` for C#4–D5.

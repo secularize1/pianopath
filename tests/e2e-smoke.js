@@ -111,11 +111,27 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       const options = await page.locator('.checkpoint-option').all();
       await options[0].click();
       await page.waitForTimeout(100);
+      if (i === 1) {
+        assert.match(await page.locator('#checkpointFeedback').innerText(), /先记住这一点/, `${name}: wrong answer did not surface a correction cue`);
+      }
       await page.locator('#checkpointNext').click();
       await page.waitForTimeout(150);
     }
     assert.equal(await page.locator('#checkpointDone').isVisible(), true, `${name}: mastery result missing`);
-    await page.locator('#checkpointFinish').click();
+    assert.equal(await page.locator('#checkpointMistakes').isVisible(), true, `${name}: failed mastery did not list mistakes`);
+    assert.equal(await page.locator('#checkpointMistakeList li').count(), 2, `${name}: wrong mastery question count incorrect`);
+    assert.equal(await page.locator('#checkpointRetryWrong').isVisible(), true, `${name}: failed mastery has no retry action`);
+    const failedCheckpoint = await page.evaluate(() => window.PIANO_APP.getCheckpointSnapshot());
+    assert.deepEqual(failedCheckpoint.mastery.lastMistakes.map((item) => item.focus), ['缩到 2–4 小节，分手慢练', '短段、多次、暂停和复盘'], `${name}: wrong-answer focus was not persisted`);
+    assert.deepEqual(failedCheckpoint.mastery.lastMissedSkills, ['technique', 'practice'], `${name}: wrong-answer skills were not persisted`);
+    await page.locator('#checkpointRetryWrong').click();
+    await page.waitForTimeout(180);
+    const retryCheckpoint = await page.evaluate(() => window.PIANO_APP.getCheckpointSnapshot());
+    assert.equal(retryCheckpoint.retryMode, true, `${name}: mistake retry mode did not start`);
+    assert.equal(retryCheckpoint.questionCount, 2, `${name}: mistake retry should include only wrong questions`);
+    assert.equal(await page.locator('#checkpointMistakes').isVisible(), false, `${name}: mistake list stayed visible during retry`);
+    assert.equal(await page.locator('.checkpoint-option').count(), 3, `${name}: retry question options missing`);
+    await page.locator('#closeCheckpoint').click();
     await page.waitForTimeout(150);
     await page.evaluate(() => window.PIANO_APP.renderAll());
     const failedMastery = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).mastery);

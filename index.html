@@ -474,7 +474,16 @@
             <div class="checkpoint-options" id="checkpointOptions"></div>
             <div class="checkpoint-feedback" id="checkpointFeedback"></div>
             <button class="btn btn-primary full-width hidden" id="checkpointNext" type="button">下一题</button>
-            <div class="checkpoint-done hidden" id="checkpointDone"><strong id="checkpointScore">2 / 3</strong><p id="checkpointMessage"></p><button class="btn btn-soft full-width" id="checkpointFinish" type="button">回到练习</button></div>
+            <div class="checkpoint-done hidden" id="checkpointDone">
+              <strong id="checkpointScore">2 / 3</strong>
+              <p id="checkpointMessage"></p>
+              <div class="checkpoint-mistakes hidden" id="checkpointMistakes">
+                <div class="checkpoint-mistakes-head"><span>这次先补</span><strong id="checkpointMistakeCount">0 个点</strong></div>
+                <ul id="checkpointMistakeList"></ul>
+              </div>
+              <button class="btn btn-primary full-width hidden" id="checkpointRetryWrong" type="button">只重练错题</button>
+              <button class="btn btn-soft full-width" id="checkpointFinish" type="button">回到练习</button>
+            </div>
           </section>
         </section>
         <aside class="lesson-plan">
@@ -703,7 +712,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.35 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.36 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>

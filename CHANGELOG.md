@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.36.0 — 2026-11-09
+
+- Added explicit correction cues to wrong mastery answers.
+- Added a mistake summary with the exact focus and explanation for every missed question.
+- Added “retry mistakes only” without bypassing the mastery threshold.
+- Persisted missed skills, mistake focus and last result into the synced mastery profile.
+- Made the four-skill profile account for recent missed concepts instead of only accumulating positive practice.
+- Added desktop/mobile regression coverage for correction, retry and persistence.
+
 ## 1.35.0 — 2026-11-08
 
 - Added weekly recap with current/previous week minutes, attendance, streak and a weakness-driven next action.

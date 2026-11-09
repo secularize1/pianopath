@@ -752,10 +752,13 @@
     const playAlongSessions = Object.values(state.playAlong || {}).length;
     const playAlongAccuracy = Object.values(state.playAlong || {}).reduce((sum, item) => sum + (Number(item.bestAccuracy) || 0), 0) / Math.max(1, playAlongSessions);
     const reviewEntries = (state.history || []).filter((entry) => !['game', 'freeplay'].includes(entry.type) && (entry.rating <= 2 || entry.notes)).length;
-    const read = Math.min(100, Math.round(sightEntries * 4 + avgMastery * 0.35 + completedLessons * 1.5));
-    const technique = Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45 + playAlongSessions * 2));
-    const repertoire = Math.min(100, Math.round(repertoirePhases * 12 + completedLessons * 2));
-    const ear = Math.min(100, Math.round(gameSessions * 6 + playAlongAccuracy * 0.12 + playAlongSessions * 2 + avgMastery * 0.2));
+    const recentMisses = Object.values(state.mastery || {}).flatMap((item) => Array.isArray(item.lastMissedSkills) ? item.lastMissedSkills : []);
+    const missCount = (skill) => recentMisses.filter((item) => item === skill || (skill === 'technique' && item === 'practice')).length;
+    const missPenalty = (skill) => Math.min(18, missCount(skill) * 3);
+    const read = Math.max(0, Math.min(100, Math.round(sightEntries * 4 + avgMastery * 0.35 + completedLessons * 1.5 - missPenalty('read'))));
+    const technique = Math.max(0, Math.min(100, Math.round(completedLessons * 4 + avgMastery * 0.45 + playAlongSessions * 2 - missPenalty('technique'))));
+    const repertoire = Math.max(0, Math.min(100, Math.round(repertoirePhases * 12 + completedLessons * 2 - missPenalty('repertoire'))));
+    const ear = Math.max(0, Math.min(100, Math.round(gameSessions * 6 + playAlongAccuracy * 0.12 + playAlongSessions * 2 + avgMastery * 0.2 - missPenalty('ear'))));
     const skills = [
       { key: 'read', label: '读谱', value: read, detail: sightEntries ? `${sightEntries} 次视奏` : '还没开始' },
       { key: 'technique', label: '技术', value: technique, detail: completedLessons || playAlongSessions ? `${completedLessons} 课 · ${playAlongSessions} 次跟弹` : '建立基线' },
@@ -1178,22 +1181,33 @@
   let checkpointIndex = 0;
   let checkpointCorrect = 0;
   let checkpointAnswered = false;
+  let checkpointRunMistakes = [];
+  let checkpointRetryMode = false;
 
   function checkpointQuestionSet(step) {
     const base = [
       {
+        id: 'focus-control',
+        skill: 'technique',
+        focus: '先慢速，确认动作与声音可控',
         q: `这一步最关键的动作或听感检查是什么？`,
         options: [`${step.title}：先慢速，确认均匀与放松`, '直接加速到目标速度', '只看手，不看谱和拍子'],
         answer: 0,
         explain: '练习先保证动作与声音可控，再逐步加速。'
       },
       {
+        id: 'shrink-problem',
+        skill: 'technique',
+        focus: '缩到 2–4 小节，分手慢练',
         q: '遇到连续两次相同错误时，最合理的处理是？',
         options: ['从头再弹一遍完整曲目', '把问题缩到 2–4 小节，分手慢练', '继续原速直到碰对'],
         answer: 1,
         explain: '缩小问题范围，降低速度并分手，才能建立稳定反馈。'
       },
       {
+        id: 'practice-structure',
+        skill: 'practice',
+        focus: '短段、多次、暂停和复盘',
         q: '本步骤的时间结构更接近哪一种？',
         options: ['一次练到累为止', '短段、多次、带暂停和复盘', '只练最熟悉的开头'],
         answer: 1,
@@ -1202,26 +1216,40 @@
     ];
     const template = String(step.detail || '').split(/[。；]/).filter(Boolean).slice(0, 2).join('；');
     if (/视奏|陌生谱/.test(step.title + step.detail)) {
-      base[0] = { q: '视奏时遇到错音，正确的第一反应是？', options: ['停下来逐音纠正', '保持节拍继续，弹完再复盘', '从头重来'], answer: 1, explain: '视奏训练的是连续读谱与预判，错误留到弹完再处理。' };
+      base[0] = { id: 'sight-read-continue', skill: 'read', focus: '保持节拍，弹完再复盘', q: '视奏时遇到错音，正确的第一反应是？', options: ['停下来逐音纠正', '保持节拍继续，弹完再复盘', '从头重来'], answer: 1, explain: '视奏训练的是连续读谱与预判，错误留到弹完再处理。' };
     } else if (/技术|音阶|哈农|琶音/.test(step.title + step.detail)) {
-      base[0] = { q: '技术练习中最重要的即时指标是？', options: ['速度越快越好', '均匀、放松、声音稳定', '每个音都用力'], answer: 1, explain: '技术练习的质量来自均匀、放松和可控的声音，而不是盲目加速。' };
+      base[0] = { id: 'technique-even-relaxed', skill: 'technique', focus: '均匀、放松、声音稳定', q: '技术练习中最重要的即时指标是？', options: ['速度越快越好', '均匀、放松、声音稳定', '每个音都用力'], answer: 1, explain: '技术练习的质量来自均匀、放松和可控的声音，而不是盲目加速。' };
     }
     return base;
   }
 
-  function openCheckpoint() {
-    if (!session) return;
-    const step = session.steps[stepIndex] || session.steps[0];
-    checkpointQuestions = checkpointQuestionSet(step);
+  function resetCheckpointRun(questions, retryMode = false) {
+    checkpointQuestions = questions;
     checkpointIndex = 0;
     checkpointCorrect = 0;
     checkpointAnswered = false;
-    document.querySelector('#checkpointPanel').classList.remove('hidden');
+    checkpointRunMistakes = [];
+    checkpointRetryMode = retryMode;
     document.querySelector('#checkpointDone').classList.add('hidden');
     document.querySelector('#checkpointOptions').classList.remove('hidden');
     document.querySelector('#checkpointQuestion').classList.remove('hidden');
     document.querySelector('#checkpointNext').classList.add('hidden');
     renderCheckpointQuestion();
+  }
+
+  function openCheckpoint() {
+    if (!session) return;
+    const step = session.steps[stepIndex] || session.steps[0];
+    document.querySelector('#checkpointPanel').classList.remove('hidden');
+    resetCheckpointRun(checkpointQuestionSet(step));
+  }
+
+  function retryCheckpointMistakes() {
+    if (!checkpointRunMistakes.length) return;
+    const questions = checkpointRunMistakes.map((item) => item.question);
+    resetCheckpointRun(questions, true);
+    document.querySelector('#checkpointMistakes').classList.add('hidden');
+    document.querySelector('#checkpointRetryWrong').classList.add('hidden');
   }
 
   function closeCheckpoint() {
@@ -1254,7 +1282,8 @@
       document.querySelector('#checkpointFeedback').textContent = question.explain;
     } else {
       button.classList.add('wrong');
-      document.querySelector('#checkpointFeedback').textContent = `正确答案：${question.options[question.answer]}。${question.explain}`;
+      checkpointRunMistakes.push({ question, choice, correct: question.answer });
+      document.querySelector('#checkpointFeedback').textContent = `先记住这一点：${question.focus || question.options[question.answer]}。${question.explain}`;
     }
     const next = document.querySelector('#checkpointNext');
     next.classList.remove('hidden');
@@ -1277,15 +1306,43 @@
     document.querySelector('#checkpointFeedback').textContent = '';
     document.querySelector('#checkpointDone').classList.remove('hidden');
     const percent = Math.round((checkpointCorrect / checkpointQuestions.length) * 100);
+    const passed = percent >= MASTERY_PASS_PERCENT;
+    const mistakes = checkpointRunMistakes;
+    const mistakeBox = document.querySelector('#checkpointMistakes');
+    const mistakeList = document.querySelector('#checkpointMistakeList');
+    const retryButton = document.querySelector('#checkpointRetryWrong');
     document.querySelector('#checkpointScore').textContent = `${checkpointCorrect} / ${checkpointQuestions.length}`;
-    const message = percent >= MASTERY_PASS_PERCENT ? '通过。可以保存本次练习，继续下一课。' : `还差一点：至少答对 2 / 3 才能解锁下一课。回到当前步骤再练一轮。`;
-    document.querySelector('#checkpointMessage').textContent = message;
+    document.querySelector('#checkpointMessage').textContent = passed
+      ? checkpointRetryMode ? '错题已经补上，这次检查通过。' : '通过。可以保存本次练习，继续下一课。'
+      : `还差一点：先补 ${mistakes.length} 个错题，再回来重测。`;
     document.querySelector('#checkpointProgressBar').style.width = '100%';
+    if (mistakeBox && mistakeList) {
+      const unique = [...new Map(mistakes.map((item) => [item.question.id || item.question.q, item])).values()];
+      mistakeBox.classList.toggle('hidden', passed || !unique.length);
+      mistakeList.innerHTML = unique.map((item) => `<li><strong>${escapeUi(item.question.focus || item.question.q)}</strong><span>${escapeUi(item.question.explain)}</span></li>`).join('');
+      const count = document.querySelector('#checkpointMistakeCount');
+      if (count) count.textContent = `${unique.length} 个点`;
+      if (retryButton) retryButton.classList.toggle('hidden', passed || !unique.length);
+    }
     if (session) {
       const key = session.id;
       const previous = state.mastery?.[key] || { attempts: 0, best: 0 };
-      state.mastery = { ...(state.mastery || {}), [key]: { attempts: previous.attempts + 1, best: Math.max(previous.best, percent), last: percent, updatedAt: new Date().toISOString() } };
-      if (state.reviews?.[key]) APP.completeReviewItem(key, percent >= MASTERY_PASS_PERCENT);
+      const missedSkills = [...new Set([...(previous.missedSkills || []), ...mistakes.map((item) => item.question.skill).filter(Boolean)])];
+      state.mastery = {
+        ...(state.mastery || {}),
+        [key]: {
+          ...previous,
+          attempts: (Number(previous.attempts) || 0) + 1,
+          best: Math.max(Number(previous.best) || 0, percent),
+          last: percent,
+          lastResult: passed ? 'passed' : 'retry',
+          lastMissedSkills: [...new Set(mistakes.map((item) => item.question.skill).filter(Boolean))],
+          missedSkills,
+          lastMistakes: mistakes.map((item) => ({ id: item.question.id || item.question.q, focus: item.question.focus || '', explanation: item.question.explain || '' })).slice(0, 5),
+          updatedAt: new Date().toISOString()
+        }
+      };
+      if (state.reviews?.[key]) APP.completeReviewItem(key, passed);
       APP.persist();
     }
   }
@@ -4540,6 +4597,7 @@
     document.querySelector('#openCheckpoint')?.addEventListener('click', openCheckpoint);
     document.querySelector('#closeCheckpoint')?.addEventListener('click', closeCheckpoint);
     document.querySelector('#checkpointNext')?.addEventListener('click', nextCheckpoint);
+    document.querySelector('#checkpointRetryWrong')?.addEventListener('click', retryCheckpointMistakes);
     document.querySelector('#checkpointFinish')?.addEventListener('click', () => { closeCheckpoint(); APP.renderAll(); });
     $('#completeStep').addEventListener('click', () => {
       if (stepIndex >= session.steps.length - 1) finishSession();
@@ -4872,6 +4930,19 @@
   });
   APP.getHistoryRecordingIds = () => state.history.filter((entry) => entry.recording?.id).map((entry) => entry.recording.id);
   APP.getWeeklyRecap = () => APP.weeklyRecapData();
+  APP.getCheckpointSnapshot = () => {
+    const active = document.querySelector('#checkpointPanel') && !document.querySelector('#checkpointPanel').classList.contains('hidden');
+    const activeState = active && session ? state.mastery?.[session.id] || null : null;
+    return {
+      active,
+      retryMode: checkpointRetryMode,
+      questionCount: checkpointQuestions.length,
+      mistakeCount: checkpointRunMistakes.length,
+      mistakesVisible: Boolean(document.querySelector('#checkpointMistakes') && !document.querySelector('#checkpointMistakes').classList.contains('hidden')),
+      retryVisible: Boolean(document.querySelector('#checkpointRetryWrong') && !document.querySelector('#checkpointRetryWrong').classList.contains('hidden')),
+      mastery: activeState
+    };
+  };
   APP.getRecordingDeviceId = () => RECORDING_DEVICE_ID;
   APP.analyzeRecordingSamples = (samples, sampleRate = 48000, durationSeconds = 0) => analyzeRecordingSamples(samples, sampleRate, durationSeconds);
   APP.compareRecordingAnalysis = (previous, current) => compareRecordingAnalysis(previous, current);

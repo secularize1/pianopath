@@ -33,7 +33,10 @@ const expected = {
   pianoRoom: 'function createPianoRoomImpulse(context)',
   pianoPointerVelocity: 'function pianoVelocityFromPointer(event)',
   pianoCacheCap: 'const PIANO_SAMPLE_CACHE_BYTES = 150 * 1024 * 1024',
-  pianoSynthFallback: 'function playSynthPiano(freq, duration, velocity = .68)'
+  pianoSynthFallback: 'function playSynthPiano(freq, duration, velocity = .68)',
+  checkpointMistakeRetry: 'function retryCheckpointMistakes()',
+  checkpointMistakePersistence: 'lastMissedSkills:',
+  checkpointSnapshotBridge: 'APP.getCheckpointSnapshot'
 };
 for (const [label, fragment] of Object.entries(expected)) {
   if (!app.includes(fragment)) issues.push(`app.js: missing ${label} keyboard mapping`);

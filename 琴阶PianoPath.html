@@ -2345,7 +2345,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.38 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.39 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -2452,7 +2452,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.38.0",
+    "appVersion": "1.39.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -8693,6 +8693,8 @@ window.PIANO_DATA = {
     if (!item?.sourceId) return null;
     const source = reviewSource(item.sourceId);
     if (!source) return null;
+    const focus = String(item.focus || '').trim();
+    const reviewSummary = focus || String(item.notes || item.reason || '先找到上次最不稳的两小节。').trim();
     return {
       ...source,
       id: `${source.id}-review-${Date.now()}`,
@@ -8700,10 +8702,12 @@ window.PIANO_DATA = {
       title: `复习：${source.title}`,
       duration: 10,
       quick: true,
+      reviewFocus: focus,
+      reviewSummary,
       steps: [
-        { start: 0, end: 2, minutes: 2, title: '旧问题定位', category: '复习', detail: item.notes || item.reason || '先找到上次最不稳的两小节。', cue: '不从头弹' },
-        { start: 2, end: 7, minutes: 5, title: '慢速重练', category: '技术', detail: source.steps?.[2]?.detail || source.goal, cue: '分手、慢速、连续三次正确' },
-        { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
+        { start: 0, end: 2, minutes: 2, title: focus ? `先补：${focus}` : '旧问题定位', category: '复习', detail: focus ? `围绕“${focus}”先做一遍慢速自检，找到最不稳的 2–4 小节。` : reviewSummary, cue: '不从头弹' },
+        { start: 2, end: 7, minutes: 5, title: focus ? '按这个焦点慢练' : '慢速重练', category: '技术', detail: focus ? `只改一个变量：${focus}。分手、慢速、连续三次正确。` : (source.steps?.[2]?.detail || source.goal), cue: '分手、慢速、连续三次正确' },
+        { start: 7, end: 9, minutes: 2, title: '接回前后连接', category: '曲目', detail: focus ? `带着“${focus}”从问题前一小节进入，接到后一小节。` : '从问题小节前一小节进入，再接到后一小节。', cue: '连接比单点更重要' },
         { start: 9, end: 10, minutes: 1, title: '记录新状态', category: '反馈', detail: '再听/再弹一次，写下现在的感受。', cue: '只记一个变化' }
       ]
     };
@@ -9480,7 +9484,8 @@ window.PIANO_DATA = {
     const reviewItems = dueReviewItems();
     const reviewList = document.querySelector('#reviewList');
     if (reviewList) {
-      reviewList.innerHTML = reviewItems.length ? reviewItems.slice(0, 4).map((item, index) => `<button type="button" class="review-item" data-review-id="${escapeHtml(item.sourceId)}"><span class="review-number">${index + 1}</span><span><strong>${escapeHtml(String(item.title || '复习内容').replace('5 分钟快练：',''))}</strong><small>${escapeHtml(item.reason || '到期复习')} · 复习阶段 ${Math.min(5, Number(item.level) || 0)}/5</small></span><em>开始 →</em></button>`).join('') : '<div class="review-empty">今天的复习队列已清空。完成新课或记录卡点后，这里会自动排期。</div>';
+      const reviewSummary = (item) => String(item.focus || item.notes || item.reason || '到期复习').trim();
+      reviewList.innerHTML = reviewItems.length ? reviewItems.slice(0, 4).map((item, index) => `<button type="button" class="review-item" data-review-id="${escapeHtml(item.sourceId)}"><span class="review-number">${index + 1}</span><span><strong>${escapeHtml(String(item.title || '复习内容').replace('5 分钟快练：',''))}</strong><small>${escapeHtml(reviewSummary(item))} · 复习阶段 ${Math.min(5, Number(item.level) || 0)}/5</small></span><em>开始 →</em></button>`).join('') : '<div class="review-empty">今天的复习队列已清空。完成新课或记录卡点后，这里会自动排期。</div>';
       document.querySelector('#reviewCount').textContent = `${reviewItems.length} 项`;
       reviewList.querySelectorAll('[data-review-id]').forEach((button) => button.addEventListener('click', () => {
         const item = reviewItems.find((candidate) => candidate.sourceId === button.dataset.reviewId);
@@ -11047,7 +11052,10 @@ window.PIANO_DATA = {
       entry.needsReview = true;
       entry.notes = entry.notes || '掌握检查未通过：先复习错题对应的动作与听感，再重测。';
       entry.mastery = state.mastery?.[finished.id] || null;
-      APP.addReviewItem(finished.id, finished.title, '掌握检查未通过', 0, { notes: entry.notes });
+      const masteryMistakes = state.mastery?.[finished.id]?.lastMistakes || [];
+      const reviewFocus = masteryMistakes[0]?.focus || '';
+      const missedSkills = state.mastery?.[finished.id]?.lastMissedSkills || [];
+      APP.addReviewItem(finished.id, finished.title, '掌握检查未通过', 0, { notes: entry.notes, focus: reviewFocus, missedSkills, mistakes: masteryMistakes.slice(0, 3) });
       state.history = [entry, ...state.history.filter((item) => item.id !== finished.id || item.date !== entry.date)];
       state.history = state.history.slice(0, 400);
       APP.persist();

@@ -40,7 +40,9 @@ const expected = {
   homeMistakeCoach: 'function recentMistakeCoach()',
   homeMistakeCoachBridge: 'APP.getMistakeCoach = () => APP.recentMistakeCoach()',
   checkpointCategoryQuestions: 'function checkpointSignatureQuestion(step)',
-  checkpointCategoryContext: 'checkpointStep.category'
+  checkpointCategoryContext: 'checkpointStep.category',
+  reviewFocus: 'reviewFocus: focus',
+  reviewMistakeDetails: 'mistakes: masteryMistakes.slice(0, 3)'
 };
 for (const [label, fragment] of Object.entries(expected)) {
   if (!app.includes(fragment)) issues.push(`app.js: missing ${label} keyboard mapping`);

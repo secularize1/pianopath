@@ -156,6 +156,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('.home-route #routeCheck').getAttribute('class'), 'active', `${name}: failed mastery did not make the check the current step`);
     const queuedReview = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews?.['w1d1']);
     assert.ok(queuedReview?.dueAt, `${name}: failed mastery was not scheduled for review`);
+    assert.match(queuedReview?.focus || '', /缩到 2–4 小节/, `${name}: review queue lost the mistake focus`);
     const mistakeCoach = await page.evaluate(() => window.PIANO_APP.getMistakeCoach());
     assert.equal(mistakeCoach.sessionId, 'w1d1', `${name}: home mistake coach points at the wrong lesson`);
     assert.match(mistakeCoach.focus, /缩到 2–4 小节/, `${name}: home mistake coach has no actionable focus`);
@@ -637,6 +638,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#reviewCard').isVisible(), true, `${name}: review card missing`);
     assert.ok(await page.locator('.review-item').count() > 0, `${name}: review item missing`);
+    assert.match(await page.locator('#reviewList').innerText(), /缩到 2–4 小节|短段、多次|换和弦不稳/, `${name}: review card does not expose the concrete focus`);
     const reviewBefore = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews);
     assert.ok(reviewBefore && Object.keys(reviewBefore).length > 0, `${name}: review queue is empty`);
     await page.evaluate(() => window.PIANO_APP.updateNav('today'));
@@ -646,6 +648,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.waitForTimeout(300);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: home due-review shortcut did not open a session`);
     assert.match(await page.locator('#lessonTitle').innerText(), /^复习：/, `${name}: home due-review shortcut opened the wrong lesson`);
+    assert.match(await page.locator('.lesson-step.active').innerText(), /先补|旧问题定位/, `${name}: review session did not start from the concrete focus`);
     await page.locator('#finishSession').click();
     await page.waitForTimeout(250);
     await page.locator('#saveCompletion').click();

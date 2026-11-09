@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.39.0 — 2026-11-09
+
+- Persisted the concrete mastery mistake focus and missed skills into the review queue.
+- Exposed the real focus on review cards instead of only “mastery check failed”.
+- Rebuilt the 10-minute review first step around the saved focus.
+- Kept the home mistake coach, review card and review session on one shared summary.
+- Added desktop/mobile regression coverage for review-focus persistence and entry.
+
 ## 1.38.0 — 2026-11-09
 
 - Made mastery checks follow the active lesson phase instead of always using a generic question set.

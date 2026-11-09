@@ -1086,6 +1086,8 @@ body.modal-open { overflow:hidden; }
 .checkpoint-head { display:flex; justify-content:space-between; align-items:center; }
 .checkpoint-progress { display:flex; align-items:center; gap:9px; margin-top:12px; color:#8c9b91; font-size:8px; font-weight:800; }
 .checkpoint-progress > div { flex:1; height:5px; border-radius:6px; background:#edf0e8; overflow:hidden; }.checkpoint-progress i { display:block; width:0; height:100%; border-radius:inherit; background:#d6b74d; transition:width .3s ease; }
+.checkpoint-progress em { max-width:42%; overflow:hidden; padding:3px 7px; border-radius:999px; background:#f4eed9; color:#8b743b; font-size:9px; font-style:normal; text-overflow:ellipsis; white-space:nowrap; }
+@media(max-width:540px){ .checkpoint-progress{gap:6px}.checkpoint-progress em{max-width:46%;font-size:8px} }
 .checkpoint-panel h3 { margin:13px 0 11px; color:#3f5546; font-size:16px; line-height:1.5; }
 .checkpoint-options { display:grid; gap:6px; }.checkpoint-option { padding:9px 10px; border:1px solid #e2e8dd; border-radius:8px; background:#fff; color:#65766a; text-align:left; font-size:10px; line-height:1.5; }.checkpoint-option:hover { border-color:#bdd8c0; background:#f8fcf7; }.checkpoint-option.correct { border-color:#79bd88; background:#eaf8e8; color:#3d7e4b; }.checkpoint-option.wrong { border-color:#e0aa9e; background:#fdf1ed; color:#a75e51; }
 .checkpoint-feedback { min-height:18px; margin-top:8px; color:#8a998f; font-size:8px; line-height:1.6; }

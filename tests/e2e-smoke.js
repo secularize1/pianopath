@@ -107,6 +107,8 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('#openCheckpoint').click();
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#checkpointPanel').isVisible(), true, `${name}: mastery checkpoint missing`);
+    assert.equal(await page.locator('#checkpointContext').innerText(), '定向 · 键盘与节拍', `${name}: checkpoint did not follow the resumed practice step`);
+    assert.match(await page.locator('#checkpointQuestion').innerText(), /进入今天的练习前/, `${name}: orientation step used a generic checkpoint question`);
     for (let i = 0; i < 3; i += 1) {
       const options = await page.locator('.checkpoint-option').all();
       await options[0].click();
@@ -166,15 +168,23 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: mistake coach did not open the lesson`);
     assert.equal(await page.locator('#checkpointPanel').isVisible(), true, `${name}: mistake coach did not open the mastery panel`);
     await page.locator('#closeCheckpoint').click();
+    await page.locator('#completeStep').click();
+    await page.waitForTimeout(100);
+    await page.locator('#openCheckpoint').click();
+    await page.waitForTimeout(180);
+    assert.equal(await page.locator('#checkpointContext').innerText(), '技术 · 技术闭环', `${name}: checkpoint did not follow the active technical step`);
+    assert.match(await page.locator('#checkpointQuestion').innerText(), /技术练习/, `${name}: technical step used a generic checkpoint question`);
+    await page.locator('#closeCheckpoint').click();
     await page.locator('#closeLesson').click();
     await page.waitForTimeout(220);
     await page.locator('#startToday').click();
     await page.waitForTimeout(260);
 
-    // Retry with the correct answers: [0, 1, 1]. Passing at least 2/3 unlocks the next lesson.
+    // The retry resumes on the technical step, so all three technical answers are correct.
     await page.locator('#openCheckpoint').click();
     await page.waitForTimeout(250);
-    for (const choice of [0, 1, 1]) {
+    assert.equal(await page.locator('#checkpointContext').innerText(), '技术 · 技术闭环', `${name}: retry did not keep the technical checkpoint context`);
+    for (const choice of [1, 1, 1]) {
       await page.locator(`.checkpoint-option[data-checkpoint-option="${choice}"]`).click();
       await page.waitForTimeout(120);
       await page.locator('#checkpointNext').click();

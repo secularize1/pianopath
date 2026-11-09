@@ -1214,18 +1214,71 @@
   let checkpointAnswered = false;
   let checkpointRunMistakes = [];
   let checkpointRetryMode = false;
+  let checkpointStep = null;
+
+  function checkpointSignatureQuestion(step) {
+    const category = String(step.category || '');
+    const signatures = {
+      '入场': {
+        id: 'entry-ready', skill: 'technique', focus: '坐姿稳定，肩腕放松，先听再动',
+        q: '开始弹之前，最应该先确认什么？',
+        options: ['坐姿稳定、肩腕放松，再听一遍目标', '直接拉到最快速度', '先把所有音背下来'],
+        answer: 0,
+        explain: '身体准备和听觉目标先就位，后面的慢练才有质量。'
+      },
+      '定向': {
+        id: 'orient-scan', skill: 'read', focus: '先看拍号、速度与键盘位置',
+        q: '进入今天的练习前，最合理的定向顺序是？',
+        options: ['先确认拍号、速度和键盘位置，再空拍两小节', '直接从曲首冲到结尾', '只看手指，不管拍子'],
+        answer: 0,
+        explain: '先把拍号、速度和键位对上，再开始，能减少整段练习的返工。'
+      },
+      '技术': {
+        id: 'technique-even-relaxed', skill: 'technique', focus: '均匀、放松、声音稳定',
+        q: '技术练习中最重要的即时指标是？',
+        options: ['速度越快越好', '均匀、放松、声音稳定', '每个音都用力'],
+        answer: 1,
+        explain: '技术练习的质量来自均匀、放松和可控的声音，而不是盲目加速。'
+      },
+      '曲目': {
+        id: 'piece-small-section', skill: 'repertoire', focus: '小段、分手、半速、连接',
+        q: '曲目段落总是卡住时，最有效的拆法是？',
+        options: ['从头反复整首', '缩到 2–4 小节，分手慢练再接入前后文', '只练最熟的开头'],
+        answer: 1,
+        explain: '缩段、分手和连接能把“碰对一次”变成稳定可复现的动作。'
+      },
+      '读谱': {
+        id: 'sight-read-continue', skill: 'read', focus: '保持节拍，弹完再复盘',
+        q: '视奏时遇到错音，正确的第一反应是？',
+        options: ['停下来逐音纠正', '保持节拍继续，弹完再复盘', '从头重来'],
+        answer: 1,
+        explain: '视奏训练的是连续读谱与预判，错误留到弹完再处理。'
+      },
+      '听觉': {
+        id: 'ear-listen-first', skill: 'ear', focus: '先听清拍点和音高，再用琴声回应',
+        q: '听觉练习时，第一步应该做什么？',
+        options: ['先听清拍点和音高，再用琴声回应', '只看谱，不听声音', '把音量调到最大盖住节拍'],
+        answer: 0,
+        explain: '先听再回应，才会把注意力放在音高、拍点和声音结果上。'
+      },
+      '反馈': {
+        id: 'feedback-one-next-step', skill: 'practice', focus: '录一段，只写一个可执行下一步',
+        q: '录完一小段后，最有效的复盘方式是？',
+        options: ['只写一个具体、下次能做的改进点', '只评价自己有没有天赋', '马上录完整首并全部重来'],
+        answer: 0,
+        explain: '一次只改一个变量，下一次练习才有明确可验证的目标。'
+      }
+    };
+    if (signatures[category]) return signatures[category];
+    if (/视奏|陌生谱/.test(step.title + step.detail)) return signatures['读谱'];
+    if (/技术|音阶|哈农|琶音/.test(step.title + step.detail)) return signatures['技术'];
+    return signatures['入场'];
+  }
 
   function checkpointQuestionSet(step) {
+    const signature = checkpointSignatureQuestion(step);
     const base = [
-      {
-        id: 'focus-control',
-        skill: 'technique',
-        focus: '先慢速，确认动作与声音可控',
-        q: `这一步最关键的动作或听感检查是什么？`,
-        options: [`${step.title}：先慢速，确认均匀与放松`, '直接加速到目标速度', '只看手，不看谱和拍子'],
-        answer: 0,
-        explain: '练习先保证动作与声音可控，再逐步加速。'
-      },
+      signature,
       {
         id: 'shrink-problem',
         skill: 'technique',
@@ -1245,12 +1298,6 @@
         explain: '高质量练习需要短段、反馈和间歇，而不是无脑重复。'
       }
     ];
-    const template = String(step.detail || '').split(/[。；]/).filter(Boolean).slice(0, 2).join('；');
-    if (/视奏|陌生谱/.test(step.title + step.detail)) {
-      base[0] = { id: 'sight-read-continue', skill: 'read', focus: '保持节拍，弹完再复盘', q: '视奏时遇到错音，正确的第一反应是？', options: ['停下来逐音纠正', '保持节拍继续，弹完再复盘', '从头重来'], answer: 1, explain: '视奏训练的是连续读谱与预判，错误留到弹完再处理。' };
-    } else if (/技术|音阶|哈农|琶音/.test(step.title + step.detail)) {
-      base[0] = { id: 'technique-even-relaxed', skill: 'technique', focus: '均匀、放松、声音稳定', q: '技术练习中最重要的即时指标是？', options: ['速度越快越好', '均匀、放松、声音稳定', '每个音都用力'], answer: 1, explain: '技术练习的质量来自均匀、放松和可控的声音，而不是盲目加速。' };
-    }
     return base;
   }
 
@@ -1270,9 +1317,9 @@
 
   function openCheckpoint() {
     if (!session) return;
-    const step = session.steps[stepIndex] || session.steps[0];
+    checkpointStep = session.steps[stepIndex] || session.steps[0];
     document.querySelector('#checkpointPanel').classList.remove('hidden');
-    resetCheckpointRun(checkpointQuestionSet(step));
+    resetCheckpointRun(checkpointQuestionSet(checkpointStep));
   }
 
   function retryCheckpointMistakes() {
@@ -1290,6 +1337,8 @@
   function renderCheckpointQuestion() {
     const question = checkpointQuestions[checkpointIndex];
     checkpointAnswered = false;
+    const context = document.querySelector('#checkpointContext');
+    if (context && checkpointStep) context.textContent = `${checkpointStep.category} · ${checkpointStep.title}`;
     document.querySelector('#checkpointProgress').textContent = `${checkpointIndex + 1} / ${checkpointQuestions.length}`;
     document.querySelector('#checkpointProgressBar').style.width = `${((checkpointIndex) / checkpointQuestions.length) * 100}%`;
     document.querySelector('#checkpointQuestion').textContent = question.q;

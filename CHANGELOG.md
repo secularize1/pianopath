@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.38.0 — 2026-11-09
+
+- Made mastery checks follow the active lesson phase instead of always using a generic question set.
+- Added phase-specific evidence for entry preparation, orientation, technique, repertoire, sight-reading, ear training and reflection.
+- Displayed the active phase and step above each checkpoint.
+- Tagged phase-specific mistakes with the matching read, technique, repertoire or ear skill.
+- Added desktop/mobile regression coverage for phase context and question selection.
+
 ## 1.37.0 — 2026-11-09
 
 - Added a persistent home mistake coach for the most recent failed mastery check.

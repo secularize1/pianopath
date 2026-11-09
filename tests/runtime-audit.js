@@ -36,7 +36,9 @@ const expected = {
   pianoSynthFallback: 'function playSynthPiano(freq, duration, velocity = .68)',
   checkpointMistakeRetry: 'function retryCheckpointMistakes()',
   checkpointMistakePersistence: 'lastMissedSkills:',
-  checkpointSnapshotBridge: 'APP.getCheckpointSnapshot'
+  checkpointSnapshotBridge: 'APP.getCheckpointSnapshot',
+  homeMistakeCoach: 'function recentMistakeCoach()',
+  homeMistakeCoachBridge: 'APP.getMistakeCoach = () => APP.recentMistakeCoach()'
 };
 for (const [label, fragment] of Object.entries(expected)) {
   if (!app.includes(fragment)) issues.push(`app.js: missing ${label} keyboard mapping`);

@@ -532,6 +532,20 @@
     const session = currentSessionData();
     const weekDone = sessions.filter((item) => isComplete(item.id)).length;
     const current = session || sessions[0];
+    const mistakeCoach = recentMistakeCoach();
+    const mistakeCard = document.querySelector('#homeMistakeCoach');
+    if (mistakeCard) {
+      mistakeCard.classList.toggle('hidden', !mistakeCoach);
+      if (mistakeCoach) {
+        const focus = document.querySelector('#homeMistakeFocus');
+        const meta = document.querySelector('#homeMistakeMeta');
+        if (focus) focus.textContent = mistakeCoach.focus;
+        if (meta) meta.textContent = `${mistakeCoach.mistakeCount} 个错题 · ${mistakeCoach.title}`;
+        mistakeCard.dataset.sessionId = mistakeCoach.sessionId;
+      } else {
+        mistakeCard.removeAttribute('data-session-id');
+      }
+    }
 
     if (current) {
       const setText = (selector, value) => { const element = document.querySelector(selector); if (element) element.textContent = value; };
@@ -789,6 +803,23 @@
     return { ...report.weakest, title: '练一次听辨', hint: '用两分钟找回音高和节奏', action: 'game', actionLabel: '开始听辨游戏 →' };
   }
 
+  function recentMistakeCoach() {
+    const entries = Object.entries(state.mastery || {})
+      .filter(([, item]) => item && Number(item.last) < MASTERY_PASS_PERCENT && Array.isArray(item.lastMistakes) && item.lastMistakes.length)
+      .sort((a, b) => String(b[1].updatedAt || '').localeCompare(String(a[1].updatedAt || '')));
+    if (!entries.length) return null;
+    const [sessionId, mastery] = entries[0];
+    const lesson = findSession(sessionId);
+    if (!lesson) return null;
+    return {
+      sessionId,
+      title: lesson.title,
+      focus: mastery.lastMistakes[0]?.focus || '先补上次的薄弱点',
+      mistakeCount: mastery.lastMistakes.length,
+      skills: Array.isArray(mastery.lastMissedSkills) ? mastery.lastMissedSkills.slice(0, 3) : []
+    };
+  }
+
   function weeklyRecapData() {
     const currentKeys = weekKeysFor(0);
     const previousKeys = weekKeysFor(-1);
@@ -970,7 +1001,7 @@
     sessionsForWeek, currentWeekData, currentSessionData, streakCount,
     addReviewItem, completeReviewItem, dueReviewItems, reviewSessionFor,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
-    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar, startStagePractice, weeklyRecapData,
+    getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar, startStagePractice, weeklyRecapData, recentMistakeCoach,
     replaceState(nextState) {
       Object.keys(state).forEach((key) => delete state[key]);
       Object.assign(state, structuredClone(defaultState), nextState || {});
@@ -4721,6 +4752,13 @@
     $('#librarySearch')?.addEventListener('input', (event) => {
       APP.renderLibrary(undefined, event.target.value);
     });
+    document.querySelector('#openMistakeCoach')?.addEventListener('click', () => {
+      const coach = APP.recentMistakeCoach();
+      if (!coach) return;
+      APP.updateNav('today');
+      openSession(coach.sessionId);
+      setTimeout(() => openCheckpoint(), 600);
+    });
     document.querySelector('#clearHistory')?.addEventListener('click', () => {
       confirmAction({
         title: '清除练习记录？',
@@ -4930,6 +4968,8 @@
   });
   APP.getHistoryRecordingIds = () => state.history.filter((entry) => entry.recording?.id).map((entry) => entry.recording.id);
   APP.getWeeklyRecap = () => APP.weeklyRecapData();
+  APP.getMistakeCoach = () => APP.recentMistakeCoach();
+  APP.openCheckpoint = () => openCheckpoint();
   APP.getCheckpointSnapshot = () => {
     const active = document.querySelector('#checkpointPanel') && !document.querySelector('#checkpointPanel').classList.contains('hidden');
     const activeState = active && session ? state.mastery?.[session.id] || null : null;

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.37.0 — 2026-11-09
+
+- Added a persistent home mistake coach for the most recent failed mastery check.
+- The coach reopens the exact lesson and checkpoint, then disappears after a successful retry.
+- Kept mistake retry, correction feedback, synced weak-skill evidence and the 2/3 mastery gate in the same flow.
+- Added desktop/mobile regression coverage for home retrieval and automatic retry clearance.
+
 ## 1.36.0 — 2026-11-09
 
 - Added explicit correction cues to wrong mastery answers.
@@ -7,7 +14,9 @@
 - Added “retry mistakes only” without bypassing the mastery threshold.
 - Persisted missed skills, mistake focus and last result into the synced mastery profile.
 - Made the four-skill profile account for recent missed concepts instead of only accumulating positive practice.
-- Added desktop/mobile regression coverage for correction, retry and persistence.
+- Added a home “where you got stuck” coach that reopens the exact lesson and mastery panel.
+- Cleared the retrieval cue automatically after the learner passes the retry.
+- Added desktop/mobile regression coverage for correction, retry, home retrieval and persistence.
 
 ## 1.35.0 — 2026-11-08
 

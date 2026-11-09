@@ -154,6 +154,22 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('.home-route #routeCheck').getAttribute('class'), 'active', `${name}: failed mastery did not make the check the current step`);
     const queuedReview = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).reviews?.['w1d1']);
     assert.ok(queuedReview?.dueAt, `${name}: failed mastery was not scheduled for review`);
+    const mistakeCoach = await page.evaluate(() => window.PIANO_APP.getMistakeCoach());
+    assert.equal(mistakeCoach.sessionId, 'w1d1', `${name}: home mistake coach points at the wrong lesson`);
+    assert.match(mistakeCoach.focus, /缩到 2–4 小节/, `${name}: home mistake coach has no actionable focus`);
+    await page.locator('#closeLesson').click();
+    await page.waitForTimeout(220);
+    assert.equal(await page.locator('#homeMistakeCoach').isVisible(), true, `${name}: home mistake coach missing after failed mastery`);
+    assert.match(await page.locator('#homeMistakeFocus').innerText(), /缩到 2–4 小节/, `${name}: home mistake coach focus missing`);
+    await page.locator('#openMistakeCoach').click();
+    await page.waitForTimeout(760);
+    assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: mistake coach did not open the lesson`);
+    assert.equal(await page.locator('#checkpointPanel').isVisible(), true, `${name}: mistake coach did not open the mastery panel`);
+    await page.locator('#closeCheckpoint').click();
+    await page.locator('#closeLesson').click();
+    await page.waitForTimeout(220);
+    await page.locator('#startToday').click();
+    await page.waitForTimeout(260);
 
     // Retry with the correct answers: [0, 1, 1]. Passing at least 2/3 unlocks the next lesson.
     await page.locator('#openCheckpoint').click();
@@ -175,10 +191,11 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.waitForTimeout(1000);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: next lesson did not open`);
     assert.equal(await page.locator('#lessonTitle').innerText(), '左手也说话', `${name}: wrong next lesson`);
+    await page.locator('#closeLesson').click();
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator('#homeMistakeCoach').isVisible(), false, `${name}: recovered mastery left the mistake coach visible`);
     const lessonXp = Number((await page.locator('#xpValue').innerText()).replace(/\D/g, ''));
     assert.ok(lessonXp >= 30, `${name}: lesson or play-along XP not awarded`);
-    await page.locator('#closeLesson').click();
-    await page.waitForTimeout(250);
 
     assert.equal(await page.locator('#homeWeekTrail .week-trail-item').count(), 4, `${name}: week trail incomplete`);
     assert.equal(await page.locator('#homeWeekTrail .week-trail-item.locked').count(), 2, `${name}: sequential locks incorrect`);

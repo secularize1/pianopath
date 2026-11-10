@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.5 — 2026-11-10
+
+- Raised contrast for high-value secondary text across the path, repertoire and progress screens.
+- Kept the mobile reading scale and 44px touch targets from 1.41.4.
+- Added a static guard so the contrast pass cannot silently disappear.
+- Left the primary piano, lesson and audio presentation unchanged.
+
 ## 1.41.4 — 2026-11-10
 
 - Finished the mobile reading pass for teaching-library method notes and secondary actions.

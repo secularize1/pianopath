@@ -91,6 +91,11 @@ if (serviceWorker.includes('cache.addAll(APP_SHELL)')) issues.push('sw.js: monol
 if (!serviceWorker.includes('CORE_SHELL') || !serviceWorker.includes('PIANO_SHELL')) issues.push('sw.js: core and piano precache must be separated');
 if (!serviceWorker.includes('cacheWithRetry(')) issues.push('sw.js: precache retry missing');
 if (!installBlock.includes('precacheInBatches(cache, CORE_SHELL')) issues.push('sw.js: mandatory core shell precache missing');
+const styleSource = fs.readFileSync('styles.css', 'utf8');
+if (!styleSource.includes('/* === 1.43 readable secondary contrast === */')) issues.push('styles.css: mobile secondary contrast pass missing');
+for (const selector of ['.week-day-btn span', '.repertoire-head p', '.stat-card em', '.resource-footer span']) {
+  if (!styleSource.includes(selector)) issues.push(`styles.css: contrast selector missing ${selector}`);
+}
 
 console.log(JSON.stringify({ checked: runtimeFiles, releaseVersion: packageMeta.version, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', offlinePrecache: 'batched-retry', issues }, null, 2));
 assert.deepEqual(issues, []);

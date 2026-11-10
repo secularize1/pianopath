@@ -1709,3 +1709,32 @@ button, input, select, textarea { font-family: inherit; }
   .method-card a { min-height: 44px; display: inline-flex; align-items: center; }
   .search-field input { min-height: 44px; }
 }
+
+
+/* === 1.43 readable secondary contrast === */
+@media (max-width: 820px) {
+  .home-route { color: #607367; }
+  .trail-copy small { color: #617469; }
+  .trail-copy em { color: #607368; }
+  .game-tile small,
+  .game-tile-best { color: #5c6f63; }
+  .stage-card > p,
+  .resource-body p,
+  .repertoire-desc { color: #5f7165; }
+  .resource-footer span,
+  .repertoire-note,
+  .repertoire-modal-hint { color: #5d6f63; }
+  .repertoire-head p { color: #5d6f63; }
+  .repertoire-grade { color: #4d6854; }
+  .repertoire-skills span { color: #5e7164; }
+  .repertoire-progress-top { color: #5d7064; }
+  .weekly-recap-grid small,
+  .weekly-recap-grid em,
+  .history-item small { color: #62756a; }
+  .week-day-btn span { color: #5f7266; }
+  .week-tag { color: #5f7165; background: #eef3eb; }
+  .stat-card > span { color: #66796d; }
+  .stat-card strong small { color: #607368; }
+  .stat-card em { color: #66796d; }
+  .daily-quest small { color: #5f7266; }
+}

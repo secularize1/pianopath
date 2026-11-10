@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.40.1 — 2026-11-10
+
+- Fixed an offline-install stall caused by precaching 173 resources in one `cache.addAll()` request.
+- Precache now installs the core app shell first, then piano samples in small batches.
+- Every shell asset gets bounded retries; the mandatory app shell fails loudly instead of activating incomplete.
+- Added release-version and Service Worker activation checks to regression coverage.
+
 ## 1.40.0 — 2026-11-09
 
 - Kept the virtual piano on a two-row computer-keyboard layout while moving the white keys to one continuous lower row (`Z X C V B N M , . / N1–N6`).

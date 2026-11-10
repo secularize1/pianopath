@@ -72,5 +72,25 @@ if (!app.includes('task: recordingState.metadata?.task || syncRecordingTask()'))
 if (!app.includes('function weeklyRecapData(')) issues.push('app.js: weekly recap calculation missing');
 if (!app.includes('function renderWeeklyRecap(')) issues.push('app.js: weekly recap rendering missing');
 if (!app.includes('APP.getWeeklyRecap = () => APP.weeklyRecapData()')) issues.push('app.js: weekly recap test bridge missing');
-console.log(JSON.stringify({ checked: runtimeFiles, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', issues }, null, 2));
+
+const packageMeta = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const dataSource = fs.readFileSync('data.js', 'utf8');
+const indexSource = fs.readFileSync('index.html', 'utf8');
+const serviceWorker = fs.readFileSync('sw.js', 'utf8');
+const serverSource = fs.readFileSync('server.py', 'utf8');
+const appVersion = dataSource.match(/"appVersion":\s*"([^"]+)"/)?.[1];
+const cacheVersion = serviceWorker.match(/const CACHE = 'pianopath-v([^']+)'/)?.[1];
+const displayVersion = indexSource.match(/琴阶\s*([0-9.]+)/)?.[1];
+const serverVersion = serverSource.match(/server_version = "PianoPath\/([0-9.]+)"/)?.[1];
+const installBlock = serviceWorker.substring(serviceWorker.indexOf("self.addEventListener('install'"), serviceWorker.indexOf("self.addEventListener('activate'"));
+if (appVersion !== packageMeta.version) issues.push(`release version mismatch: data ${appVersion} vs package ${packageMeta.version}`);
+if (cacheVersion !== packageMeta.version) issues.push(`release version mismatch: cache ${cacheVersion} vs package ${packageMeta.version}`);
+if (displayVersion !== packageMeta.version) issues.push(`release version mismatch: index ${displayVersion} vs package ${packageMeta.version}`);
+if (serverVersion !== packageMeta.version) issues.push(`release version mismatch: server ${serverVersion} vs package ${packageMeta.version}`);
+if (serviceWorker.includes('cache.addAll(APP_SHELL)')) issues.push('sw.js: monolithic app-shell precache can stall installation');
+if (!serviceWorker.includes('CORE_SHELL') || !serviceWorker.includes('PIANO_SHELL')) issues.push('sw.js: core and piano precache must be separated');
+if (!serviceWorker.includes('cacheWithRetry(')) issues.push('sw.js: precache retry missing');
+if (!installBlock.includes('precacheInBatches(cache, CORE_SHELL')) issues.push('sw.js: mandatory core shell precache missing');
+
+console.log(JSON.stringify({ checked: runtimeFiles, releaseVersion: packageMeta.version, webMidiReferences: issues.filter((issue) => issue.includes('Web MIDI')).length, nativeDialogReferences: issues.filter((issue) => issue.includes('native dialog')).length, keyboardMapping: 'piano-layers-numpad', offlinePrecache: 'batched-retry', issues }, null, 2));
 assert.deepEqual(issues, []);

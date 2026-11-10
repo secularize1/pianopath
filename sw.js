@@ -1,5 +1,5 @@
 /* PianoPath service worker - offline-first app shell */
-const CACHE = 'pianopath-v1.40.0';
+const CACHE = 'pianopath-v1.40.1';
 const APP_SHELL = [
   './',
   './index.html',
@@ -177,8 +177,48 @@ const APP_SHELL = [
   './assets/audio/piano/Fs7v7.mp3'
 ];
 
+const CORE_SHELL = APP_SHELL.filter((url) => !url.includes('/assets/audio/piano/'));
+const PIANO_SHELL = APP_SHELL.filter((url) => url.includes('/assets/audio/piano/'));
+
+async function cacheWithRetry(cache, url, attempts = 3) {
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, { cache: 'reload' });
+      if (!response.ok) throw new Error(`Precache failed: ${url} (${response.status})`);
+      await cache.put(url, response);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt + 1 < attempts) await new Promise((resolve) => setTimeout(resolve, 250 * (2 ** attempt)));
+    }
+  }
+  throw lastError;
+}
+
+async function precacheInBatches(cache, urls, batchSize, required = true) {
+  const failures = [];
+  for (let index = 0; index < urls.length; index += batchSize) {
+    const batch = urls.slice(index, index + batchSize);
+    const results = await Promise.allSettled(batch.map((url) => cacheWithRetry(cache, url)));
+    results.forEach((result, batchIndex) => {
+      if (result.status === 'rejected') failures.push({ url: batch[batchIndex], reason: result.reason });
+    });
+  }
+  if (required && failures.length) {
+    throw new Error(`Required offline shell failed: ${failures.map((item) => item.url).join(', ')}`);
+  }
+  return failures;
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    // The app shell is mandatory; piano samples are batched after it and retried.
+    await precacheInBatches(cache, CORE_SHELL, 6, true);
+    await precacheInBatches(cache, PIANO_SHELL, 12, false);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {

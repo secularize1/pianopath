@@ -69,14 +69,16 @@ async function waitForServer(url) {
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForFunction(() => Boolean(window.PIANO_APP), null, { timeout: 15000 });
-    await page.waitForTimeout(3500);
+    await page.waitForTimeout(1200);
     await page.waitForFunction(async (expectedCache) => {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration?.active || registration.active.state !== 'activated') return false;
       const keys = await caches.keys();
       if (!keys.includes(expectedCache)) return false;
       const cache = await caches.open(expectedCache);
       const urls = (await cache.keys()).map((request) => request.url);
       return ['/app.js', '/data.js', '/styles.css', '/assets/audio/piano/C4v3.mp3', '/assets/audio/piano/C4v16.mp3', '/assets/audio/piano/C8v11.mp3'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
-    }, cacheVersion, { timeout: 20000 });
+    }, cacheVersion, { timeout: 45000 });
     const cached = await page.evaluate(async (expectedCache) => {
       const keys = await caches.keys();
       if (!keys.includes(expectedCache)) return { keys, urls: [] };
@@ -84,7 +86,12 @@ async function waitForServer(url) {
       return { keys, urls: (await cache.keys()).map((request) => request.url) };
     }, cacheVersion);
     assert.ok(cached.keys.includes(cacheVersion), `cache ${cacheVersion} missing`);
-    assert.ok(cached.urls.length > 0, `offline app shell is incomplete: ${cached.urls.join(', ')}`);
+    assert.ok(cached.urls.length >= 170, `offline app shell is incomplete: ${cached.urls.length} entries`);
+    const activeWorker = await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.getRegistration();
+      return { active: registration?.active?.state || null, controller: Boolean(navigator.serviceWorker.controller) };
+    });
+    assert.equal(activeWorker.active, 'activated', 'offline service worker did not activate');
     await context.setOffline(true);
     for (const sample of ['/assets/audio/piano/C4v3.mp3', '/assets/audio/piano/C4v16.mp3', '/assets/audio/piano/C8v11.mp3']) {
       const response = await page.evaluate(async (url) => {

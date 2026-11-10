@@ -281,6 +281,24 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('#rhythmPianoModal').isVisible(), true, `${name}: free-play home entry did not open the piano`);
     assert.equal(await page.locator('#rhythmFreePlay').isVisible(), true, `${name}: free-play home entry did not enter free play`);
     if (await page.locator('#keyboardGuideModal').isVisible()) {
+      await page.evaluate(() => {
+        document.documentElement.dataset.theme = 'dark';
+        document.querySelector('#themeToggle').setAttribute('aria-label', '切换浅色模式');
+        document.querySelector('#themeToggle').setAttribute('aria-pressed', 'true');
+      });
+      const darkTutorial = await page.evaluate(() => {
+        const card = document.querySelector('.keyboard-guide-card');
+        const map = document.querySelector('#keyboardGuideComputerMap');
+        const surface = (element) => getComputedStyle(element).backgroundColor;
+        return { card: surface(card), map: surface(map) };
+      });
+      assert.match(darkTutorial.map, /^rgb\(32, 49, 38\)$/, `${name}: dark-mode computer-key map kept a light surface`);
+      assert.notEqual(darkTutorial.card, 'rgb(255, 255, 255)', `${name}: dark-mode tutorial card kept a white surface`);
+      await page.evaluate(() => {
+        document.documentElement.dataset.theme = 'light';
+        document.querySelector('#themeToggle').setAttribute('aria-label', '切换深色模式');
+        document.querySelector('#themeToggle').setAttribute('aria-pressed', 'false');
+      });
       await page.locator('#closeKeyboardGuide').click();
       await page.waitForTimeout(80);
     }
@@ -366,6 +384,30 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       assert.ok(label.fontSize >= 9, `${name}: key label ${label.text} is too small`);
       assert.equal(label.clipped, false, `${name}: key label ${label.text} is clipped`);
     }
+    const computerMap = await page.evaluate(() => {
+      const map = document.querySelector('#keyboardGuideComputerMap');
+      const keys = [...map.querySelectorAll('.keyboard-guide-computer-key')];
+      return {
+        count: keys.length,
+        black: keys.filter((key) => key.closest('.keyboard-guide-computer-row.blacks') && !key.classList.contains('gap')).map((key) => key.dataset.computerCode),
+        gaps: keys.filter((key) => key.classList.contains('gap')).map((key) => key.dataset.computerCode),
+        white: [...map.querySelectorAll('.keyboard-guide-computer-row.whites .keyboard-guide-computer-key')].map((key) => key.dataset.computerCode),
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+      };
+    });
+    assert.equal(computerMap.count, 28, `${name}: computer-key map should show 12 black-row positions and 16 white keys`);
+    assert.deepEqual(computerMap.black, ['KeyA', 'KeyS', 'KeyF', 'KeyG', 'KeyH', 'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Enter'], `${name}: computer-key black row drifted`);
+    assert.deepEqual(computerMap.gaps, ['KeyD', 'KeyJ'], `${name}: computer-key map should expose the D/J real-piano gaps`);
+    assert.deepEqual(computerMap.white, ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6'], `${name}: computer-key white row drifted`);
+    assert.equal(computerMap.overflow, 0, `${name}: computer-key map caused page overflow`);
+    assert.equal(await page.locator('#keyboardGuideComputerMap [data-computer-code="Numpad7"]').count(), 0, `${name}: numpad 7 must not be part of the black-key map`);
+    const tinyComputerKeys = await page.evaluate(() => [...document.querySelectorAll('#keyboardGuideComputerMap .keyboard-guide-computer-key')]
+      .filter((key) => {
+        const bounds = key.getBoundingClientRect();
+        return bounds.width < 28 || bounds.height < 40;
+      })
+      .map((key) => key.dataset.computerCode));
+    assert.deepEqual(tinyComputerKeys, [], `${name}: computer-key map contains a clipped or tiny key`);
     const pianoLabels = await page.evaluate(() => [...document.querySelectorAll('#freePlayKeyboard .rhythm-key small')].map((label) => {
       const style = getComputedStyle(label);
       return { text: label.textContent, opacity: style.opacity, fontSize: parseFloat(style.fontSize), clipped: label.scrollWidth > label.clientWidth + 1 };
@@ -385,6 +427,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.waitForTimeout(40);
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '1 / 3', `${name}: tutorial keyboard progress wrong`);
     assert.equal(await page.locator('.keyboard-guide-key.target').getAttribute('data-guide-note'), '49', `${name}: second tutorial target missing`);
+    assert.equal(await page.locator('#keyboardGuideComputerMap .keyboard-guide-computer-key.target').getAttribute('data-computer-code'), 'KeyA', `${name}: computer map did not follow the tutorial target`);
     await page.keyboard.press('a');
     await page.waitForTimeout(40);
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '2 / 3', `${name}: second tutorial key did not advance`);

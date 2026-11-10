@@ -56,6 +56,9 @@ for (const layer of [3, 7, 11, 13, 16]) {
   }
 }
 if (!fs.readFileSync('index.html', 'utf8').includes('id="keyboardGuideModal"')) issues.push('index.html: keyboard guide modal missing');
+if (!fs.readFileSync('index.html', 'utf8').includes('id="keyboardGuideComputerMap"')) issues.push('index.html: computer-key diagram missing');
+if (!app.includes('function keyboardGuideComputerMapMarkup()')) issues.push('app.js: computer-key diagram markup missing');
+if (!app.includes('data-computer-code="${code}"')) issues.push('app.js: computer-key diagram physical codes missing');
 if (!app.includes('navigator.mediaDevices.getUserMedia')) issues.push('app.js: microphone permission flow missing');
 if (!app.includes('new Blob(recordingState.chunks')) issues.push('app.js: local audio blob creation missing');
 if (!app.includes('putRecordingRecord')) issues.push('app.js: local recording persistence missing');

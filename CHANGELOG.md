@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.41.9 — 2026-11-10
+
+- Added an interactive computer-keyboard diagram inside the piano tutorial.
+- The diagram preserves the real `2 / 3 / 2 / 3` black-key grouping and visibly marks `D` and `J` as gaps.
+- Kept white keys on one continuous `Z–/ · N1–N6` row; numpad 7–9 remain unused.
+- Diagram keys preview their note, follow the guided target and mirror physical-key presses.
+- The tutorial and computer-key map now use complete dark surfaces and readable secondary text.
+- Added desktop/mobile coverage for the map layout, physical codes, gaps, touch sizes, dark surfaces and tutorial highlighting.
+
 ## 1.41.8 — 2026-11-10
 
 - Completed dark-mode surfaces for the home game lab, daily quests, repertoire cards and progress cards.

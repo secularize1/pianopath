@@ -3492,6 +3492,24 @@
     }).join('');
     return `<div class="keyboard-guide-piano"><div class="keyboard-guide-keybed"><div class="keyboard-guide-blacks">${black}</div><div class="keyboard-guide-whites">${white}</div></div></div>`;
   }
+  function keyboardGuideComputerMapMarkup() {
+    const blackByCode = new Map(RHYTHM_BLACK_KEYS.map((key) => [key.code, key]));
+    const topKeys = [
+      ['KeyA', 'A'], ['KeyS', 'S'], ['KeyD', 'D'], ['KeyF', 'F'], ['KeyG', 'G'], ['KeyH', 'H'],
+      ['KeyJ', 'J'], ['KeyK', 'K'], ['KeyL', 'L'], ['Semicolon', ';'], ['Quote', "'"], ['Enter', '↵']
+    ];
+    const top = topKeys.map(([code, cap]) => {
+      const key = blackByCode.get(code);
+      if (!key) return `<button type="button" class="keyboard-guide-computer-key gap" data-computer-code="${code}" aria-label="${cap} 键，钢琴此处留空"><b>${cap}</b><small>留空</small></button>`;
+      return `<button type="button" class="keyboard-guide-computer-key" data-computer-code="${code}" aria-label="${cap} 键，弹 ${key.name}"><b>${cap}</b><small>${key.name}</small></button>`;
+    }).join('');
+    const white = RHYTHM_WHITE_KEYS.map((key, index) => {
+      const groupStart = index === 7 ? ' second-octave' : index === 10 ? ' numpad-start' : '';
+      return `<button type="button" class="keyboard-guide-computer-key${groupStart}" data-computer-code="${key.code}" aria-label="${computerKeyLabel(key.key, key.code)} 键，弹 ${key.name}"><b>${computerKeyLabel(key.key, key.code)}</b><small>${key.name}</small></button>`;
+    }).join('');
+    return `<div class="keyboard-guide-computer-rows"><div class="keyboard-guide-computer-row blacks" aria-label="黑键电脑按键：A S，F G H，K L，分号、单引号、回车">${top}</div><div class="keyboard-guide-computer-row whites" aria-label="白键电脑按键：Z 到斜杠，再接小键盘 1 到 6">${white}</div></div>`;
+  }
+
   function guideKeyForEvent(event) {
     return RHYTHM_KEYBOARD_ROWS.flatMap((row) => row.keys.map((key, index) => ({
       key,
@@ -3505,6 +3523,7 @@
     const expected = KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep];
     document.querySelectorAll('.keyboard-guide-key').forEach((key) => key.classList.toggle('target', Number(key.dataset.guideNote) === expected));
     const instrumentKey = [...RHYTHM_WHITE_KEYS, ...RHYTHM_BLACK_KEYS].find((key) => key.note === expected);
+    document.querySelectorAll('#keyboardGuideComputerMap .keyboard-guide-computer-key').forEach((key) => key.classList.toggle('target', key.dataset.computerCode === instrumentKey?.code));
     const status = document.querySelector('#keyboardGuideStatus');
     if (status && instrumentKey && keyboardGuideStep < KEYBOARD_GUIDE_SEQUENCE.length) status.textContent = `先找 ${instrumentKey.name} · 按 ${computerKeyLabel(instrumentKey.key, instrumentKey.code)}`;
   }
@@ -3512,8 +3531,13 @@
   function previewKeyboardGuideKey(note, key) {
     playTone(261.63 * Math.pow(2, (note - 60) / 12), .28, note);
     const target = document.querySelector(`.keyboard-guide-key[data-guide-note="${note}"]`);
+    const computerTarget = document.querySelector(`#keyboardGuideComputerMap .keyboard-guide-computer-key[data-computer-code="${key.code}"]`);
     target?.classList.add('pressed');
-    setTimeout(() => target?.classList.remove('pressed'), 180);
+    computerTarget?.classList.add('pressed');
+    setTimeout(() => {
+      target?.classList.remove('pressed');
+      computerTarget?.classList.remove('pressed');
+    }, 180);
     const expected = KEYBOARD_GUIDE_SEQUENCE[keyboardGuideStep];
     if (note === expected) {
       keyboardGuideStep = Math.min(KEYBOARD_GUIDE_SEQUENCE.length, keyboardGuideStep + 1);
@@ -3763,6 +3787,8 @@
     if (!modal || !rows) return;
     keyboardGuideOrigin = origin;
     rows.innerHTML = keyboardGuideMarkup();
+    const computerMap = document.querySelector('#keyboardGuideComputerMap');
+    if (computerMap) computerMap.innerHTML = keyboardGuideComputerMapMarkup();
     const start = document.querySelector('#keyboardGuideStart');
     if (start) start.textContent = origin === 'freeplay' ? '开始自由弹' : origin === 'rhythm' ? '去选曲目' : '知道了';
     keyboardGuideStep = 0;
@@ -4174,6 +4200,12 @@
       if (!button) return;
       const key = guideKeyForEvent({ code: button.dataset.guideCode, key: '' });
       if (key) previewKeyboardGuideKey(Number(button.dataset.guideNote), key);
+    });
+    document.querySelector('#keyboardGuideComputerMap')?.addEventListener('click', (event) => {
+      const button = event.target.closest('.keyboard-guide-computer-key');
+      if (!button) return;
+      const key = guideKeyForEvent({ code: button.dataset.computerCode, key: '' });
+      if (key) previewKeyboardGuideKey(key.note, key);
     });
     document.addEventListener('keydown', handleKeyboardGuideKeydown);
     document.querySelector('#keyboardGuideStart')?.addEventListener('click', () => {

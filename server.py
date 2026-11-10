@@ -254,7 +254,7 @@ def public_path(path: str) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "PianoPath/1.41.8"
+    server_version = "PianoPath/1.41.9"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)

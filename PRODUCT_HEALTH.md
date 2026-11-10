@@ -1,10 +1,10 @@
-# PianoPath 1.41.8 — 产品健康检查
+# PianoPath 1.41.9 — 产品健康检查
 
 | 维度 | 当前状态 | 证据 |
 |---|---|---|
 | 课程完整度 | 12 周 / 48 次 / 336 步 / 每次 60 分钟；另有 5 个长期阶段训练 | `tests/content-audit.js` / Playwright |
 | 国内资源 | 48 节课均有国内或官方来源，主路径无 YouTube | `tests/content-audit.js` |
-| 电脑键盘 | 白键 `Z–/` 后接 `N1–N6`，黑键 `A S · F G H · K L · ; ' Enter`；屏幕黑键 2/3 几何逐一验证，物理键码、移调与节奏命中有回归 | `tests/e2e-smoke.js` |
+| 电脑键盘 | 白键 `Z–/` 后接 `N1–N6`，黑键 `A S · F G H · K L · ; ' Enter`；教程内提供可试听电脑键示意图，明确 `D/J` 空位与 7–9 不参与黑键；屏幕黑键 2/3 几何逐一验证 | `tests/e2e-smoke.js` / Playwright |
 | 首次引导 | 三步选择；首次自由弹进入引导式键位教程；首页单一主入口可恢复中断练习 | Playwright |
 | 掌握门槛 | 2/3 通过才完成课程并解锁下一课；题目随当前环节变化；答错显示纠正点，可只重练错题，错题能力进入档案 | Playwright / `tests/e2e-smoke.js` |
 | 音乐练习 | 12 首短曲（8 首公共领域 + 4 首流行练习片段）；触屏 + 两排电脑辅助键位；自由弹 C1–D7；40–208 BPM 节拍器；Salamander Grand Piano V3（Yamaha C5，A0–C8，30 个音区 × 5 个力度层）与力度感知合成兜底 | Playwright / `tests/audio-smoke.js` |

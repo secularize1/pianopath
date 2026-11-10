@@ -662,8 +662,9 @@
       <button class="icon-button keyboard-guide-close" id="closeKeyboardGuide" type="button" aria-label="关闭键位教程"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <span class="eyebrow">KEYBOARD</span>
       <h2 id="keyboardGuideTitle">白键在下，黑键嵌在上</h2>
-      <p><strong>白键：</strong>Z X C V B N M，, . /，再接小键盘 N1–N6。<strong>黑键：</strong>A S · F G H · K L · ; ' Enter。D、J 留空；小键盘 7–9 不参与黑键。屏幕琴键按真实钢琴位置排列，电脑键只触发对应音。</p>
+      <p>电脑键只触发对应音；屏幕琴键始终按真实钢琴位置排列。</p>
       <div class="keyboard-guide-rows" id="keyboardGuideRows"></div>
+      <div class="keyboard-guide-computer-map" id="keyboardGuideComputerMap" aria-label="电脑键位示意图"></div>
       <div class="keyboard-guide-progress" aria-live="polite">
         <span>试弹</span>
         <strong id="keyboardGuideStatus">按任意琴键试听；手机可直接点。</strong>
@@ -724,7 +725,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.41.8 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
+      <div class="app-version">琴阶 1.41.9 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -844,7 +845,7 @@
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       const status = document.querySelector('#storageStatus');
-      const expectedCache = 'pianopath-v1.41.8';
+      const expectedCache = 'pianopath-v1.41.9';
       let refreshing = false;
       const hadController = Boolean(navigator.serviceWorker.controller);
       const setStatus = (text, state = '') => {

@@ -824,6 +824,48 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       assert.ok(libraryReadability.searchHeight >= 44, `${name}: library search control is too small`);
       assert.ok(libraryReadability.methodLinks.every((height) => height >= 44), `${name}: method links are too small`);
       assert.equal(libraryReadability.methodNotes.every((note) => !note.clipped), true, `${name}: method notes are truncated`);
+      await page.evaluate(() => window.PIANO_APP.updateNav('repertoire'));
+      await page.waitForTimeout(180);
+      const contrastRatios = await page.evaluate(() => {
+        const parse = (value) => {
+          const match = value.match(/rgba?\(([^)]+)\)/);
+          if (!match) return null;
+          const [r, g, b, a = 1] = match[1].split(',').map(Number);
+          return { r, g, b, a };
+        };
+        const luminance = (color) => {
+          const channel = (value) => {
+            const normalized = value / 255;
+            return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+          };
+          return 0.2126 * channel(color.r) + 0.7152 * channel(color.g) + 0.0722 * channel(color.b);
+        };
+        const background = (element) => {
+          let node = element;
+          while (node && node !== document.documentElement) {
+            const color = parse(getComputedStyle(node).backgroundColor);
+            if (color && color.a > 0.05) return color;
+            node = node.parentElement;
+          }
+          return parse(getComputedStyle(document.body).backgroundColor) || { r: 255, g: 255, b: 255, a: 1 };
+        };
+        const ratio = (selector) => {
+          const element = document.querySelector(selector);
+          if (!element) return null;
+          const foreground = parse(getComputedStyle(element).color);
+          const backdrop = background(element);
+          if (!foreground || !backdrop) return null;
+          const first = luminance(foreground);
+          const second = luminance(backdrop);
+          return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+        };
+        return {
+          composer: ratio('.repertoire-head p'),
+          description: ratio('.repertoire-desc'),
+          grade: ratio('.repertoire-grade')
+        };
+      });
+      assert.ok(Object.values(contrastRatios).every((value) => value !== null && value >= 4), `${name}: repertoire secondary copy has insufficient contrast`);
       await page.evaluate(() => window.PIANO_APP.updateNav('stats'));
       await page.waitForTimeout(180);
     }

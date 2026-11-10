@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.41.6 — 2026-11-10
+
+- Added an automated mobile contrast regression for repertoire composer, description and grade text.
+- Kept the 1.41.5 visual changes unchanged.
+- Verified the remote offline install still activates and restores the full shell.
+
 ## 1.41.5 — 2026-11-10
 
 - Raised contrast for high-value secondary text across the path, repertoire and progress screens.

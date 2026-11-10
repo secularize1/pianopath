@@ -724,7 +724,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.40.1 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.40.2 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -843,20 +843,71 @@
   <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      const status = document.querySelector('#storageStatus');
+      const expectedCache = 'pianopath-v1.40.2';
       let refreshing = false;
       const hadController = Boolean(navigator.serviceWorker.controller);
+      const setStatus = (text, state = '') => {
+        if (!status) return;
+        status.textContent = text;
+        status.dataset.state = state;
+      };
+      const cacheCount = async () => {
+        try {
+          const cache = await caches.open(expectedCache);
+          const urls = (await cache.keys()).map((request) => request.url);
+          return {
+            core: urls.filter((url) => !url.includes('/assets/audio/piano/')).length,
+            piano: urls.filter((url) => url.includes('/assets/audio/piano/')).length
+          };
+        } catch (error) {
+          return { core: 0, piano: 0 };
+        }
+      };
+      const syncStatus = async () => {
+        const { core, piano } = await cacheCount();
+        if (core >= 24) {
+          setStatus(piano >= 150 ? '离线可用' : `离线可用 · 音色 ${piano} / 150`, 'ready');
+        } else {
+          setStatus('正在准备离线');
+        }
+      };
+      const requestPianoCache = (registration) => {
+        const worker = registration.active;
+        if (!worker) return;
+        const channel = new MessageChannel();
+        channel.port1.onmessage = (event) => {
+          if (event.data?.type === 'PIANO_CACHE_PROGRESS') {
+            setStatus(`离线可用 · 音色 ${Math.min(150, event.data.completed)} / 150`, 'ready');
+          } else if (event.data?.type === 'PIANO_CACHE_DONE') {
+            setStatus(event.data.cached >= 150 ? '离线可用' : `离线可用 · 音色 ${event.data.cached} / 150`, event.data.cached >= 150 ? 'ready' : '');
+          } else if (event.data?.type === 'PIANO_CACHE_ERROR') {
+            setStatus('页面可离线 · 音色未缓存完', 'error');
+          }
+        };
+        worker.postMessage({ type: 'PRECACHE_PIANO' }, [channel.port2]);
+      };
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (!hadController || refreshing) return;
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((registration) => {
-        const checkForUpdate = () => registration.update().catch(() => {});
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(async (registration) => {
+        await navigator.serviceWorker.ready;
+        await syncStatus();
+        requestPianoCache(registration);
+        const checkForUpdate = () => registration.update().then(syncStatus).catch(() => {});
         setInterval(checkForUpdate, 60 * 60 * 1000);
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState === 'visible') checkForUpdate();
         });
-      }).catch(() => {});
+      }).catch(() => setStatus('离线缓存失败', 'error'));
+    } else {
+      const status = document.querySelector('#storageStatus');
+      if (status) {
+        status.textContent = location.protocol === 'file:' ? '单文件离线版' : '浏览器不支持离线';
+        status.dataset.state = location.protocol === 'file:' ? 'local' : 'error';
+      }
     }
   </script>
 </body>

@@ -1,5 +1,5 @@
 /* PianoPath service worker - offline-first app shell */
-const CACHE = 'pianopath-v1.40.1';
+const CACHE = 'pianopath-v1.40.2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -187,7 +187,7 @@ async function cacheWithRetry(cache, url, attempts = 3) {
       const response = await fetch(url, { cache: 'reload' });
       if (!response.ok) throw new Error(`Precache failed: ${url} (${response.status})`);
       await cache.put(url, response);
-      return;
+      return true;
     } catch (error) {
       lastError = error;
       if (attempt + 1 < attempts) await new Promise((resolve) => setTimeout(resolve, 250 * (2 ** attempt)));
@@ -196,14 +196,20 @@ async function cacheWithRetry(cache, url, attempts = 3) {
   throw lastError;
 }
 
-async function precacheInBatches(cache, urls, batchSize, required = true) {
+async function precacheInBatches(cache, urls, batchSize, required = true, onProgress = null) {
   const failures = [];
+  let completed = 0;
   for (let index = 0; index < urls.length; index += batchSize) {
     const batch = urls.slice(index, index + batchSize);
-    const results = await Promise.allSettled(batch.map((url) => cacheWithRetry(cache, url)));
+    const results = await Promise.allSettled(batch.map(async (url) => {
+      if (await cache.match(url)) return true;
+      return cacheWithRetry(cache, url);
+    }));
     results.forEach((result, batchIndex) => {
       if (result.status === 'rejected') failures.push({ url: batch[batchIndex], reason: result.reason });
     });
+    completed += batch.length;
+    onProgress?.({ completed, total: urls.length, failed: failures.length });
   }
   if (required && failures.length) {
     throw new Error(`Required offline shell failed: ${failures.map((item) => item.url).join(', ')}`);
@@ -211,14 +217,36 @@ async function precacheInBatches(cache, urls, batchSize, required = true) {
   return failures;
 }
 
+let pianoCacheTask = null;
+async function cachePianoSamples(port = null) {
+  if (pianoCacheTask) return pianoCacheTask;
+  pianoCacheTask = (async () => {
+    const cache = await caches.open(CACHE);
+    const failures = await precacheInBatches(cache, PIANO_SHELL, 12, false, (progress) => {
+      port?.postMessage({ type: 'PIANO_CACHE_PROGRESS', ...progress });
+    });
+    const cached = (await cache.keys()).filter((request) => request.url.includes('/assets/audio/piano/')).length;
+    port?.postMessage({ type: 'PIANO_CACHE_DONE', total: PIANO_SHELL.length, cached, failed: failures.length });
+    return { cached, failed: failures.length };
+  })().finally(() => { pianoCacheTask = null; });
+  return pianoCacheTask;
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    // The app shell is mandatory; piano samples are batched after it and retried.
+    // Core pages activate quickly. Piano samples are warmed after activation.
     await precacheInBatches(cache, CORE_SHELL, 6, true);
-    await precacheInBatches(cache, PIANO_SHELL, 12, false);
     await self.skipWaiting();
   })());
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type !== 'PRECACHE_PIANO') return;
+  const port = event.ports?.[0] || null;
+  event.waitUntil(cachePianoSamples(port).catch((error) => {
+    port?.postMessage({ type: 'PIANO_CACHE_ERROR', message: error.message });
+  }));
 });
 
 self.addEventListener('activate', (event) => {

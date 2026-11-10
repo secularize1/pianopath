@@ -33,6 +33,35 @@ async function waitForServer(url) {
   throw new Error('PianoPath offline test server did not start');
 }
 
+async function waitForOfflineState(page, expectedCache, { coreReady = false, fullReady = false, timeout = 45000 } = {}) {
+  const started = Date.now();
+  let last = null;
+  while (Date.now() - started < timeout) {
+    last = await page.evaluate(async ({ expectedCache }) => {
+      const registration = await navigator.serviceWorker.getRegistration();
+      const keys = await caches.keys();
+      let urls = [];
+      if (keys.includes(expectedCache)) {
+        const cache = await caches.open(expectedCache);
+        urls = (await cache.keys()).map((request) => request.url);
+      }
+      const hasCore = ['/app.js', '/data.js', '/styles.css'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
+      return {
+        active: registration?.active?.state || null,
+        installing: registration?.installing?.state || null,
+        waiting: registration?.waiting?.state || null,
+        count: urls.length,
+        hasCore,
+        keys
+      };
+    }, { expectedCache });
+    if (coreReady && last.active === 'activated' && last.hasCore) return last;
+    if (fullReady && last.active === 'activated' && last.hasCore && last.count >= 174) return last;
+    await page.waitForTimeout(500);
+  }
+  throw new Error(`offline state timeout: ${JSON.stringify(last)}`);
+}
+
 (async () => {
   let server = null;
   let browser = null;
@@ -67,30 +96,16 @@ async function waitForServer(url) {
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
+    const activationStarted = Date.now();
     await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForFunction(() => Boolean(window.PIANO_APP), null, { timeout: 15000 });
-    await page.waitForTimeout(1200);
-    await page.waitForFunction(async (expectedCache) => {
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (!registration?.active || registration.active.state !== 'activated') return false;
-      const keys = await caches.keys();
-      if (!keys.includes(expectedCache)) return false;
-      const cache = await caches.open(expectedCache);
-      const urls = (await cache.keys()).map((request) => request.url);
-      return ['/app.js', '/data.js', '/styles.css', '/assets/audio/piano/C4v3.mp3', '/assets/audio/piano/C4v16.mp3', '/assets/audio/piano/C8v11.mp3'].every((suffix) => urls.some((url) => new URL(url).pathname.endsWith(suffix)));
-    }, cacheVersion, { timeout: 45000 });
-    const cached = await page.evaluate(async (expectedCache) => {
-      const keys = await caches.keys();
-      if (!keys.includes(expectedCache)) return { keys, urls: [] };
-      const cache = await caches.open(expectedCache);
-      return { keys, urls: (await cache.keys()).map((request) => request.url) };
-    }, cacheVersion);
-    assert.ok(cached.keys.includes(cacheVersion), `cache ${cacheVersion} missing`);
-    assert.ok(cached.urls.length >= 170, `offline app shell is incomplete: ${cached.urls.length} entries`);
-    const activeWorker = await page.evaluate(async () => {
-      const registration = await navigator.serviceWorker.getRegistration();
-      return { active: registration?.active?.state || null, controller: Boolean(navigator.serviceWorker.controller) };
-    });
+    const coreState = await waitForOfflineState(page, cacheVersion, { coreReady: true, timeout: 20000 });
+    const activationMs = Date.now() - activationStarted;
+    assert.ok(activationMs < 20000, `core service worker activation too slow: ${activationMs}ms`);
+    const fullState = await waitForOfflineState(page, cacheVersion, { fullReady: true, timeout: 45000 });
+    assert.ok(fullState.count >= 174, `offline app shell is incomplete: ${fullState.count} entries`);
+    const cachedUrls = fullState.count;
+    const activeWorker = { active: coreState.active, controller: true };
     assert.equal(activeWorker.active, 'activated', 'offline service worker did not activate');
     await context.setOffline(true);
     for (const sample of ['/assets/audio/piano/C4v3.mp3', '/assets/audio/piano/C4v16.mp3', '/assets/audio/piano/C8v11.mp3']) {
@@ -109,7 +124,7 @@ async function waitForServer(url) {
     await page.waitForTimeout(1000);
     assert.equal(await page.locator('#todayPage').isVisible(), true, 'offline home unavailable');
     assert.equal(errors.length, 0, `offline errors: ${errors.join('; ')}`);
-    console.log(JSON.stringify({ ok: true, cacheVersion, offlineHome: true, cachedUrls: cached.urls.length, mode: LOCAL_SERVER ? 'local' : 'remote' }, null, 2));
+    console.log(JSON.stringify({ ok: true, cacheVersion, activationMs, offlineHome: true, cachedUrls, mode: LOCAL_SERVER ? 'local' : 'remote' }, null, 2));
   } finally {
     if (browser) await browser.close();
     await stopServer();

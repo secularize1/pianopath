@@ -239,6 +239,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('.home-route #routeDone').getAttribute('class'), 'done active', `${name}: daily completion not reflected in route`);
     assert.equal(await page.locator('.game-lab-grid .game-tile').count(), 4, `${name}: game lab incomplete`);
     assert.equal(await page.locator('#startFreePianoHome').isVisible(), true, `${name}: home free-play entry missing`);
+    assert.match(await page.locator('#storageStatus').innerText(), /正在准备离线|离线可用|页面可离线 · 音色未缓存完|单文件离线版/, `${name}: offline status should be honest`);
     assert.equal(await page.locator('#startRhythmGame').isVisible(), true, `${name}: note game missing`);
     assert.equal(await page.locator('#startPlayAlongHome').isVisible(), true, `${name}: play-along home entry missing`);
     assert.equal(await page.locator('#startRhythmPianoHome').isVisible(), true, `${name}: rhythm piano entry missing`);

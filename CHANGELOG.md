@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.40.2 — 2026-11-10
+
+- Split offline preparation into a fast mandatory app shell and a background piano-sample warmup.
+- The app now becomes usable offline before all 150 sampled-piano files have finished downloading.
+- Added visible, truthful offline status: preparing, page offline plus sample progress, ready, or failed.
+- Added explicit core-activation timing and background-cache completion assertions.
+- Fixed the offline regression harness so async polling cannot pass before the real cache state is reached.
+
 ## 1.40.1 — 2026-11-10
 
 - Fixed an offline-install stall caused by precaching 173 resources in one `cache.addAll()` request.

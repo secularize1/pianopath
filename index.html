@@ -147,10 +147,15 @@
 
         <section class="home-game-lab">
           <div class="home-game-lab-head">
-            <div><span class="home-label">边玩边练</span><h3>换一种方式练耳和拍子</h3></div>
-            <span>每局 2–3 分钟</span>
+            <div><span class="home-label">电子琴</span><h3>先弹起来，再按计划练</h3></div>
+            <span>自由弹 · 节奏游戏</span>
           </div>
           <div class="game-lab-grid">
+            <button class="game-tile free-piano-game-tile" id="startFreePianoHome" type="button">
+              <span class="game-tile-icon">♬</span>
+              <span><small>自由弹电子琴</small><strong>两八度钢琴 · 手机可横屏 · 电脑键辅助</strong></span>
+              <span class="game-tile-best">立即弹</span>
+            </button>
             <button class="game-tile rhythm-game-tile" id="startRhythmPianoHome" type="button">
               <span class="game-tile-icon">♬</span>
               <span><small>节奏钢琴</small><strong>内置电子琴 · 小星星、欢乐颂</strong></span>
@@ -567,18 +572,19 @@
           <h2>跟着节奏，弹会一首歌</h2>
           <p>选一首短曲。音符会从上方落下，在判定线接住它。</p>
         </div>
-        <div class="rhythm-song-filters" aria-label="曲目难度筛选">
+        <button class="rhythm-free-play-entry" id="startFreePiano" type="button">
+          <span class="rhythm-free-play-icon">♬</span>
+          <span class="rhythm-free-play-copy"><strong>自由弹</strong><small>两八度钢琴 · 可切换音域</small></span>
+          <span class="rhythm-free-play-arrow">→</span>
+        </button>
+        <div class="rhythm-song-filters" aria-label="曲目分类">
           <button type="button" class="active" data-rhythm-filter="全部" aria-pressed="true">全部</button>
           <button type="button" data-rhythm-filter="入门" aria-pressed="false">入门</button>
           <button type="button" data-rhythm-filter="进阶" aria-pressed="false">进阶</button>
+          <button type="button" data-rhythm-filter="流行" aria-pressed="false">流行</button>
         </div>
         <div class="rhythm-song-grid" id="rhythmSongGrid"></div>
-        <button class="rhythm-free-play-entry" id="startFreePiano" type="button">
-          <span class="rhythm-free-play-icon">♬</span>
-          <span class="rhythm-free-play-copy"><strong>自由弹</strong><small>双八度电子琴 · 可切换音域</small></span>
-          <span class="rhythm-free-play-arrow">→</span>
-        </button>
-        <div class="rhythm-home-foot"><span>公共领域短曲 · 双八度虚拟钢琴</span><button class="text-button" id="rhythmHowTo" type="button">键位教程 →</button></div>
+        <div class="rhythm-home-foot"><span>完整短曲 · 每首两轮</span><button class="text-button" id="rhythmHowTo" type="button">键位教程 →</button></div>
       </section>
 
       <section class="rhythm-free-play hidden" id="rhythmFreePlay">
@@ -635,7 +641,7 @@
         <div class="rhythm-keyboard" id="rhythmKeyboard" aria-label="节奏钢琴键盘"></div>
         <div class="rhythm-stage-footer">
           <button class="rhythm-stage-button" id="rhythmPause" type="button">暂停</button>
-          <span id="rhythmKeyHint">白键：字母区 + 小键盘下方 · 黑键：小键盘 N1–N0</span>
+          <span id="rhythmKeyHint">白键：Z–/ · N1–N6　黑键：A S · F G H · K L · ; ' Enter</span>
           <button class="rhythm-stage-button" id="rhythmQuit" type="button">退出本曲</button>
         </div>
       </section>
@@ -656,7 +662,7 @@
       <button class="icon-button keyboard-guide-close" id="closeKeyboardGuide" type="button" aria-label="关闭键位教程"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <span class="eyebrow">KEYBOARD</span>
       <h2 id="keyboardGuideTitle">白键在下，黑键嵌在上</h2>
-      <p><strong>白键在下：</strong>Z–↵，再用小键盘 N.、N↵、N+ 补齐。 <strong>黑键在上：</strong>右侧小键盘 N1–N0，按真实钢琴间隙插入。</p>
+      <p><strong>白键：</strong>Z X C V B N M，, . /，再接小键盘 N1–N6。<strong>黑键：</strong>A S · F G H · K L · ; ' Enter。D 和 J 留作两组黑键之间的缺口。</p>
       <div class="keyboard-guide-rows" id="keyboardGuideRows"></div>
       <div class="keyboard-guide-progress" aria-live="polite">
         <span>试弹</span>
@@ -665,7 +671,7 @@
       </div>
       <div class="keyboard-guide-example">
         <span>先试三个键</span>
-        <div><kbd>Z</kbd><kbd>N1</kbd><kbd>X</kbd></div>
+        <div><kbd>Z</kbd><kbd>A</kbd><kbd>X</kbd></div>
         <small>C3 · C#3 · D3</small>
       </div>
       <p class="keyboard-guide-input">电脑直接按物理键；大小写和中文输入法不影响。触屏可点黑白琴键。</p>
@@ -718,7 +724,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.39 · <span id="storageStatus">离线可用</span></div>
+      <div class="app-version">琴阶 1.40 · <span id="storageStatus">离线可用</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>

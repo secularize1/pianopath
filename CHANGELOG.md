@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.40.0 — 2026-11-09
+
+- Kept the virtual piano on a two-row computer-keyboard layout while moving the white keys to one continuous lower row (`Z X C V B N M , . / N1–N6`).
+- Rebuilt black-key grouping as the real 2 / 3 / 2 / 3 pattern (`A S · F G H · K L · ; ' Enter`) aligned to the visual key gaps.
+- Added a full-row home free-play entry and made the playable key labels opaque, larger and non-clipping on desktop, portrait mobile and landscape piano.
+- Expanded the rhythm library to 12 songs, including four clearly labelled non-official pop practice excerpts, and made every song a two-pass session.
+- Added per-song duration, a pop filter, duration-aware practice history and complete Twinkle Twinkle AABB coverage.
+- Added desktop/mobile regression coverage for all ten black-key neighbours, physical key mappings and readable piano labels.
+
 ## 1.39.0 — 2026-11-09
 
 - Persisted the concrete mastery mistake focus and missed skills into the review queue.

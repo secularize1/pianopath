@@ -3311,20 +3311,21 @@
 
 
   const RHYTHM_LEAD_BEATS = 3.5;
-  // Two performance layers: white keys below, black keys on the numeric keypad above.
+  // White keys stay on one continuous lower row. Black keys follow the
+  // physical 2 / 3 grouping in the home row, aligned to the visual key gaps.
   const RHYTHM_KEYBOARD_ROWS = [
     {
       type: 'white',
-      label: '下排 · 白键 C3–D5',
-      keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';', "'", 'Enter', '.', 'Enter', '+'],
-      codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote', 'Enter', 'NumpadDecimal', 'NumpadEnter', 'NumpadAdd'],
+      label: '白键 · Z 起连续顺延',
+      keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6'],
+      codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6'],
       notes: [48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74]
     },
     {
       type: 'black',
-      label: '上排 · 黑键 C#3–A#4',
-      keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
-      codes: ['Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9', 'Numpad0'],
+      label: '黑键 · 2 / 3 / 2 / 3 组',
+      keys: ['a', 's', 'f', 'g', 'h', 'k', 'l', ';', "'", 'Enter'],
+      codes: ['KeyA', 'KeyS', 'KeyF', 'KeyG', 'KeyH', 'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Enter'],
       notes: [49, 51, 54, 56, 58, 61, 63, 66, 68, 70]
     }
   ];
@@ -3356,16 +3357,65 @@
     };
   }
 
-  const RHYTHM_SONGS = [
-    { id: 'twinkle', title: '小星星', composer: '法国民谣', difficulty: '入门', bpm: 82, color: '#5bbd78', notes: [[0, 60, .8], [.8, 60, .4], [1.2, 67, .8], [2, 67, .4], [2.4, 69, .8], [3.2, 69, .4], [3.6, 67, 1.2], [5.2, 65, .8], [6, 65, .4], [6.4, 64, .8], [7.2, 64, .4], [7.6, 62, .8], [8.4, 62, .4], [8.8, 60, 1.4]] },
-    { id: 'ode', title: '欢乐颂', composer: '贝多芬', difficulty: '入门', bpm: 88, color: '#e7b44f', notes: [[0, 64, .7], [.7, 64, .7], [1.4, 65, .7], [2.1, 67, .7], [2.8, 67, .7], [3.5, 65, .7], [4.2, 64, .7], [4.9, 62, .7], [5.6, 60, .7], [6.3, 60, .7], [7, 62, .7], [7.7, 64, .7], [8.4, 64, 1.2]] },
-    { id: 'mary', title: '玛丽有只小羔羊', composer: '美国民谣', difficulty: '入门', bpm: 76, color: '#8db9d6', notes: [[0, 64, .8], [.8, 62, .8], [1.6, 60, .8], [2.4, 62, .8], [3.2, 64, .8], [4, 64, .8], [4.8, 64, 1.2], [6.4, 62, .8], [7.2, 62, .8], [8, 62, 1.2]] },
-    { id: 'jingle', title: 'Jingle Bells', composer: 'James Lord Pierpont', difficulty: '进阶', bpm: 96, color: '#e58c77', notes: [[0, 64, .6], [.6, 64, .6], [1.2, 64, 1], [2.6, 64, .6], [3.2, 64, .6], [3.8, 64, 1], [5.2, 64, .6], [5.8, 67, .6], [6.4, 60, .8], [7.2, 62, .6], [7.8, 64, 1.4]] },
-    { id: 'frere', title: '雅克兄弟', composer: '法国民谣', difficulty: '入门', bpm: 84, color: '#82b9a3', notes: [[0, 60, .7], [.8, 62, .7], [1.6, 64, .7], [2.4, 60, .7], [3.2, 60, .7], [4, 62, .7], [4.8, 64, .7], [5.6, 60, 1.2], [7.2, 64, .7], [8, 65, .7], [8.8, 67, 1.4]] },
-    { id: 'london', title: '伦敦桥', composer: '英国民谣', difficulty: '入门', bpm: 86, color: '#a88fc6', notes: [[0, 67, .7], [.8, 69, .7], [1.6, 67, .7], [2.4, 65, .7], [3.2, 64, .7], [4, 65, .7], [4.8, 67, 1.2], [6.4, 62, .7], [7.2, 64, .7], [8, 65, 1.4]] },
-    { id: 'oldmacdonald', title: '老麦克唐纳', composer: '美国民谣', difficulty: '入门', bpm: 78, color: '#d19b67', notes: [[0, 67, .7], [.8, 67, .7], [1.6, 67, .7], [2.4, 62, .7], [3.2, 64, .7], [4, 64, .7], [4.8, 62, 1.2], [6.4, 71, .7], [7.2, 71, .7], [8, 69, .7], [8.8, 69, .7], [9.6, 67, 1.4]] },
-    { id: 'auld', title: '友谊地久天长', composer: '苏格兰民谣', difficulty: '进阶', bpm: 74, color: '#729db5', notes: [[0, 60, .8], [.8, 65, .7], [1.6, 65, .7], [2.4, 65, .7], [3.2, 69, .7], [4, 67, .7], [4.8, 65, .7], [5.6, 67, .7], [6.4, 69, .7], [7.2, 65, .7], [8, 65, .7], [8.8, 69, .7], [9.6, 72, .7], [10.4, 74, 1.4]] }
+  const RHYTHM_SONG_LIBRARY = [
+    {
+      id: 'twinkle', title: '小星星', composer: '法国民谣', difficulty: '入门', bpm: 82, color: '#5bbd78',
+      notes: [[0, 60, .8], [1, 60, .4], [1.5, 67, .8], [2.5, 67, .4], [3, 69, .8], [4, 69, .4], [4.5, 67, 1.2], [6, 65, .8], [7, 65, .4], [7.5, 64, .8], [8.5, 64, .4], [9, 62, .8], [10, 62, .4], [10.5, 60, 1.4], [12, 67, .8], [13, 67, .4], [13.5, 65, .8], [14.5, 65, .4], [15, 64, .8], [16, 64, .4], [16.5, 62, 1.4], [18, 67, .8], [19, 67, .4], [19.5, 65, .8], [20.5, 65, .4], [21, 64, .8], [22, 64, .4], [22.5, 62, 1.4], [24, 60, .8], [25, 60, .4], [25.5, 67, .8], [26.5, 67, .4], [27, 69, .8], [28, 69, .4], [28.5, 67, 1.2], [30, 65, .8], [31, 65, .4], [31.5, 64, .8], [32.5, 64, .4], [33, 62, .8], [34, 62, .4], [34.5, 60, 1.4]]
+    },
+    {
+      id: 'ode', title: '欢乐颂', composer: '贝多芬', difficulty: '入门', bpm: 88, color: '#e7b44f',
+      notes: [[0, 64, .7], [1, 64, .7], [2, 65, .7], [3, 67, .7], [4, 67, .7], [5, 65, .7], [6, 64, .7], [7, 62, .7], [8, 60, .7], [9, 60, .7], [10, 62, .7], [11, 64, .7], [12, 64, 1.3], [13.5, 62, .7], [14.5, 62, 1.4], [16, 64, .7], [17, 64, .7], [18, 65, .7], [19, 67, .7], [20, 67, .7], [21, 65, .7], [22, 64, .7], [23, 62, .7]]
+    },
+    {
+      id: 'mary', title: '玛丽有只小羔羊', composer: '美国民谣', difficulty: '入门', bpm: 76, color: '#8db9d6',
+      notes: [[0, 64, .8], [1, 62, .8], [2, 60, .8], [3, 62, .8], [4, 64, .8], [5, 64, .8], [6, 64, 1.2], [8, 62, .8], [9, 62, .8], [10, 62, 1.2], [12, 64, .8], [13, 67, .8], [14, 67, 1.2], [16, 64, .8], [17, 62, .8], [18, 60, .8], [19, 62, .8], [20, 64, 1.4]]
+    },
+    {
+      id: 'jingle', title: 'Jingle Bells', composer: 'James Lord Pierpont', difficulty: '进阶', bpm: 96, color: '#e58c77',
+      notes: [[0, 64, .6], [.8, 64, .6], [1.6, 64, 1], [3.2, 64, .6], [4, 64, .6], [4.8, 64, 1], [6.4, 64, .6], [7.2, 67, .6], [8, 60, .8], [9, 62, .6], [9.8, 64, 1.4], [12, 65, .6], [12.8, 65, .6], [13.6, 65, 1], [15.2, 65, .6], [16, 64, .6], [16.8, 64, .6], [17.6, 64, 1], [19.2, 64, .6], [20, 62, .6], [20.8, 62, .6], [21.6, 64, .8], [22.4, 62, 1.4]]
+    },
+    {
+      id: 'frere', title: '雅克兄弟', composer: '法国民谣', difficulty: '入门', bpm: 84, color: '#82b9a3',
+      notes: [[0, 60, .7], [1, 62, .7], [2, 64, .7], [3, 60, .7], [4, 60, .7], [5, 62, .7], [6, 64, .7], [7, 60, 1.2], [9, 64, .7], [10, 65, .7], [11, 67, 1.4], [13, 64, .7], [14, 65, .7], [15, 67, 1.4], [17, 67, .7], [18, 65, .7], [19, 62, .7], [20, 60, 1.4]]
+    },
+    {
+      id: 'london', title: '伦敦桥', composer: '英国民谣', difficulty: '入门', bpm: 86, color: '#a88fc6',
+      notes: [[0, 67, .7], [1, 69, .7], [2, 67, .7], [3, 65, .7], [4, 64, .7], [5, 65, .7], [6, 67, 1.3], [8, 62, .7], [9, 64, .7], [10, 65, 1.4], [12, 67, .7], [13, 69, .7], [14, 67, .7], [15, 65, .7], [16, 64, .7], [17, 65, .7], [18, 67, 1.4]]
+    },
+    {
+      id: 'oldmacdonald', title: '老麦克唐纳', composer: '美国民谣', difficulty: '入门', bpm: 78, color: '#d19b67',
+      notes: [[0, 67, .7], [1, 67, .7], [2, 67, .7], [3, 62, .7], [4, 64, .7], [5, 64, .7], [6, 62, 1.3], [8, 71, .7], [9, 71, .7], [10, 69, .7], [11, 69, .7], [12, 67, 1.4], [14, 67, .7], [15, 67, .7], [16, 67, .7], [17, 62, .7], [18, 64, .7], [19, 64, .7], [20, 62, 1.4]]
+    },
+    {
+      id: 'auld', title: '友谊地久天长', composer: '苏格兰民谣', difficulty: '进阶', bpm: 74, color: '#729db5',
+      notes: [[0, 60, .8], [1, 65, .7], [2, 65, .7], [3, 65, .7], [4, 69, .7], [5, 67, .7], [6, 65, .7], [7, 67, .7], [8, 69, .7], [9, 65, .7], [10, 65, .7], [11, 69, .7], [12, 72, .7], [13, 74, 1.4], [15, 60, .8], [16, 65, .7], [17, 65, .7], [18, 65, .7], [19, 69, .7], [20, 67, .7], [21, 65, .7], [22, 67, .7], [23, 65, 1.4]]
+    },
+    {
+      id: 'city-moon', title: '城里的月光', composer: '流行旋律练习 · 原创编配', difficulty: '流行', bpm: 72, color: '#7d8ec9',
+      notes: [[0, 60, .8], [1, 64, .8], [2, 67, .8], [3, 64, .8], [4, 65, .8], [5, 69, .8], [6, 67, 1.2], [8, 64, .8], [9, 67, .8], [10, 72, .8], [11, 69, .8], [12, 67, 1.4], [14, 60, .8], [15, 64, .8], [16, 67, .8], [17, 64, .8], [18, 62, .8], [19, 65, .8], [20, 64, 1.4]]
+    },
+    {
+      id: 'qing-tian', title: '晴天（练习片段）', composer: '周杰伦 · 非官方简化旋律', difficulty: '流行', bpm: 70, color: '#5aa7b8',
+      notes: [[0, 60, .8], [1, 64, .8], [2, 67, .8], [3, 64, .8], [4, 65, .8], [5, 67, .8], [6, 69, 1.2], [8, 67, .8], [9, 65, .8], [10, 64, .8], [11, 62, .8], [12, 60, 1.4], [14, 64, .8], [15, 67, .8], [16, 69, .8], [17, 67, .8], [18, 64, .8], [19, 62, .8], [20, 60, 1.4]]
+    },
+    {
+      id: 'flower-sea', title: '花海（练习片段）', composer: '周杰伦 · 非官方简化旋律', difficulty: '流行', bpm: 68, color: '#ab82bb',
+      notes: [[0, 64, .8], [1, 67, .8], [2, 69, .8], [3, 67, .8], [4, 64, .8], [5, 65, .8], [6, 64, 1.2], [8, 62, .8], [9, 64, .8], [10, 67, .8], [11, 69, .8], [12, 72, 1.4], [14, 69, .8], [15, 67, .8], [16, 65, .8], [17, 64, .8], [18, 62, .8], [19, 64, .8], [20, 60, 1.4]]
+    },
+    {
+      id: 'little-lucky', title: '小幸运（练习片段）', composer: '田馥甄 · 非官方简化旋律', difficulty: '流行', bpm: 66, color: '#cf8fa4',
+      notes: [[0, 60, .8], [1, 62, .8], [2, 65, .8], [3, 64, .8], [4, 62, .8], [5, 60, .8], [6, 57, 1.2], [8, 60, .8], [9, 64, .8], [10, 65, .8], [11, 67, .8], [12, 65, 1.4], [14, 64, .8], [15, 62, .8], [16, 60, .8], [17, 62, .8], [18, 64, .8], [19, 65, .8], [20, 64, 1.4]]
+    }
   ];
+
+  function expandRhythmSong(song, passes = 2) {
+    const span = song.notes.reduce((max, [beat, , duration]) => Math.max(max, beat + duration), 0) + 1;
+    const notes = Array.from({ length: passes }, (_, pass) => song.notes.map(([beat, note, duration]) => [beat + pass * span, note, duration])).flat();
+    return { ...song, notes, repeats: passes, durationSeconds: Math.round((span * passes * 60) / song.bpm) };
+  }
+
+  const RHYTHM_SONGS = RHYTHM_SONG_LIBRARY.map((song) => expandRhythmSong(song, 2));
+
   let rhythmDifficulty = '全部';
   let rhythmSong = null;
   let rhythmEvents = [];
@@ -3411,9 +3461,12 @@
 
   function blackKeyGeometry(note, whiteKeys) {
     const whiteWidth = 100 / Math.max(1, whiteKeys.length);
-    const whiteIndex = whiteKeys.filter((key) => key.note < note).length;
+    // The black key sits on the boundary between the preceding white key and
+    // the next white key. Using note order (not pitch class) also keeps the
+    // second octave aligned after its C.
+    const precedingWhiteCount = whiteKeys.filter((key) => key.note < note).length;
     const width = whiteWidth * 0.62;
-    return { left: whiteIndex * whiteWidth - width / 2, width };
+    return { left: precedingWhiteCount * whiteWidth - width / 2, width };
   }
 
   function pianoKeyboardMarkup(whiteKeys, blackKeys) {
@@ -3512,8 +3565,9 @@
       const progress = state.playAlong?.[`rhythm-${song.id}`];
       const best = Math.max(0, Math.min(100, Number(progress?.bestAccuracy) || 0));
       const bestText = progress ? `最佳 ${best}%` : '开始';
-      return `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" data-best="${best}" data-difficulty="${escapeUi(song.difficulty)}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM</em></span><span class="rhythm-song-best">${bestText}</span><span class="rhythm-song-play">▶</span></button>`;
-    }).join('') || '<div class="rhythm-song-empty">这个难度还没有曲目。</div>';
+      const durationLabel = song.durationSeconds >= 60 ? `${Math.round(song.durationSeconds / 60)} 分钟` : `${song.durationSeconds} 秒`;
+      return `<button type="button" class="rhythm-song-card" data-rhythm-song="${song.id}" data-best="${best}" data-difficulty="${escapeUi(song.difficulty)}" data-duration="${song.durationSeconds}" style="--song-color:${song.color}"><span class="rhythm-song-art"><i></i><b>♪</b></span><span class="rhythm-song-copy"><small>${escapeUi(song.difficulty)} · ${durationLabel}</small><strong>${escapeUi(song.title)}</strong><em>${escapeUi(song.composer)} · ${song.bpm} BPM · 2 轮</em></span><span class="rhythm-song-best">${bestText}</span><span class="rhythm-song-play">▶</span></button>`;
+    }).join('') || '<div class="rhythm-song-empty">这个分类还没有曲目。</div>';
     grid.querySelectorAll('[data-rhythm-song]').forEach((button) => button.addEventListener('click', () => startRhythmPiano(button.dataset.rhythmSong)));
   }
 
@@ -4022,7 +4076,8 @@
     const stateKey = `rhythm-${rhythmSong.id}`;
     const old = state.playAlong?.[stateKey] || { attempts: 0, bestAccuracy: 0, bestStreak: 0, xp: 0 };
     state.playAlong = { ...(state.playAlong || {}), [stateKey]: { attempts: old.attempts + 1, bestAccuracy: Math.max(old.bestAccuracy, accuracy), bestStreak: Math.max(old.bestStreak, rhythmMaxCombo), lastAccuracy: accuracy, xp: Math.max(old.xp, xp), updatedAt: new Date().toISOString() } };
-    state.history = [{ id: `rhythm-${Date.now()}`, type: 'playalong', title: `节奏钢琴：${rhythmSong.title}`, week: session?.week || 0, date: localDateKey(new Date()), minutes: 2, rating: accuracy >= 85 ? 4 : accuracy >= 60 ? 3 : 2, ratingLabel: '节奏钢琴', notes: `${accuracy}% 准确率，最高连击 ${rhythmMaxCombo}`, sightDone: 0, completedAt: new Date().toISOString() }, ...state.history].slice(0, 400);
+    const practiceMinutes = Math.max(1, Math.round((rhythmSong.durationSeconds || 60) / 60));
+    state.history = [{ id: `rhythm-${Date.now()}`, type: 'playalong', title: `节奏钢琴：${rhythmSong.title}`, week: session?.week || 0, date: localDateKey(new Date()), minutes: practiceMinutes, rating: accuracy >= 85 ? 4 : accuracy >= 60 ? 3 : 2, ratingLabel: '节奏钢琴', notes: `${accuracy}% 准确率，最高连击 ${rhythmMaxCombo}`, sightDone: 0, completedAt: new Date().toISOString() }, ...state.history].slice(0, 400);
     APP.persist();
     APP.renderAll();
     updateProgressDisplay();
@@ -4085,6 +4140,13 @@
 
   function bindRhythmPianoEvents() {
     document.querySelector('#startRhythmPianoHome')?.addEventListener('click', openRhythmPiano);
+    document.querySelector('#startFreePianoHome')?.addEventListener('click', () => {
+      openRhythmPiano();
+      setTimeout(() => {
+        const guideShown = openFreePiano();
+        if (!guideShown && window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(orientation: landscape)').matches) enterPianoLandscape();
+      }, 80);
+    });
     document.querySelector('#closeRhythmPiano')?.addEventListener('click', closeRhythmPiano);
     document.querySelector('#startFreePiano')?.addEventListener('click', () => {
       const guideShown = openFreePiano();

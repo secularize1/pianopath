@@ -22,12 +22,12 @@ for (const file of runtimeFiles) {
 const app = fs.readFileSync('app.js', 'utf8');
 const expected = {
   playAlongLowerBlack: "input: 's'",
-  whiteKeyboardRow: "keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ';'",
-  blackKeyboardRow: "keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']",
+  whiteKeyboardRow: "keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6']",
+  blackKeyboardRow: "keys: ['a', 's', 'f', 'g', 'h', 'k', 'l', ';', \"'\", 'Enter']",
   keyboardGuide: 'function keyboardGuideMarkup()',
   keyboardGuidePreview: 'function previewKeyboardGuideKey(note, key)',
-  whitePhysicalCodes: "codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote', 'Enter', 'NumpadDecimal', 'NumpadEnter', 'NumpadAdd']",
-  blackPhysicalCodes: "codes: ['Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9', 'Numpad0']",
+  whitePhysicalCodes: "codes: ['KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6']",
+  blackPhysicalCodes: "codes: ['KeyA', 'KeyS', 'KeyF', 'KeyG', 'KeyH', 'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Enter']",
   pianoSampleEngine: 'PIANO_SAMPLE_SOURCES',
   pianoVelocityLayers: 'const PIANO_VELOCITY_LAYERS = [3, 7, 11, 13, 16]',
   pianoRoom: 'function createPianoRoomImpulse(context)',

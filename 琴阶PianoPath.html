@@ -1718,6 +1718,12 @@ button, input, select, textarea { font-family: inherit; }
   .resource-body p,
   .repertoire-desc { line-height: 1.7; }
   .resource-footer span { max-width: 64%; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.5; }
+  .method-card span,
+  .resource-extra span { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.5; }
+  .resource-footer a,
+  .resource-extra a,
+  .method-card a { min-height: 44px; display: inline-flex; align-items: center; }
+  .search-field input { min-height: 44px; }
 }
 
 </style>
@@ -2430,7 +2436,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.41.3 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
+      <div class="app-version">琴阶 1.41.4 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -2537,7 +2543,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.41.3",
+    "appVersion": "1.41.4",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },

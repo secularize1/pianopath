@@ -1702,4 +1702,10 @@ button, input, select, textarea { font-family: inherit; }
   .resource-body p,
   .repertoire-desc { line-height: 1.7; }
   .resource-footer span { max-width: 64%; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.5; }
+  .method-card span,
+  .resource-extra span { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.5; }
+  .resource-footer a,
+  .resource-extra a,
+  .method-card a { min-height: 44px; display: inline-flex; align-items: center; }
+  .search-field input { min-height: 44px; }
 }

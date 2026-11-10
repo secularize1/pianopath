@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.4 — 2026-11-10
+
+- Finished the mobile reading pass for teaching-library method notes and secondary actions.
+- Long method descriptions now wrap instead of truncating at 320px.
+- Library search and method links now meet the 44px touch target.
+- Added mobile regression coverage for library overflow, search height, link height and truncated notes.
+
 ## 1.41.3 — 2026-11-10
 
 - Increased secondary copy and controls on phones and tablets to readable sizes without changing desktop density.

@@ -811,6 +811,22 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('.skill-meter').count(), 4, `${name}: skill meters missing`);
     assert.ok((await page.locator('#skillFocusText').innerText()).length > 0, `${name}: next skill suggestion missing`);
     assert.equal(await page.locator('#importData').isVisible(), true, `${name}: backup import missing`);
+    if (name === 'mobile') {
+      await page.evaluate(() => window.PIANO_APP.updateNav('library'));
+      await page.waitForTimeout(180);
+      const libraryReadability = await page.evaluate(() => ({
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        searchHeight: document.querySelector('#librarySearch')?.getBoundingClientRect().height || 0,
+        methodLinks: [...document.querySelectorAll('.method-card a')].map((link) => link.getBoundingClientRect().height),
+        methodNotes: [...document.querySelectorAll('.method-card span')].map((note) => ({ clipped: note.scrollWidth > note.clientWidth + 2 || note.scrollHeight > note.clientHeight + 2 }))
+      }));
+      assert.equal(libraryReadability.overflow, 0, `${name}: teaching library gained horizontal overflow`);
+      assert.ok(libraryReadability.searchHeight >= 44, `${name}: library search control is too small`);
+      assert.ok(libraryReadability.methodLinks.every((height) => height >= 44), `${name}: method links are too small`);
+      assert.equal(libraryReadability.methodNotes.every((note) => !note.clipped), true, `${name}: method notes are truncated`);
+      await page.evaluate(() => window.PIANO_APP.updateNav('stats'));
+      await page.waitForTimeout(180);
+    }
 
     // Weekly recap: current vs previous week, attendance and next action.
     assert.equal(await page.locator('#weeklyRecap').isVisible(), true, `${name}: weekly recap missing`);

@@ -5,7 +5,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.41.3",
+    "appVersion": "1.41.4",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },

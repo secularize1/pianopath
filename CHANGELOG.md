@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.3 — 2026-11-10
+
+- Increased secondary copy and controls on phones and tablets to readable sizes without changing desktop density.
+- Resource credentials and course descriptions now wrap instead of being truncated at 320px.
+- Kept every primary and secondary touch target at 44px.
+- Added mobile regression coverage for repertoire copy size and filter typography.
+
 ## 1.41.2 — 2026-11-10
 
 - Raised secondary touch targets across the learning path, teaching library and repertoire screens to 44px.

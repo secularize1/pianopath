@@ -724,7 +724,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.41.2 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
+      <div class="app-version">琴阶 1.41.3 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -844,7 +844,7 @@
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       const status = document.querySelector('#storageStatus');
-      const expectedCache = 'pianopath-v1.41.2';
+      const expectedCache = 'pianopath-v1.41.3';
       let refreshing = false;
       const hadController = Boolean(navigator.serviceWorker.controller);
       const setStatus = (text, state = '') => {

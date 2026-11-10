@@ -778,6 +778,15 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       }));
       assert.ok(secondaryControls.length > 0, `${name}: repertoire secondary controls missing`);
       assert.equal(secondaryControls.every((item) => item.height >= 44), true, `${name}: repertoire touch targets are too small`);
+      const mobileType = await page.evaluate(() => {
+        const chips = [...document.querySelectorAll('#repertoireFilters .filter-chip')];
+        const descriptions = [...document.querySelectorAll('.repertoire-desc')];
+        return {
+          chipMin: Math.min(...chips.map((element) => parseFloat(getComputedStyle(element).fontSize))),
+          descriptionMin: Math.min(...descriptions.map((element) => parseFloat(getComputedStyle(element).fontSize)))
+        };
+      });
+      assert.ok(mobileType.chipMin >= 11 && mobileType.descriptionMin >= 11, `${name}: mobile repertoire copy is too small`);
     }
     await page.locator('[data-repertoire-open="ode-to-joy"]').click();
     await page.waitForTimeout(250);

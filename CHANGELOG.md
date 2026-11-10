@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.41.7 — 2026-11-10
+
+- Fixed the initial theme toggle so restored dark mode reports the correct accessible label and pressed state.
+- Added regression coverage for both the label and pressed state.
+
 ## 1.41.6 — 2026-11-10
 
 - Added an automated mobile contrast regression for repertoire composer, description and grade text.

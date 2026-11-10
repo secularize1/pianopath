@@ -4718,6 +4718,14 @@
       document.documentElement.classList.add('theme-transition');
       setTimeout(() => document.documentElement.classList.remove('theme-transition'), 320);
     });
+    const syncThemeToggle = () => {
+      const toggle = document.querySelector('#themeToggle');
+      if (!toggle) return;
+      const dark = document.documentElement.dataset.theme === 'dark';
+      toggle.setAttribute('aria-label', dark ? '切换浅色模式' : '切换深色模式');
+      toggle.setAttribute('aria-pressed', String(dark));
+    };
+    syncThemeToggle();
     $('#closeLesson').addEventListener('click', closeSession);
     $('#metronomeToggle')?.addEventListener('click', cycleMetronome);
     document.querySelector('#openRecording')?.addEventListener('click', () => {

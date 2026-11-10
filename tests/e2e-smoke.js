@@ -240,6 +240,8 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('.home-route #routeDone').getAttribute('class'), 'done active', `${name}: daily completion not reflected in route`);
     assert.equal(await page.locator('.game-lab-grid .game-tile').count(), 4, `${name}: game lab incomplete`);
     assert.equal(await page.locator('#startFreePianoHome').isVisible(), true, `${name}: home free-play entry missing`);
+    assert.equal(await page.locator('#themeToggle').getAttribute('aria-pressed'), 'false', `${name}: light-theme toggle state is truthful`);
+    assert.equal(await page.locator('#themeToggle').getAttribute('aria-label'), '切换深色模式', `${name}: light-theme toggle label is truthful`);
     if (name === 'mobile') {
       for (const selector of ['#startToday', '#quickPractice', '#dueReviewLink', '#profileButton', '#startFreePianoHome']) {
         const box = await page.locator(selector).boundingBox();

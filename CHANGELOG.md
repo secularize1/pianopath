@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.41.12 — 2026-11-10
+
+- Bound the third mastery question to the active lesson's concrete “today pass” standard.
+- Mastery retry now saves the lesson-specific pass action instead of only a generic practice slogan.
+- Corrected five lesson excerpts that contained notes outside the playable C3–D5 lesson keyboard.
+- Added a 48-lesson guard so every play-along note must remain playable on the two-octave piano.
+- Kept the approved piano sound and computer-key grouping unchanged.
+
 ## 1.41.11 — 2026-11-10
 
 - Tied the in-lesson play-along exercise to the active curriculum lesson instead of four generic note patterns.

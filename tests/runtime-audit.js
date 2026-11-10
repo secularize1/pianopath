@@ -51,6 +51,19 @@ for (const [label, fragment] of Object.entries(expected)) {
 if (!app.includes('data-key="${key.key}"')) issues.push('app.js: rhythm keys must expose data-key');
 if (!app.includes('data-code="${key.code}"')) issues.push('app.js: rhythm keys must expose physical key codes');
 if (!app.includes('function blackKeyGeometry(')) issues.push('app.js: black keys must use piano geometry');
+{
+  const start = app.indexOf('const PLAY_ALONG_LESSON_NOTES =');
+  const end = app.indexOf('function playAlongNotesForLesson', start);
+  const map = start >= 0 && end > start ? app.slice(start, end) : '';
+  const entries = [...map.matchAll(/^\s{4}(w\d+d\d): \{ title: '([^']+)', cue: '[^']*', notes: \[([^\]]+)\] \}/gm)];
+  if (entries.length !== 48) issues.push(`app.js: expected 48 lesson play-along excerpts, found ${entries.length}`);
+  for (const [, id, title, noteList] of entries) {
+    const notes = noteList.split(',').map((note) => Number(note.trim()));
+    if (!notes.length || notes.some((note) => !Number.isInteger(note) || note < 48 || note > 74)) {
+      issues.push(`app.js: ${id} ${title} contains a note outside the playable C3-D5 lesson keyboard`);
+    }
+  }
+}
 for (const layer of [3, 7, 11, 13, 16]) {
   for (const zone of ['A0', 'C4', 'C8']) {
     if (!fs.existsSync(`assets/audio/piano/${zone}v${layer}.mp3`)) issues.push(`assets: Salamander piano layer ${layer} ${zone} missing`);

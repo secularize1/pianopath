@@ -122,7 +122,7 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     assert.equal(await page.locator('#checkpointMistakeList li').count(), 2, `${name}: wrong mastery question count incorrect`);
     assert.equal(await page.locator('#checkpointRetryWrong').isVisible(), true, `${name}: failed mastery has no retry action`);
     const failedCheckpoint = await page.evaluate(() => window.PIANO_APP.getCheckpointSnapshot());
-    assert.deepEqual(failedCheckpoint.mastery.lastMistakes.map((item) => item.focus), ['缩到 2–4 小节，分手慢练', '短段、多次、暂停和复盘'], `${name}: wrong-answer focus was not persisted`);
+    assert.deepEqual(failedCheckpoint.mastery.lastMistakes.map((item) => item.focus), ['缩到 2–4 小节，分手慢练', '右手 C–D–E–F–G 逐指落键，每音 4 拍；第 4、5 指不塌掌'], `${name}: wrong-answer focus was not persisted`);
     assert.deepEqual(failedCheckpoint.mastery.lastMissedSkills, ['technique', 'practice'], `${name}: wrong-answer skills were not persisted`);
     await page.locator('#checkpointRetryWrong').click();
     await page.waitForTimeout(180);

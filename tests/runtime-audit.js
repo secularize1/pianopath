@@ -43,7 +43,10 @@ const expected = {
   checkpointCategoryQuestions: 'function checkpointSignatureQuestion(step)',
   checkpointCategoryContext: 'checkpointStep.category',
   reviewFocus: 'reviewFocus: focus',
-  reviewMistakeDetails: 'mistakes: masteryMistakes.slice(0, 3)'
+  reviewMistakeDetails: 'mistakes: masteryMistakes.slice(0, 3)',
+  lessonStepPersonalization: 'function personalizeLessonSteps(baseSteps, week, baseIndex)',
+  lessonPassStandardBridge: 'sessionPassStandard, streakCount',
+  lessonSpecificMastery: 'function lessonStandardQuestion(lesson)'
 };
 for (const [label, fragment] of Object.entries(expected)) {
   if (!app.includes(fragment)) issues.push(`app.js: missing ${label} keyboard mapping`);

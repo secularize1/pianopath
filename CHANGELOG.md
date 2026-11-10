@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.13 — 2026-11-10
+
+- Personalised every lesson's setup, orientation, technique, sight-reading, ear and reflection steps from that week's and that day's curriculum.
+- The same seven-step structure and 60-minute allocation remain unchanged, but lesson copy now names the actual action and pass standard.
+- Kept all 48 excerpts playable on the two-octave piano and all lesson mastery checks tied to the current pass standard.
+- Preserved the approved piano sound and computer-key grouping.
+
 ## 1.41.12 — 2026-11-10
 
 - Bound the third mastery question to the active lesson's concrete “today pass” standard.

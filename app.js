@@ -384,6 +384,67 @@
     });
   }
 
+  function personalizeLessonSteps(baseSteps, week, baseIndex) {
+    const day = week?.days?.[baseIndex];
+    if (!day) return baseSteps;
+    const passStandard = (() => {
+      const learn = baseSteps.find((step) => step.key === 'learn') || baseSteps[3];
+      return String(learn?.detail || '').match(/今天必须达到：([^。]+)/)?.[1]?.trim() || day.drill || day.goal || '';
+    })();
+    return baseSteps.map((step) => {
+      if (step.key === 'setup') {
+        return {
+          ...step,
+          detail: `先校准身体：松肩、双脚踩实，用 4 拍吸气、4 拍呼气。开工前复述今天的单一目标：“${day.goal}”；今天不临时增加新内容。`,
+          cue: `今天只盯住：${day.goal}`
+        };
+      }
+      if (step.key === 'focus') {
+        return {
+          ...step,
+          detail: `先用 2 分钟定向：${day.learn}。再用节拍器空拍 2 小节，确认拍点、键盘位置和今天的第一落键。`,
+          cue: `先定向，再落键`
+        };
+      }
+      if (step.key === 'technique') {
+        return {
+          ...step,
+          detail: `技术热身：${week.technique || day.goal}。先慢速做 2 轮，再按目标速度做 1 轮；每轮只检查“${day.goal}”这一项，出现代偿就降速。`,
+          cue: `慢速先做对，再回到原速`
+        };
+      }
+      if (step.key === 'learn') {
+        return {
+          ...step,
+          detail: `${day.learn}。先缩到 2–4 小节或一个动作单元，慢速做 3 次正确，再逐步接回前后文。今天必须达到：${passStandard}`,
+          cue: `今日过关：${passStandard}`
+        };
+      }
+      if (step.key === 'sight') {
+        return {
+          ...step,
+          detail: `${day.sight}。先扫描调号、拍号、最低/最高音和三处重复节奏，10 秒后开始；弹完再复盘，不中途纠正。`,
+          cue: `先看，再连续弹完`
+        };
+      }
+      if (step.key === 'ear') {
+        return {
+          ...step,
+          detail: `${day.ear}。先拍手或听示范 30 秒，再用琴声回应；不只看谱，用耳朵确认音高、拍点和动作结果。`,
+          cue: `先听，再回应`
+        };
+      }
+      if (step.key === 'reflect') {
+        return {
+          ...step,
+          detail: `${day.reflect}。录下 15–30 秒，只写一个下次能执行的改进点。今日成果：${week.outcome || day.goal}`,
+          cue: `只留下一个下一步`
+        };
+      }
+      return step;
+    });
+  }
+
   function sessionIndicesForDays(days, baseLength) {
     if (days <= baseLength) {
       if (days === baseLength) return Array.from({ length: days }, (_, index) => index);
@@ -403,14 +464,15 @@
     return indices.map((baseIndex, index) => {
       const base = week.sessions[baseIndex];
       const duplicate = profile.daysPerWeek > week.sessions.length && index >= week.sessions.length;
+      const personalizedBase = { ...base, steps: personalizeLessonSteps(base.steps, week, baseIndex) };
       return {
-        ...base,
+        ...personalizedBase,
         id: duplicate ? `${base.id}-p${index + 1}` : base.id,
         day: index + 1,
         practiceDay: orderedDays[index % orderedDays.length],
         practiceTime: profile.practiceTime,
         duration: profile.sessionMinutes,
-        steps: adaptSteps(base, profile.sessionMinutes),
+        steps: adaptSteps(personalizedBase, profile.sessionMinutes),
         adapted: profile.sessionMinutes !== 60 || profile.daysPerWeek !== 4
       };
     });

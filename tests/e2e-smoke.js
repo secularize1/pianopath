@@ -55,8 +55,25 @@ const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Micros
     await page.waitForTimeout(800);
     assert.equal(await page.locator('#lessonModal').isVisible(), true, `${name}: first lesson did not open`);
     assert.equal(await page.locator('#lessonSteps .lesson-step').count(), 7, `${name}: lesson should have 7 steps`);
+    assert.match(await page.locator('#stepDetail').innerText(), /身体对位/, `${name}: first lesson did not use its own setup goal`);
+    assert.match(await page.locator('#lessonPassStandard').innerText(), /C–D–E–F–G/, `${name}: first lesson pass standard missing`);
+    const curriculumVariety = await page.evaluate(() => ['w1d1', 'w6d1', 'w12d1'].map((id) => {
+      const lesson = window.PIANO_APP.findSession(id);
+      return {
+        id,
+        setup: lesson?.steps.find((step) => step.key === 'setup')?.detail || '',
+        focus: lesson?.steps.find((step) => step.key === 'focus')?.detail || '',
+        learn: lesson?.steps.find((step) => step.key === 'learn')?.detail || ''
+      };
+    }));
+    assert.equal(new Set(curriculumVariety.map((lesson) => lesson.setup)).size, 3, `${name}: setup copy did not change across curriculum weeks`);
+    assert.equal(new Set(curriculumVariety.map((lesson) => lesson.focus)).size, 3, `${name}: orientation copy did not change across curriculum weeks`);
+    assert.equal(new Set(curriculumVariety.map((lesson) => lesson.learn)).size, 3, `${name}: core drill copy did not change across curriculum weeks`);
+    assert.match(curriculumVariety[1].focus, /换踏板/, `${name}: week 6 did not use pedal-specific orientation`);
+    assert.match(curriculumVariety[2].learn, /走台/, `${name}: week 12 did not use performance-specific drill`);
     await page.locator('#completeStep').click();
     await page.waitForTimeout(80);
+    assert.match(await page.locator('#stepDetail').innerText(), /黑键两两|中央 C/, `${name}: second lesson step did not use its own orientation drill`);
     await page.locator('#closeLesson').click();
     await page.waitForTimeout(180);
     assert.match(await page.locator('#homeLessonIndex').innerText(), /继续 · 上次停在第 2 段/, `${name}: main lesson interruption was not exposed`);

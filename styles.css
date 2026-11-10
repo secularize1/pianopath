@@ -957,6 +957,8 @@ body {
 @media(max-width:540px){ .daily-quest-list{grid-template-columns:1fr;gap:5px}.daily-quest{padding:6px 8px}.daily-quest strong{font-size:8px}.metronome-button{padding:0 7px}.metronome-button span:last-child{display:none} }
 .app-version { margin-top:10px; color:#adb6af; font-size:8px; text-align:center; }
 .app-version span { color:#7fa88a; }
+.app-version span[data-state="ready"] { color:#4f8e60; }
+.app-version span[data-state="error"] { color:#b26b5f; }
 /* Make modal scroll lock visually stable */
 body.modal-open { overflow:hidden; }
 [aria-current="page"] { font-weight: 850; }

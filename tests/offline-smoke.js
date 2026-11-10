@@ -108,17 +108,19 @@ async function waitForOfflineState(page, expectedCache, { coreReady = false, ful
     const activeWorker = { active: coreState.active, controller: true };
     assert.equal(activeWorker.active, 'activated', 'offline service worker did not activate');
     await context.setOffline(true);
-    for (const sample of ['/assets/audio/piano/C4v3.mp3', '/assets/audio/piano/C4v16.mp3', '/assets/audio/piano/C8v11.mp3']) {
+    const appOrigin = origin.endsWith('/') ? origin : `${origin}/`;
+    for (const sample of ['assets/audio/piano/C4v3.mp3', 'assets/audio/piano/C4v16.mp3', 'assets/audio/piano/C8v11.mp3']) {
+      const sampleUrl = new URL(sample, appOrigin).href;
       const response = await page.evaluate(async (url) => {
         try {
           const fetched = await fetch(url);
-          return { ok: fetched.ok, bytes: (await fetched.arrayBuffer()).byteLength };
+          return { ok: fetched.ok, status: fetched.status, bytes: (await fetched.arrayBuffer()).byteLength };
         } catch (error) {
           return { ok: false, bytes: 0, error: error.message };
         }
-      }, sample);
-      assert.equal(response.ok, true, `offline piano sample unavailable: ${sample}`);
-      assert.ok(response.bytes > 10000, `offline piano sample is truncated: ${sample}`);
+      }, sampleUrl);
+      assert.equal(response.ok, true, `offline piano sample unavailable: ${sampleUrl} (${response.error || response.status})`);
+      assert.ok(response.bytes > 10000, `offline piano sample is truncated: ${sampleUrl}`);
     }
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(1000);

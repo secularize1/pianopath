@@ -1655,6 +1655,25 @@ button, input, select, textarea { font-family: inherit; }
   .rhythm-key.black small { left:0; right:0; font-size:10px; }
 }
 
+
+/* === 1.41 core action ergonomics === */
+.settings-link { font-size: 10px; }
+.placement-link { font-size: 10px; }
+@media (pointer: coarse) {
+  #profileButton,
+  .topbar .icon-button { width: 44px; height: 44px; min-width: 44px; }
+  #streakButton,
+  #levelButton { min-height: 44px; }
+  .settings-link { min-height: 44px; padding: 10px; }
+  .home-warm-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
+  .placement-link { min-height: 44px; padding: 10px 12px; }
+  .home-secondary { gap: 4px; }
+}
+@media (max-width: 540px) {
+  .home-secondary { gap: 2px; }
+  .home-warm-link { justify-content: flex-start; text-align: left; }
+}
+
 </style>
 </head>
 <body>
@@ -2365,7 +2384,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.40.2 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
+      <div class="app-version">琴阶 1.41.0 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -2472,7 +2491,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.40.2",
+    "appVersion": "1.41.0",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },

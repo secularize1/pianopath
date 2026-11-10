@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.0 — 2026-11-10
+
+- Raised the primary touch targets on phone and tablet to at least 44px.
+- Increased the account, settings and placement affordances without adding new navigation layers.
+- Kept the home hierarchy unchanged while making quick practice and review links easier to hit.
+- Added mobile regression checks for the primary practice, quick practice, review and account controls.
+
 ## 1.40.2 — 2026-11-10
 
 - Split offline preparation into a fast mandatory app shell and a background piano-sample warmup.

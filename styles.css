@@ -1638,3 +1638,22 @@ button, input, select, textarea { font-family: inherit; }
   .rhythm-key small { left:0; right:0; bottom:3px; min-height:20px; border-left:0; border-right:0; border-radius:0; font-size:10px; }
   .rhythm-key.black small { left:0; right:0; font-size:10px; }
 }
+
+
+/* === 1.41 core action ergonomics === */
+.settings-link { font-size: 10px; }
+.placement-link { font-size: 10px; }
+@media (pointer: coarse) {
+  #profileButton,
+  .topbar .icon-button { width: 44px; height: 44px; min-width: 44px; }
+  #streakButton,
+  #levelButton { min-height: 44px; }
+  .settings-link { min-height: 44px; padding: 10px; }
+  .home-warm-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
+  .placement-link { min-height: 44px; padding: 10px 12px; }
+  .home-secondary { gap: 4px; }
+}
+@media (max-width: 540px) {
+  .home-secondary { gap: 2px; }
+  .home-warm-link { justify-content: flex-start; text-align: left; }
+}

@@ -1738,3 +1738,67 @@ button, input, select, textarea { font-family: inherit; }
   .stat-card em { color: #66796d; }
   .daily-quest small { color: #5f7266; }
 }
+
+
+/* === 1.44 dark surface completion === */
+:root[data-theme="dark"] .home-week,
+:root[data-theme="dark"] .home-game-lab,
+:root[data-theme="dark"] .daily-quest-list .daily-quest,
+:root[data-theme="dark"] .stat-card,
+:root[data-theme="dark"] .stat-card.accent-green,
+:root[data-theme="dark"] .repertoire-card,
+:root[data-theme="dark"] .repertoire-actions,
+:root[data-theme="dark"] .method-card,
+:root[data-theme="dark"] .repertoire-modal-card {
+  background: #1a2b20;
+  border-color: #304833;
+}
+:root[data-theme="dark"] .home-start {
+  background: linear-gradient(135deg,#20372a,#192b20);
+  border-color: #304833;
+}
+:root[data-theme="dark"] .game-tile,
+:root[data-theme="dark"] .free-piano-game-tile,
+:root[data-theme="dark"] .rhythm-game-tile,
+:root[data-theme="dark"] .note-game-tile,
+:root[data-theme="dark"] .play-game-tile {
+  background: #1d3023;
+  border-color: #35523c;
+  color: #edf3eb;
+}
+:root[data-theme="dark"] .game-tile strong,
+:root[data-theme="dark"] .game-tile small,
+:root[data-theme="dark"] .game-tile-best,
+:root[data-theme="dark"] .repertoire-head p,
+:root[data-theme="dark"] .repertoire-desc,
+:root[data-theme="dark"] .repertoire-progress-top,
+:root[data-theme="dark"] .repertoire-actions .text-button,
+:root[data-theme="dark"] .playalong-key-hint,
+:root[data-theme="dark"] .daily-quest,
+:root[data-theme="dark"] .daily-quest small,
+:root[data-theme="dark"] .stat-card > span,
+:root[data-theme="dark"] .stat-card em,
+:root[data-theme="dark"] .stat-card strong small,
+:root[data-theme="dark"] .method-card span,
+:root[data-theme="dark"] .repertoire-note,
+:root[data-theme="dark"] .repertoire-modal-hint {
+  color: #b8cdbb;
+}
+:root[data-theme="dark"] .game-tile small,
+:root[data-theme="dark"] .game-tile-best { color: #a7c0aa; }
+:root[data-theme="dark"] .repertoire-grade,
+:root[data-theme="dark"] .repertoire-skills span,
+:root[data-theme="dark"] .repertoire-modal-meta span {
+  background: #263c2c;
+  color: #bdd6c1;
+}
+:root[data-theme="dark"] .repertoire-actions .btn.btn-soft { background: #263c2c; color: #c4e2c8; border-color: #45694d; }
+:root[data-theme="dark"] .repertoire-progress-bar,
+:root[data-theme="dark"] .quest-check { background: #304a36; border-color: #45694d; }
+:root[data-theme="dark"] .daily-quest.done { background: #24442b; color: #d0ebd2; }
+:root[data-theme="dark"] .home-game-lab-head > span { color: #a9c2ac; }
+:root[data-theme="dark"] .weekly-recap-grid article { background: #1d2e22; border-color: #304833; }
+:root[data-theme="dark"] .skill-meter { background: #1d3023; border-color: #304833; }
+:root[data-theme="dark"] .skill-meter small { color: #b8cdbb; }
+:root[data-theme="dark"] .heat-cell { background: #263c2c; }
+:root[data-theme="dark"] .history-item { border-color: #304833; }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.8 — 2026-11-10
+
+- Completed dark-mode surfaces for the home game lab, daily quests, repertoire cards and progress cards.
+- Prevented light text from appearing on white cards when dark mode is active.
+- Added desktop/mobile regression coverage for dark surfaces and truthful theme state.
+- Clarified in the keyboard tutorial that black keys use `A S · F G H · K L · ; ' Enter`; numpad 7–9 never trigger black keys.
+
 ## 1.41.7 — 2026-11-10
 
 - Fixed the initial theme toggle so restored dark mode reports the correct accessible label and pressed state.

@@ -1755,6 +1755,70 @@ button, input, select, textarea { font-family: inherit; }
   .daily-quest small { color: #5f7266; }
 }
 
+
+/* === 1.44 dark surface completion === */
+:root[data-theme="dark"] .home-week,
+:root[data-theme="dark"] .home-game-lab,
+:root[data-theme="dark"] .daily-quest-list .daily-quest,
+:root[data-theme="dark"] .stat-card,
+:root[data-theme="dark"] .stat-card.accent-green,
+:root[data-theme="dark"] .repertoire-card,
+:root[data-theme="dark"] .repertoire-actions,
+:root[data-theme="dark"] .method-card,
+:root[data-theme="dark"] .repertoire-modal-card {
+  background: #1a2b20;
+  border-color: #304833;
+}
+:root[data-theme="dark"] .home-start {
+  background: linear-gradient(135deg,#20372a,#192b20);
+  border-color: #304833;
+}
+:root[data-theme="dark"] .game-tile,
+:root[data-theme="dark"] .free-piano-game-tile,
+:root[data-theme="dark"] .rhythm-game-tile,
+:root[data-theme="dark"] .note-game-tile,
+:root[data-theme="dark"] .play-game-tile {
+  background: #1d3023;
+  border-color: #35523c;
+  color: #edf3eb;
+}
+:root[data-theme="dark"] .game-tile strong,
+:root[data-theme="dark"] .game-tile small,
+:root[data-theme="dark"] .game-tile-best,
+:root[data-theme="dark"] .repertoire-head p,
+:root[data-theme="dark"] .repertoire-desc,
+:root[data-theme="dark"] .repertoire-progress-top,
+:root[data-theme="dark"] .repertoire-actions .text-button,
+:root[data-theme="dark"] .playalong-key-hint,
+:root[data-theme="dark"] .daily-quest,
+:root[data-theme="dark"] .daily-quest small,
+:root[data-theme="dark"] .stat-card > span,
+:root[data-theme="dark"] .stat-card em,
+:root[data-theme="dark"] .stat-card strong small,
+:root[data-theme="dark"] .method-card span,
+:root[data-theme="dark"] .repertoire-note,
+:root[data-theme="dark"] .repertoire-modal-hint {
+  color: #b8cdbb;
+}
+:root[data-theme="dark"] .game-tile small,
+:root[data-theme="dark"] .game-tile-best { color: #a7c0aa; }
+:root[data-theme="dark"] .repertoire-grade,
+:root[data-theme="dark"] .repertoire-skills span,
+:root[data-theme="dark"] .repertoire-modal-meta span {
+  background: #263c2c;
+  color: #bdd6c1;
+}
+:root[data-theme="dark"] .repertoire-actions .btn.btn-soft { background: #263c2c; color: #c4e2c8; border-color: #45694d; }
+:root[data-theme="dark"] .repertoire-progress-bar,
+:root[data-theme="dark"] .quest-check { background: #304a36; border-color: #45694d; }
+:root[data-theme="dark"] .daily-quest.done { background: #24442b; color: #d0ebd2; }
+:root[data-theme="dark"] .home-game-lab-head > span { color: #a9c2ac; }
+:root[data-theme="dark"] .weekly-recap-grid article { background: #1d2e22; border-color: #304833; }
+:root[data-theme="dark"] .skill-meter { background: #1d3023; border-color: #304833; }
+:root[data-theme="dark"] .skill-meter small { color: #b8cdbb; }
+:root[data-theme="dark"] .heat-cell { background: #263c2c; }
+:root[data-theme="dark"] .history-item { border-color: #304833; }
+
 </style>
 </head>
 <body>
@@ -2403,7 +2467,7 @@ button, input, select, textarea { font-family: inherit; }
       <button class="icon-button keyboard-guide-close" id="closeKeyboardGuide" type="button" aria-label="关闭键位教程"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <span class="eyebrow">KEYBOARD</span>
       <h2 id="keyboardGuideTitle">白键在下，黑键嵌在上</h2>
-      <p><strong>白键：</strong>Z X C V B N M，, . /，再接小键盘 N1–N6。<strong>黑键：</strong>A S · F G H · K L · ; ' Enter。D 和 J 留作两组黑键之间的缺口。</p>
+      <p><strong>白键：</strong>Z X C V B N M，, . /，再接小键盘 N1–N6。<strong>黑键：</strong>A S · F G H · K L · ; ' Enter。D、J 留空；小键盘 7–9 不参与黑键。屏幕琴键按真实钢琴位置排列，电脑键只触发对应音。</p>
       <div class="keyboard-guide-rows" id="keyboardGuideRows"></div>
       <div class="keyboard-guide-progress" aria-live="polite">
         <span>试弹</span>
@@ -2465,7 +2529,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.41.7 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
+      <div class="app-version">琴阶 1.41.8 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -2572,7 +2636,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.41.7",
+    "appVersion": "1.41.8",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },

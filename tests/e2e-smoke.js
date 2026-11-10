@@ -242,6 +242,30 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('#startFreePianoHome').isVisible(), true, `${name}: home free-play entry missing`);
     assert.equal(await page.locator('#themeToggle').getAttribute('aria-pressed'), 'false', `${name}: light-theme toggle state is truthful`);
     assert.equal(await page.locator('#themeToggle').getAttribute('aria-label'), '切换深色模式', `${name}: light-theme toggle label is truthful`);
+    await page.evaluate(() => {
+      const toggle = document.querySelector('#themeToggle');
+      if (document.documentElement.dataset.theme !== 'dark') toggle.click();
+    });
+    await page.waitForTimeout(80);
+    const darkSurfaces = await page.evaluate(() => ({
+      theme: document.documentElement.dataset.theme,
+      togglePressed: document.querySelector('#themeToggle')?.getAttribute('aria-pressed'),
+      gameLab: getComputedStyle(document.querySelector('.home-game-lab')).backgroundColor,
+      gameTile: getComputedStyle(document.querySelector('.note-game-tile')).backgroundColor,
+      freePianoTile: getComputedStyle(document.querySelector('.free-piano-game-tile')).backgroundColor,
+      dailyQuest: getComputedStyle(document.querySelector('.daily-quest')).backgroundColor
+    }));
+    assert.equal(darkSurfaces.theme, 'dark', `${name}: dark theme did not activate`);
+    assert.equal(darkSurfaces.togglePressed, 'true', `${name}: dark theme toggle state is stale`);
+    for (const [key, value] of Object.entries(darkSurfaces)) {
+      if (key === 'theme' || key === 'togglePressed') continue;
+      assert.ok(!/rgb\(255, 255, 255\)|rgba\(255, 255, 255/.test(value), `${name}: ${key} kept a white surface in dark mode`);
+    }
+    await page.evaluate(() => {
+      const toggle = document.querySelector('#themeToggle');
+      if (document.documentElement.dataset.theme === 'dark') toggle.click();
+    });
+    await page.waitForTimeout(80);
     if (name === 'mobile') {
       for (const selector of ['#startToday', '#quickPractice', '#dueReviewLink', '#profileButton', '#startFreePianoHome']) {
         const box = await page.locator(selector).boundingBox();

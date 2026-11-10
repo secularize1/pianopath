@@ -107,6 +107,7 @@
             </div>
             <h2>今天，练好这一课</h2>
             <p id="homeLessonGoal">身体对位，手指编号不混乱</p>
+            <p class="home-pass-standard" id="homePassStandard"><span>今天过关</span><strong>右手 C–D–E–F–G 逐指落键，每音 4 拍</strong></p>
             <button class="home-main-cta" id="startToday" type="button">
               <span class="home-cta-play">▶</span>
               <span class="home-cta-copy"><small id="homeLessonIndex">第 1 周 · 第 1 次</small><strong id="homeLessonTitle">找到中央 C</strong></span>
@@ -437,7 +438,7 @@
           </div>
           <article class="step-instruction">
             <span class="step-index" id="stepIndex">01</span>
-            <div><small>现在做</small><h3 id="stepTitle">身体校准</h3><p id="stepDetail"></p><div class="cue" id="stepCue"></div></div>
+            <div><small>现在做</small><h3 id="stepTitle">身体校准</h3><p id="stepDetail"></p><div class="cue" id="stepCue"></div><div class="lesson-pass-standard" id="lessonPassStandard"><span>今天过关</span><strong>右手 C–D–E–F–G 逐指落键，每音 4 拍</strong></div></div>
           </article>
           <section class="recording-panel hidden" id="recordingPanel" aria-labelledby="recordingTitle">
             <div class="recording-head">
@@ -507,7 +508,7 @@
   </div>
 
   <div class="modal-backdrop hidden" id="playAlongModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="playAlongTitle">
-    <div class="playalong-card" id="playAlongCard" data-total="10">
+    <div class="playalong-card" id="playAlongCard" data-total="5">
       <button class="icon-button modal-close" id="closePlayAlong" aria-label="关闭跟弹练习"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="playalong-topline"><span class="eyebrow">PLAY ALONG</span><span class="playalong-device" id="playAlongDevice">双排字母键 / 触屏</span></div>
       <h2 id="playAlongTitle">跟着亮起的音弹</h2>
@@ -523,9 +524,9 @@
           <strong id="playAlongPatternTitle">C 五指位</strong>
           <span id="playAlongPatternCue">右手 1–2–3–4–5，慢速弹准每个音</span>
         </div>
-        <div class="playalong-input-note" id="playAlongInputNote">白键 Z X C V B N M；黑键 S D G H J。</div>
+        <div class="playalong-input-note" id="playAlongInputNote">电脑：白键 Z–/，黑键 A S · F G H · K L · ; ' Enter；也可直接点琴键。</div>
         <div class="playalong-ready-actions">
-          <button class="btn btn-primary" id="playAlongStart" type="button">开始 10 音跟弹</button>
+          <button class="btn btn-primary" id="playAlongStart" type="button">开始跟弹</button>
         </div>
       </div>
 
@@ -543,7 +544,7 @@
         </div>
         <div class="playalong-keyboard" id="playAlongKeyboard" aria-label="跟弹钢琴键盘"></div>
         <div class="playalong-feedback" id="playAlongFeedback" aria-live="polite">慢一点，弹准比弹快重要。</div>
-        <div class="playalong-key-hint">白键 Z X C V B N M · 黑键 S D G H J</div>
+        <div class="playalong-key-hint">先按课程片段慢练；节拍稳定后再加速</div>
       </div>
 
       <div class="playalong-result hidden" id="playAlongResult">
@@ -725,7 +726,7 @@
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.41.10 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
+      <div class="app-version">琴阶 1.41.11 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -845,7 +846,7 @@
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       const status = document.querySelector('#storageStatus');
-      const expectedCache = 'pianopath-v1.41.10';
+      const expectedCache = 'pianopath-v1.41.11';
       let refreshing = false;
       const hadController = Boolean(navigator.serviceWorker.controller);
       const setStatus = (text, state = '') => {

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.41.11 — 2026-11-10
+
+- Tied the in-lesson play-along exercise to the active curriculum lesson instead of four generic note patterns.
+- Expanded play-along to the same two-octave touch keyboard and computer mapping used by the piano.
+- Added 48 lesson-specific drill excerpts covering hands, intervals, chords, scales, arpeggios, pedal work, expression and performance preparation.
+- Surfaced each lesson's concrete pass standard on the home card and at the top of the lesson.
+- Fixed a real mobile touch issue where play-along key labels could intercept taps.
+- Kept the approved piano sound and the established 2 / 3 / 2 / 3 computer-key grouping unchanged.
+
 ## 1.41.10 — 2026-11-10
 
 - Rebuilt the computer-key diagram as a true two-layer keyboard instead of twelve equally spaced letters.

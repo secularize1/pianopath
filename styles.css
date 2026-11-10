@@ -1293,9 +1293,9 @@ button, input, select, textarea { font-family: inherit; }
 .playalong-key { position: relative; border: 0; cursor: pointer; transition: transform .08s ease, background .08s ease; }
 .playalong-key.white { flex: 1; height: 100%; border-radius: 3px 3px 7px 7px; background: linear-gradient(#fffefa,#f1f0e7); box-shadow: 0 4px 0 #c5c8be; color: #7a8179; }
 .playalong-key.black { position: absolute; z-index: 2; top: 6px; width: 7.1%; height: 99px; border-radius: 3px 3px 5px 5px; background: linear-gradient(#49504a,#252b27); color: #eaf0e7; box-shadow: 0 4px 0 #121814; }
-.playalong-key.white:hover { background: #fff; transform: translateY(-2px); }.playalong-key.white:active { transform: translateY(2px); box-shadow: 0 1px 0 #c5c8be; }
-.playalong-key.black:hover { background: #353d37; transform: translateY(-1px); }.playalong-key.black:active { transform: translateY(1px); box-shadow: 0 1px 0 #121814; }
-.playalong-key span { position: absolute; bottom: 9px; left: 0; right: 0; font-size: 11px; font-weight: 800; }.playalong-key small { position: absolute; bottom: 29px; left: 0; right: 0; font-size: 9px; opacity: .55; }.playalong-key.black span { bottom: 8px; color: #e9f0e9; }.playalong-key.black small { bottom: 24px; color: #cbd7cb; }
+.playalong-key.white:hover { background: #fff; }.playalong-key.white:active { background:#eef8ea; box-shadow:inset 0 0 0 2px #8ebf96,0 2px 0 #c5c8be; }
+.playalong-key.black:hover { background: #353d37; }.playalong-key.black:active { background:#5f8a68; box-shadow:inset 0 0 0 2px #c7e1b8,0 2px 0 #121814; }
+.playalong-key span { position: absolute; bottom: 9px; left: 0; right: 0; font-size: 11px; font-weight: 800; pointer-events:none; }.playalong-key small { position: absolute; bottom: 29px; left: 0; right: 0; font-size: 9px; opacity: .55; pointer-events:none; }.playalong-key.black span { bottom: 8px; color: #e9f0e9; }.playalong-key.black small { bottom: 24px; color: #cbd7cb; }
 .playalong-key.target.white { background: #e7f6e5; box-shadow: 0 4px 0 #a6cfa8; }.playalong-key.target.black { background: #477557; box-shadow: 0 4px 0 #274b31; }.playalong-key.hit { background: #bcebbc !important; }.playalong-key.miss { background: #f5cbc2 !important; animation: keyShake .2s ease; }
 .playalong-feedback { min-height: 24px; margin-top: 14px; color: #7d8d80; text-align: center; font-size: 12px; }.playalong-key-hint { margin-top: 4px; color: #a3ada4; text-align: center; font-size: 10px; }
 .playalong-result { padding: 18px 5px 0; text-align: center; }.playalong-stars { color: #e5b742; font-size: 30px; letter-spacing: .13em; }.playalong-result-accuracy { display: block; margin-top: 9px; color: #3d7d4d; font-family: var(--font-number); font-size: 46px; }.playalong-result p { margin: 2px 0 16px; color: #7c9181; font-size: 12px; }.playalong-result-stats { display: flex; justify-content: center; gap: 36px; padding: 14px 0; border-top: 1px solid #e5ece2; border-bottom: 1px solid #e5ece2; }.playalong-result-stats small { display: block; color: #9aa69d; font-size: 10px; }.playalong-result-stats strong { display: block; margin-top: 3px; color: #4b6e55; font-family: var(--font-number); font-size: 17px; }.playalong-result-actions { display: flex; justify-content: center; gap: 9px; margin-top: 17px; }
@@ -1761,6 +1761,18 @@ button, input, select, textarea { font-family: inherit; }
   .daily-quest small { color: #5f7266; }
 }
 
+
+/* === 1.45 visible pass standards === */
+.home-pass-standard { display:flex; align-items:flex-start; gap:8px; width:min(100%,475px); margin:10px 0 0; padding:9px 11px; border:1px solid #d7e5ce; border-radius:10px; background:rgba(255,255,255,.64); color:#435d49; font-size:11px; line-height:1.55; }
+.home-pass-standard span { flex:0 0 auto; padding:2px 6px; border-radius:999px; background:#e2f1dd; color:#3d7d4c; font-size:9px; font-weight:850; }
+.home-pass-standard strong { font-weight:750; }
+.lesson-pass-standard { display:flex; align-items:flex-start; gap:8px; margin-top:12px; padding:9px 10px; border:1px solid #dce8d5; border-radius:9px; background:#f5faf1; color:#4d6653; font-size:10px; line-height:1.55; }
+.lesson-pass-standard span { flex:0 0 auto; color:#3e7e4c; font-size:9px; font-weight:850; }
+.lesson-pass-standard strong { font-weight:750; }
+:root[data-theme="dark"] .home-pass-standard { border-color:#42604a; background:#1d3324; color:#d2e6d3; }
+:root[data-theme="dark"] .home-pass-standard span { background:#2c5035; color:#d8efc5; }
+:root[data-theme="dark"] .lesson-pass-standard { border-color:#3c5b43; background:#1d3023; color:#d2e6d3; }
+:root[data-theme="dark"] .lesson-pass-standard span { color:#bfe0b1; }
 
 /* === 1.44 dark surface completion === */
 :root[data-theme="dark"] .home-week,

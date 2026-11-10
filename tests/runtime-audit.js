@@ -21,7 +21,8 @@ for (const file of runtimeFiles) {
 }
 const app = fs.readFileSync('app.js', 'utf8');
 const expected = {
-  playAlongLowerBlack: "input: 's'",
+  playAlongLessonMap: 'const PLAY_ALONG_LESSON_NOTES = {',
+  playAlongLessonResolver: 'function playAlongNotesForLesson()',
   whiteKeyboardRow: "keys: ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6']",
   blackKeyboardRow: "keys: ['a', 's', 'f', 'g', 'h', 'k', 'l', ';', \"'\", 'Enter']",
   keyboardGuide: 'function keyboardGuideMarkup()',

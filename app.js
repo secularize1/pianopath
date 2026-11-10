@@ -438,6 +438,12 @@
     const current = currentWeekData();
     return current.sessions.find((session) => !isComplete(session.id)) || current.sessions[0] || null;
   }
+  function sessionPassStandard(lesson) {
+    const learnStep = lesson?.steps?.find((step) => step.key === 'learn') || lesson?.steps?.[3];
+    const match = String(learnStep?.detail || '').match(/今天必须达到：([^。]+)/);
+    return (match?.[1] || lesson?.goal || '').trim();
+  }
+
 
   function findSession(sessionId) {
     for (const week of DATA.weeks) {
@@ -558,9 +564,11 @@
       const pendingType = state.activeSession?.sessionType;
       const typingResume = Boolean(state.activeSession?.session && pendingType && pendingType !== 'lesson');
       setText('#homeLessonIndex', `${resumable || typingResume ? '继续 · ' : ''}${resumable ? '上次停在第 ' + (Number(state.activeSession.stepIndex) + 1) + ' 段' : typingResume ? '上次练习还没有保存' : `${formattedNextPracticeDay(current.practiceDay)} · ${current.practiceTime} · 第 ${current.day} 次`}`);
-      setText('#homeLessonTitle', typingResume ? state.activeSession.session.title : current.title);
-      setText('#homeLessonGoal', typingResume ? state.activeSession.session.goal : current.goal);
-      setText('#homeLessonDuration', `${typingResume ? state.activeSession.session.duration : current.duration} 分钟`);
+      const displaySession = typingResume ? state.activeSession.session : current;
+      setText('#homeLessonTitle', displaySession.title);
+      setText('#homeLessonGoal', displaySession.goal);
+      setText('#homePassStandard strong', sessionPassStandard(displaySession));
+      setText('#homeLessonDuration', `${displaySession.duration} 分钟`);
       setText('#homeWeekProgress', `${weekDone} / ${sessions.length}`);
       setText('#homeArtWeek', `${weekDone} / ${sessions.length}`);
       setText('#homeWeekTitle', `${sessions.length} 次练习，按你的练习日完成`);
@@ -1003,7 +1011,7 @@
 
   window.PIANO_APP = {
     state, DATA, persist, renderAll, updateNav, showToast, findSession,
-    sessionsForWeek, currentWeekData, currentSessionData, streakCount,
+    sessionsForWeek, currentWeekData, currentSessionData, sessionPassStandard, streakCount,
     addReviewItem, completeReviewItem, dueReviewItems, reviewSessionFor,
     renderLibrary, renderRepertoire, repertoireProgress, isSessionComplete: isComplete, totalXp, levelForXp,
     getPlanProfile, PRACTICE_DAYS, defaultPracticeDays, sanitizePracticeDays, normalizePracticeDays, sanitizePracticeTime, practiceDayLabel, relativePracticeDayLabel, dateForPracticeDay, formattedPracticeDay, formattedNextPracticeDay, buildPracticeCalendar, exportPracticeCalendar, startStagePractice, weeklyRecapData, recentMistakeCoach,
@@ -1157,27 +1165,8 @@
   let onboardingChoices = { level: 'zero', weeklyMinutes: 240, style: 'mixed' };
   let noteGameMode = 'note';
   let activeRepertoirePiece = null;
-  const PLAY_ALONG_PITCHES = [
-    { name: 'C', pc: 0, input: 'z', black: false },
-    { name: 'C♯', pc: 1, input: 's', black: true },
-    { name: 'D', pc: 2, input: 'x', black: false },
-    { name: 'D♯', pc: 3, input: 'd', black: true },
-    { name: 'E', pc: 4, input: 'c', black: false },
-    { name: 'F', pc: 5, input: 'v', black: false },
-    { name: 'F♯', pc: 6, input: 'g', black: true },
-    { name: 'G', pc: 7, input: 'b', black: false },
-    { name: 'G♯', pc: 8, input: 'h', black: true },
-    { name: 'A', pc: 9, input: 'n', black: false },
-    { name: 'A♯', pc: 10, input: 'j', black: true },
-    { name: 'B', pc: 11, input: 'm', black: false }
-  ];
-  const PLAY_ALONG_PATTERNS = [
-    { id: 'c-five', title: 'C 五指位', cue: '右手 1–2–3–4–5，慢速弹准每个音', notes: [0, 2, 4, 5, 7, 5, 4, 2, 0, 0] },
-    { id: 'stepwise', title: '级进短句', cue: '保持手腕放松，听每个音是否同样清楚', notes: [0, 2, 4, 2, 4, 5, 4, 2, 0, 2] },
-    { id: 'fifth-up', title: '五度回环', cue: '先看目标音，再落键；不要用手臂找键', notes: [0, 4, 7, 4, 0, 4, 7, 4, 0, 0] },
-    { id: 'broken-triad', title: '分解和弦', cue: 'C–E–G 一次成形，声音均匀地向上走', notes: [0, 4, 7, 12 - 12, 7, 4, 0, 4, 7, 0] }
-  ];
-  let playAlongPattern = PLAY_ALONG_PATTERNS[0];
+  let playAlongPattern = null;
+  let playAlongLesson = null;
   let playAlongSequence = [];
   let playAlongIndex = 0;
   let playAlongCorrect = 0;
@@ -2007,6 +1996,8 @@
     $('#stepTitle').textContent = step.title;
     $('#stepDetail').textContent = step.detail;
     $('#stepCue').textContent = step.cue;
+    const passStandard = document.querySelector('#lessonPassStandard strong');
+    if (passStandard) passStandard.textContent = APP.sessionPassStandard(session);
     syncRecordingTask();
     const firstSource = session.sources.map((id) => DATA.resources.videos.find((item) => item.id === id)).find(Boolean);
     $('#lessonSource').innerHTML = firstSource ? `对应来源：<a href="${firstSource.url}" target="_blank" rel="noreferrer noopener">${firstSource.creator} · ${firstSource.title}</a>` : '';
@@ -4257,26 +4248,104 @@
     });
   }
 
-  function playAlongKeyMarkup() {
-    const white = PLAY_ALONG_PITCHES.filter((pitch) => !pitch.black);
-    const black = PLAY_ALONG_PITCHES.filter((pitch) => pitch.black);
-    const blackLeft = { 1: 10.2, 3: 24.5, 6: 52.8, 8: 67.0, 10: 81.3 };
-    const whiteKeys = white.map((pitch) => `<button class="playalong-key white" type="button" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
-    const blackKeys = black.map((pitch) => `<button class="playalong-key black" type="button" style="left:${blackLeft[pitch.pc]}%" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name} ${pitch.input.toUpperCase()} 键"><span>${pitch.name}</span><small>${pitch.input.toUpperCase()}</small></button>`).join('');
-    return whiteKeys + blackKeys;
+  const PLAY_ALONG_LESSON_NOTES = {
+    w1d1: { title: 'C 五指位 · 右手', cue: '按课程过关标准：C–D–E–F–G，每音 4 拍，第 4、5 指不塌掌', notes: [60, 62, 64, 65, 67] },
+    w1d2: { title: 'C 五指位 · 左手', cue: '左手从低到高：C–D–E–F–G，声音平均，腕部保持平行', notes: [48, 50, 52, 53, 55] },
+    w1d3: { title: '两只手第一次握手', cue: '先右手旋律，再左手 C–G；慢速合手时不抢拍', notes: [60, 62, 64, 65, 67, 65, 64, 62, 60, 55, 48] },
+    w1d4: { title: '热十字面包 · 过关片段', cue: '完整、连续，错音也从下一拍接回', notes: [64, 62, 60, 62, 64, 64, 64, 62, 62, 62, 64, 65, 65] },
+    w2d1: { title: '读谱地标 C–G–F', cue: '先认出地标，再落键；不逐音数线', notes: [60, 62, 64, 67, 65, 64, 62, 60] },
+    w2d2: { title: '欢乐颂 · 级进与跳进', cue: '先看方向，后落键；同音不重复寻找', notes: [64, 64, 65, 67, 67, 65, 64, 62, 60] },
+    w2d3: { title: '欢乐颂 · 左手只守第一拍', cue: '右手旋律保持流动，左手 C–G 低音稳定', notes: [64, 64, 65, 67, 67, 65, 64, 62, 60, 48, 55] },
+    w2d4: { title: '欢乐颂 A 段 · 完整通过', cue: '连续弹完，错音后不回头', notes: [64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64] },
+    w3d1: { title: 'C 大三和弦', cue: 'C–E–G 同时落下，三音整齐、不砸键', notes: [48, 52, 55, 60, 64, 67] },
+    w3d2: { title: 'C–F–G 和弦路标', cue: '每个和弦 4 拍，换和弦不逐个找键', notes: [48, 52, 55, 53, 57, 60, 55, 59, 62] },
+    w3d3: { title: '小星星 + 左手根音', cue: '旋律在前，左手根音退后一步', notes: [60, 60, 67, 67, 69, 69, 67, 65, 65, 64, 64, 62, 62, 60] },
+    w3d4: { title: '伦敦桥 · I–V–I', cue: '能停下来再进入，不丢拍', notes: [67, 69, 67, 65, 64, 65, 67, 62, 64, 65, 67] },
+    w4d1: { title: 'A 小调五指位', cue: '听见“家”落在 A，不在 C', notes: [57, 59, 60, 62, 64, 62, 60, 59, 57] },
+    w4d2: { title: 'A 小调连奏', cue: '声音相连，手腕不压；每个连接都听清楚', notes: [64, 65, 67, 69, 71, 69, 67, 65, 64] },
+    w4d3: { title: 'A 小调断奏', cue: '短、轻、有弹性，指尖离键但不抬腕', notes: [57, 59, 60, 62, 64, 62, 60, 59, 57] },
+    w4d4: { title: '绿袖子 · 连断对比', cue: '前半连、后半断，轮廓要清楚', notes: [64, 67, 69, 67, 64, 62, 60, 62, 64, 64, 65, 67] },
+    w5d1: { title: 'C 五指位八分音符', cue: '每拍两个音，均匀而不抢拍', notes: [60, 62, 64, 65, 67, 65, 64, 62, 60, 62, 64, 65] },
+    w5d2: { title: '左手根音—五音', cue: '每两拍交替一次，右手保持 C 五指位', notes: [48, 55, 48, 55, 48, 55, 48, 55] },
+    w5d3: { title: '划船歌 · 八分音符', cue: '把八分音符放进歌曲，根五伴奏不断', notes: [60, 60, 62, 64, 64, 62, 60, 60, 62, 64, 65, 67] },
+    w5d4: { title: '划船歌 · 十六小节耐力', cue: '完整比加速重要，最后两小节不赶', notes: [60, 60, 62, 64, 64, 62, 60, 62, 64, 64, 65, 67, 67, 65, 64, 60] },
+    w6d1: { title: '踏板换点 · C 和弦', cue: '每次换和弦先放后踩，听声音是否干净', notes: [48, 52, 55, 53, 57, 60, 55, 59, 62, 48, 52, 55] },
+    w6d2: { title: '绿袖子 · 乐句方向', cue: '每 4 小节做一次起伏，句尾收住', notes: [64, 67, 69, 67, 64, 62, 60, 62, 64, 65, 67, 64] },
+    w6d3: { title: '欢乐颂 · 弱起进入', cue: '先数 4 拍，再从弱起进入，不慌不赶', notes: [64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64] },
+    w6d4: { title: '绿袖子 · 踏板与乐句', cue: '换踏板 4–6 次，句尾不糊', notes: [64, 67, 69, 67, 64, 62, 60, 62, 64, 65, 67, 64, 62, 60] },
+    w7d1: { title: 'C 大调一个八度', cue: '穿指不抬腕，每个音同样清楚', notes: [60, 62, 64, 65, 67, 69, 71, 72, 71, 69, 67, 65, 64, 62, 60] },
+    w7d2: { title: 'G 大调音阶', cue: '不同起点不乱，F♯ 提前准备', notes: [55, 57, 59, 60, 62, 64, 66, 67, 66, 64, 62, 60, 59, 57, 55] },
+    w7d3: { title: 'C 大三和弦转位', cue: '三种摆法都保持三音整齐', notes: [48, 52, 55, 52, 55, 60, 55, 60, 64, 60, 64, 67] },
+    w7d4: { title: 'I–IV–V–I 最少移动', cue: '用最少移动完成进行，不逐个找键', notes: [48, 52, 55, 53, 57, 60, 55, 59, 62, 48, 52, 55] },
+    w8d1: { title: '高声部方向', cue: '单独弹高声部，只关注句子方向', notes: [67, 69, 71, 72, 71, 69, 67, 65] },
+    w8d2: { title: '低声部独立', cue: '低声部轻一档但不消失，换指不抢拍', notes: [48, 50, 52, 53, 55, 53, 52, 50] },
+    w8d3: { title: '二声部合手', cue: '合手不退化成一个声部，能听清两条线', notes: [48, 67, 50, 69, 52, 71, 53, 72, 55, 71, 53, 69, 52, 67, 50, 65] },
+    w8d4: { title: '二声部录音检查', cue: '用回放校准平衡，高声部清楚、低声部不断', notes: [48, 67, 50, 69, 52, 71, 53, 72, 55, 71, 53, 69, 52, 67] },
+    w9d1: { title: 'C 大调琶音', cue: '穿指不卡顿，手腕带出小弧线', notes: [60, 64, 67, 72, 67, 64, 60] },
+    w9d2: { title: '分解和弦流动', cue: '整句流动，不在每个音上加重音', notes: [60, 64, 67, 64, 60, 64, 67, 64] },
+    w9d3: { title: 'C–Am–F–G 伴奏', cue: '让伴奏有进行感，低音线不断', notes: [48, 52, 55, 45, 48, 52, 41, 45, 48, 43, 47, 50] },
+    w9d4: { title: 'C 大调小步舞曲 A 段', cue: '完整、稳定、可回放，琶音不抢旋律', notes: [60, 64, 67, 72, 71, 69, 67, 64, 65, 67, 69, 67] },
+    w10d1: { title: '三档力度 · C 音阶', cue: 'p–mf–f，三档来自重量，不靠砸键', notes: [60, 62, 64, 65, 67, 65, 64, 62, 60] },
+    w10d2: { title: '致爱丽丝 · 旋律突出', cue: '旋律清楚但不孤立，伴奏轻一档', notes: [76, 75, 76, 75, 76, 71, 74, 72, 69, 60] },
+    w10d3: { title: '和声换踏板', cue: '每次和声变化先放后踩，60 BPM', notes: [48, 52, 55, 45, 48, 52, 41, 45, 48, 43, 47, 50] },
+    w10d4: { title: '致爱丽丝 · 完整表达', cue: '三档力度清晰，旋律不被伴奏盖住', notes: [76, 75, 76, 75, 76, 71, 74, 72, 69, 60, 69, 71, 72] },
+    w11d1: { title: '曲目单开场与收束', cue: '三首各完整 1 次，记录问题但不中断', notes: [60, 64, 67, 64, 60, 62, 64, 65, 67, 64, 60] },
+    w11d2: { title: '任意小节恢复', cue: '随机起点直接进入，不从头来', notes: [65, 67, 69, 67, 64, 62, 60, 62, 64, 67, 72] },
+    w11d3: { title: '演奏给一个人听', cue: '完整两首，不中断，错音后继续', notes: [60, 60, 67, 67, 69, 69, 67, 65, 65, 64, 64, 62, 62, 60] },
+    w11d4: { title: '完整曲目单录制', cue: '逐首只录一次，留下可比较版本', notes: [64, 67, 69, 67, 64, 62, 60, 62, 64, 65, 67, 64] },
+    w12d1: { title: '最后走台', cue: '只复习每首两个连接，不加新技术', notes: [64, 67, 69, 67, 64, 62, 60, 62] },
+    w12d2: { title: '模拟演出', cue: '完整一次，不中途重来；把注意力放在表达', notes: [76, 75, 76, 75, 76, 71, 74, 72, 69, 60] },
+    w12d3: { title: '正式录像', cue: '一次完成，不剪接；录前先呼吸', notes: [60, 64, 67, 72, 71, 69, 67, 64, 65, 67, 69, 67] },
+    w12d4: { title: '下一阶段重点', cue: '从录音中选一个技术、一个曲目、一个视奏目标', notes: [60, 62, 64, 65, 67, 69, 71, 72] }
+  };
+
+  function playAlongNotesForLesson() {
+    const baseId = String(session?.id || 'w1d1').replace(/-p\d+$/, '');
+    const config = PLAY_ALONG_LESSON_NOTES[baseId] || PLAY_ALONG_LESSON_NOTES.w1d1;
+    return { ...config, id: `lesson-${baseId}`, notes: config.notes.slice() };
   }
+
+  function playAlongPitchForMidi(midi) {
+    const pc = ((Number(midi) % 12) + 12) % 12;
+    return {
+      midi: Number(midi),
+      pc,
+      name: `${RHYTHM_NOTE_NAMES[pc]}${Math.floor(Number(midi) / 12) - 1}`,
+      black: [1, 3, 6, 8, 10].includes(pc),
+      input: (RHYTHM_WHITE_KEYS.concat(RHYTHM_BLACK_KEYS).find((key) => key.note === Number(midi)) || {}).key || ''
+    };
+  }
+
+  function playAlongKeyMarkup() {
+    const keys = rhythmKeysForOffset(0);
+    const markup = (key) => {
+      const pitch = playAlongPitchForMidi(key.note);
+      return `<button type="button" class="playalong-key ${pitch.black ? 'black' : 'white'}" data-playalong-midi="${pitch.midi}" data-playalong-pc="${pitch.pc}" aria-label="${pitch.name}，键盘 ${computerKeyLabel(key.key, key.code)}"><span>${pitch.name}</span><small>${computerKeyLabel(key.key, key.code)}</small></button>`;
+    };
+    const white = keys.white.map(markup).join('');
+    const black = keys.black.map((key) => {
+      const geometry = blackKeyGeometry(key.note, keys.white);
+      return markup({ ...key, black: true }).replace('class="playalong-key black"', `class="playalong-key black" style="left:${geometry.left}%;width:${geometry.width}%"`);
+    }).join('');
+    return white + black;
+  }
+
+  function playAlongKeyForMidi(midi) {
+    return document.querySelector(`.playalong-key[data-playalong-midi="${midi}"]`);
+  }
+
   function renderPlayAlongSequence() {
     const sequence = document.querySelector('#playAlongSequence');
     if (!sequence) return;
-    sequence.innerHTML = playAlongSequence.map((pc, index) => {
-      const pitch = PLAY_ALONG_PITCHES.find((item) => item.pc === pc) || PLAY_ALONG_PITCHES[0];
+    sequence.innerHTML = playAlongSequence.map((midi, index) => {
+      const pitch = playAlongPitchForMidi(midi);
       const className = index < playAlongIndex ? 'done' : index === playAlongIndex ? 'current' : '';
       return `<span class="playalong-note ${className}">${escapeUi(pitch.name)}</span>`;
     }).join('');
   }
 
   function updatePlayAlongStats() {
-    const total = playAlongSequence.length || 10;
+    const total = playAlongSequence.length || 1;
     const accuracy = playAlongCorrect + playAlongMistakes > 0 ? Math.round((playAlongCorrect / (playAlongCorrect + playAlongMistakes)) * 100) : 100;
     const progress = Math.min(total, playAlongIndex + (playAlongActive ? 1 : 0));
     const progressEl = document.querySelector('#playAlongProgress');
@@ -4289,17 +4358,18 @@
   }
 
   function currentPlayAlongNote() {
-    return PLAY_ALONG_PITCHES.find((item) => item.pc === playAlongSequence[playAlongIndex]) || PLAY_ALONG_PITCHES[0];
+    return playAlongPitchForMidi(playAlongSequence[playAlongIndex] ?? playAlongSequence[0] ?? 60);
   }
 
   function showPlayAlongTarget() {
     const target = document.querySelector('#playAlongTarget');
     if (!target) return;
     const pitch = currentPlayAlongNote();
-    target.textContent = pitch.name;
+    target.replaceChildren(document.createTextNode(pitch.name));
     target.dataset.pc = String(pitch.pc);
+    target.dataset.midi = String(pitch.midi);
     target.className = `playalong-target ${pitch.black ? 'sharp' : ''}`;
-    document.querySelectorAll('.playalong-key').forEach((key) => key.classList.toggle('target', Number(key.dataset.playalongPc) === pitch.pc));
+    document.querySelectorAll('.playalong-key').forEach((key) => key.classList.toggle('target', Number(key.dataset.playalongMidi) === pitch.midi));
     updatePlayAlongStats();
   }
 
@@ -4316,8 +4386,8 @@
         if (status) status.textContent = '示范结束，按你的速度开始。';
         return;
       }
-      const pc = playAlongSequence[index];
-      playTone(261.63 * Math.pow(2, pc / 12), .32);
+      const midi = playAlongSequence[index];
+      playTone(261.63 * Math.pow(2, (midi - 60) / 12), .32, midi);
       index += 1;
       setTimeout(playNext, 420);
     };
@@ -4325,8 +4395,8 @@
   }
 
   function openPlayAlong() {
-    const stageIndex = Number.isInteger(stepIndex) ? Math.min(stepIndex, 2) : 0;
-    playAlongPattern = PLAY_ALONG_PATTERNS[stageIndex % PLAY_ALONG_PATTERNS.length] || PLAY_ALONG_PATTERNS[0];
+    playAlongPattern = playAlongNotesForLesson();
+    playAlongLesson = session || APP.currentSessionData();
     playAlongSequence = [...playAlongPattern.notes];
     playAlongIndex = 0;
     playAlongCorrect = 0;
@@ -4335,11 +4405,13 @@
     playAlongBestStreak = 0;
     playAlongActive = false;
     const keyboard = document.querySelector('#playAlongKeyboard');
-    if (keyboard && !keyboard.children.length) keyboard.innerHTML = playAlongKeyMarkup();
+    if (keyboard) keyboard.innerHTML = playAlongKeyMarkup();
     const title = document.querySelector('#playAlongPatternTitle');
     const cue = document.querySelector('#playAlongPatternCue');
+    const input = document.querySelector('#playAlongInputNote');
     if (title) title.textContent = playAlongPattern.title;
     if (cue) cue.textContent = playAlongPattern.cue;
+    if (input) input.textContent = '白键 Z X C V B N M , . /；黑键 A S · F G H · K L · ; \' Enter';
     document.querySelector('#playAlongReady')?.classList.remove('hidden');
     document.querySelector('#playAlongPractice')?.classList.add('hidden');
     document.querySelector('#playAlongResult')?.classList.add('hidden');
@@ -4369,20 +4441,19 @@
   }
 
   function replayPlayAlongTarget() {
-    const pitch = currentPlayAlongNote();
-    const frequency = 261.63 * Math.pow(2, pitch.pc / 12);
-    playTone(frequency, .35);
+    const midi = currentPlayAlongNote().midi;
+    playTone(261.63 * Math.pow(2, (midi - 60) / 12), .35, midi);
   }
 
-  function answerPlayAlong(pc, source = 'pointer') {
+  function answerPlayAlong(midi, source = 'pointer') {
     if (!playAlongActive) return;
-    const expected = currentPlayAlongNote().pc;
-    if (pc === expected) {
+    const expected = currentPlayAlongNote().midi;
+    if (Number(midi) === expected) {
       playAlongCorrect += 1;
       playAlongStreak += 1;
       playAlongBestStreak = Math.max(playAlongBestStreak, playAlongStreak);
       document.querySelector('#playAlongFeedback').textContent = playAlongStreak >= 5 ? `连对 ${playAlongStreak} 音，节奏很稳。` : '对了，保持这个动作。';
-      const key = document.querySelector(`.playalong-key[data-playalong-pc="${pc}"]`);
+      const key = playAlongKeyForMidi(midi);
       key?.classList.add('hit');
       setTimeout(() => key?.classList.remove('hit'), 220);
       playAlongIndex += 1;
@@ -4397,7 +4468,7 @@
     playAlongStreak = 0;
     const targetName = currentPlayAlongNote().name;
     document.querySelector('#playAlongFeedback').textContent = `还差一步：目标音是 ${targetName}。听一遍，再来。`;
-    const key = document.querySelector(`.playalong-key[data-playalong-pc="${pc}"]`);
+    const key = playAlongKeyForMidi(midi);
     key?.classList.add('miss');
     setTimeout(() => key?.classList.remove('miss'), 260);
     updatePlayAlongStats();
@@ -4410,7 +4481,7 @@
     const accuracy = Math.round((playAlongCorrect / Math.max(1, playAlongCorrect + playAlongMistakes)) * 100);
     const stars = accuracy >= 92 ? 3 : accuracy >= 75 ? 2 : 1;
     const xp = stars === 3 ? 15 : stars === 2 ? 10 : 5;
-    const key = session?.id || 'free-play';
+    const key = playAlongLesson?.id || session?.id || 'free-play';
     const old = state.playAlong?.[key] || { attempts: 0, bestAccuracy: 0, bestStreak: 0, xp: 0 };
     state.playAlong = {
       ...(state.playAlong || {}),
@@ -4428,7 +4499,7 @@
       id: `playalong-${Date.now()}`,
       type: 'playalong',
       title: `跟弹练习：${playAlongPattern.title}`,
-      week: session?.week || 0,
+      week: playAlongLesson?.week || session?.week || 0,
       date: today,
       minutes: 2,
       rating: stars,
@@ -4447,16 +4518,17 @@
     document.querySelector('#playAlongCorrect').textContent = String(playAlongCorrect);
     document.querySelector('#playAlongMistakes').textContent = String(playAlongMistakes);
     document.querySelector('#playAlongXp').textContent = `+${xp} XP`;
-    document.querySelector('#playAlongResultMessage').textContent = accuracy >= 92 ? '每个音都听清了。' : accuracy >= 75 ? '节奏和音高已经稳定，再练一轮会更顺。' : '先把目标音看准，再慢速弹一次。';
+    document.querySelector('#playAlongResultMessage').textContent = accuracy >= 92 ? '这段已经接近课程过关标准。' : accuracy >= 75 ? '音高已经稳定，继续按课程标准慢练。' : '先把目标音看准，再慢速弹一次。';
   }
 
   function handlePlayAlongKeydown(event) {
     if (!playAlongActive || !document.querySelector('#playAlongModal') || document.querySelector('#playAlongModal').classList.contains('hidden')) return;
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    const pitch = PLAY_ALONG_PITCHES.find((item) => item.input === event.key.toLowerCase());
-    if (!pitch) return;
+    const keys = rhythmKeysForOffset(0);
+    const target = [...keys.white, ...keys.black].find((key) => key.code === event.code);
+    if (!target) return;
     event.preventDefault();
-    answerPlayAlong(pitch.pc, 'keyboard');
+    answerPlayAlong(target.note, 'keyboard');
   }
 
   function stopMetronome() {
@@ -4790,8 +4862,8 @@
     document.querySelector('#playAlongRetry')?.addEventListener('click', startPlayAlong);
     document.querySelector('#playAlongReturn')?.addEventListener('click', closePlayAlong);
     document.querySelector('#playAlongKeyboard')?.addEventListener('click', (event) => {
-      const key = event.target.closest('[data-playalong-pc]');
-      if (key) answerPlayAlong(Number(key.dataset.playalongPc), 'pointer');
+      const key = event.target.closest('[data-playalong-midi]');
+      if (key) answerPlayAlong(Number(key.dataset.playalongMidi), 'pointer');
     });
     document.addEventListener('keydown', handlePlayAlongKeydown);
     bindRhythmPianoEvents();
@@ -5081,6 +5153,15 @@
     lastNote: document.querySelector('#freePlayLastNote')?.textContent || '',
     keyCount: freePlayKeyCount,
     uniqueNotes: freePlayNotes.size
+  });
+  APP.getPlayAlongSnapshot = () => ({
+    active: playAlongActive,
+    lessonId: playAlongLesson?.id || session?.id || null,
+    title: playAlongPattern?.title || '',
+    sequence: playAlongSequence.slice(),
+    index: playAlongIndex,
+    correct: playAlongCorrect,
+    mistakes: playAlongMistakes
   });
   APP.getRhythmSnapshot = () => ({
     active: rhythmActive,

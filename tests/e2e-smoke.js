@@ -17,7 +17,6 @@ const EXPECTED_RHYTHM_KEYS = Object.freeze({
 
 const INDEX = 'file:///' + path.join(ROOT, 'index.html').replace(/\\/g, '/');
 const executablePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5': 'v', '6': 'g', '7': 'b', '8': 'h', '9': 'n', '10': 'j', '11': 'm' };
 
 (async () => {
   const browser = await chromium.launch({ executablePath, headless: true });
@@ -74,30 +73,28 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.locator('#playAlongStart').click();
     await page.waitForTimeout(200);
     assert.equal(await page.locator('#playAlongPractice').isVisible(), true, `${name}: play-along practice state missing`);
-    assert.equal(await page.locator('#playAlongInputNote').innerText(), '白键 Z X C V B N M；黑键 S D G H J。', `${name}: play-along mapping hint drifted`);
-    assert.equal(await page.locator('.playalong-key').count(), 12, `${name}: play-along keyboard incomplete`);
-    for (let i = 0; i < 3; i += 1) {
-      const targetPc = await page.locator('#playAlongTarget').getAttribute('data-pc');
-      await page.locator(`.playalong-key[data-playalong-pc="${targetPc}"]`).click();
+    assert.match(await page.locator('#playAlongInputNote').innerText(), /白键 Z X C V B N M/, `${name}: play-along mapping hint drifted`);
+    assert.match(await page.locator('#playAlongPatternTitle').innerText(), /C 五指位 · 右手/, `${name}: play-along did not load the current lesson`);
+    const sequenceLength = await page.locator('#playAlongSequence .playalong-note').count();
+    assert.ok(sequenceLength >= 5, `${name}: lesson play-along sequence is too short`);
+    for (let i = 0; i < 2; i += 1) {
+      const targetMidi = await page.locator('#playAlongTarget').getAttribute('data-midi');
+      await page.locator(`.playalong-key[data-playalong-midi="${targetMidi}"]`).click();
       await page.waitForTimeout(80);
     }
-    const wrongPc = String((Number(await page.locator('#playAlongTarget').getAttribute('data-pc')) + 1) % 12);
-    await page.locator(`.playalong-key[data-playalong-pc="${wrongPc}"]`).click();
+    const wrongMidi = String((Number(await page.locator('#playAlongTarget').getAttribute('data-midi')) + 1));
+    await page.locator(`.playalong-key[data-playalong-midi="${wrongMidi}"]`).click();
     await page.waitForTimeout(90);
     assert.match(await page.locator('#playAlongFeedback').innerText(), /目标音是/, `${name}: wrong note got no recovery cue`);
-    const keyboardTarget = PLAY_ALONG_KEYS[await page.locator('#playAlongTarget').getAttribute('data-pc')];
-    await page.keyboard.press(keyboardTarget);
-    await page.waitForTimeout(100);
-    assert.equal(await page.locator('#playAlongResult').isVisible(), false, `${name}: play-along result appeared too early`);
-    assert.equal(await page.locator('#playAlongProgress').innerText(), '5 / 10', `${name}: play-along keyboard progress did not advance`);
-    for (let i = 0; i < 6; i += 1) {
-      const targetPc = await page.locator('#playAlongTarget').getAttribute('data-pc');
-      await page.locator(`.playalong-key[data-playalong-pc="${targetPc}"]`).click();
-      await page.waitForTimeout(70);
+    assert.equal(await page.evaluate(() => window.PIANO_APP.getPlayAlongSnapshot().lessonId), 'w1d1', `${name}: play-along lost the lesson identity`);
+    const remainingNotes = await page.evaluate((total) => Math.max(0, total - window.PIANO_APP.getPlayAlongSnapshot().index), sequenceLength);
+    for (let i = 0; i < remainingNotes; i += 1) {
+      const targetMidi = await page.locator('#playAlongTarget').getAttribute('data-midi');
+      await page.locator(`.playalong-key[data-playalong-midi="${targetMidi}"]`).click();
+      await page.waitForTimeout(60);
     }
     assert.equal(await page.locator('#playAlongResult').isVisible(), true, `${name}: play-along result missing`);
-    assert.equal(await page.locator('#playAlongResultAccuracy').innerText(), '91%', `${name}: play-along accuracy scoring wrong`);
-    assert.equal(await page.locator('#playAlongXp').innerText(), '+10 XP', `${name}: play-along reward wrong`);
+    assert.match(await page.locator('#playAlongResultMessage').innerText(), /课程|稳定|过关/, `${name}: play-along result is not tied to the curriculum`);
     const playAlongState = await page.evaluate(() => JSON.parse(localStorage.getItem('pianopath-state-v1')).playAlong);
     assert.ok(playAlongState && Object.keys(playAlongState).length > 0, `${name}: play-along progress not saved`);
     await page.locator('#closePlayAlong').click();

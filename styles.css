@@ -1652,6 +1652,8 @@ button, input, select, textarea { font-family: inherit; }
   .home-warm-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
   .placement-link { min-height: 44px; padding: 10px 12px; }
   .home-secondary { gap: 4px; }
+  .onboarding-card { overflow: auto; }
+  .choice-chip { touch-action: manipulation; }
 }
 @media (max-width: 540px) {
   .home-secondary { gap: 2px; }

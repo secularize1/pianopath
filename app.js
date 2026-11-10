@@ -4525,7 +4525,9 @@
     }
     window.requestAnimationFrame(() => {
       if (!modal || modal.classList.contains('hidden')) return;
-      const preferred = modal.querySelector('[data-autofocus], .modal-close, button, input, select, textarea, a[href]');
+      const autofocus = modal.querySelector('[data-autofocus]');
+      const fallback = modal.querySelector('.modal-close, button, input, select, textarea, a[href]');
+      const preferred = isElementVisible(autofocus) ? autofocus : fallback;
       const first = isElementVisible(preferred) ? preferred : modalFocusables(modal)[0];
       first?.focus({ preventScroll: true });
     });

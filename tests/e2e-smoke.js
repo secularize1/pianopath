@@ -35,6 +35,7 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.evaluate(() => typeof window.PIANO_APP.openPlayAlong), 'function', `${name}: play-along API not exposed`);
     assert.equal(await page.locator('#onboardingModal').isVisible(), true, `${name}: onboarding missing`);
     assert.equal(await page.locator('#onboardingModal').getAttribute('aria-hidden'), 'false', `${name}: open modal should be exposed to assistive tech`);
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'onboardingTitle', `${name}: onboarding should announce the goal first`);
     const onboardingFocus = await page.evaluate(() => ({
       modal: window.PIANO_APP.getModalFocusState().currentModal,
       inside: Boolean(document.activeElement.closest('#onboardingModal'))

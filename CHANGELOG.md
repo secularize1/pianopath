@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.1 — 2026-11-10
+
+- Fixed explicit `data-autofocus` precedence inside modal dialogs.
+- The first onboarding step now announces its title and description before offering the close action.
+- Added a desktop/mobile regression check for the first focused onboarding element.
+- Kept onboarding choices and scroll behavior touch-safe on small phones.
+
 ## 1.41.0 — 2026-11-10
 
 - Raised the primary touch targets on phone and tablet to at least 44px.

@@ -1668,6 +1668,8 @@ button, input, select, textarea { font-family: inherit; }
   .home-warm-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
   .placement-link { min-height: 44px; padding: 10px 12px; }
   .home-secondary { gap: 4px; }
+  .onboarding-card { overflow: auto; }
+  .choice-chip { touch-action: manipulation; }
 }
 @media (max-width: 540px) {
   .home-secondary { gap: 2px; }
@@ -2029,7 +2031,7 @@ button, input, select, textarea { font-family: inherit; }
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="onboardingModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="onboardingTitle">
+  <div class="modal-backdrop hidden" id="onboardingModal" role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" aria-labelledby="onboardingTitle" aria-describedby="onboardingIntro">
     <div class="onboarding-card">
       <button class="icon-button modal-close onboarding-skip" id="closeOnboarding" aria-label="稍后设置"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="onboarding-art" aria-hidden="true">
@@ -2037,8 +2039,8 @@ button, input, select, textarea { font-family: inherit; }
         <span class="onboarding-key key-one"></span><span class="onboarding-key key-two"></span><span class="onboarding-key key-three"></span>
       </div>
       <span class="eyebrow">WELCOME TO PIANOPATH</span>
-      <h2 id="onboardingTitle">先定一个小目标</h2>
-      <p>只需要三个选择。之后每天打开，都会直接告诉你今天该练什么。</p>
+      <h2 id="onboardingTitle" tabindex="-1" data-autofocus>先定一个小目标</h2>
+      <p id="onboardingIntro">只需要三个选择。之后每天打开，都会直接告诉你今天该练什么。</p>
       <form id="onboardingForm">
         <div class="onboarding-block">
           <label class="onboarding-label">你现在的基础</label>
@@ -2384,7 +2386,7 @@ button, input, select, textarea { font-family: inherit; }
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存计划</button></div>
       </form>
       <div class="backend-note" id="backendNote">当前为本地模式：计划与打卡保存在此浏览器。</div>
-      <div class="app-version">琴阶 1.41.0 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
+      <div class="app-version">琴阶 1.41.1 · <span id="storageStatus" aria-live="polite">正在准备离线</span></div>
       <a class="piano-credit" href="https://archive.org/details/SalamanderGrandPianoV3" target="_blank" rel="noreferrer noopener">钢琴音色：Salamander Grand Piano V3 · CC BY 3.0</a>
       <div class="install-row"><button type="button" class="btn btn-soft install-button hidden" id="installAppModal">安装为桌面应用</button><button type="button" class="text-button" id="clearAllData">清除全部本地数据</button></div>
     </div>
@@ -2491,7 +2493,7 @@ window.PIANO_DATA = {
     "totalWeeks": 12,
     "totalHours": 48,
     "tagline": "每周 4 小时，从第一颗音到能完整演奏",
-    "appVersion": "1.41.0",
+    "appVersion": "1.41.1",
     "resourceMode": "国内优先",
     "repertoireCount": 10
   },
@@ -13280,7 +13282,9 @@ window.PIANO_DATA = {
     }
     window.requestAnimationFrame(() => {
       if (!modal || modal.classList.contains('hidden')) return;
-      const preferred = modal.querySelector('[data-autofocus], .modal-close, button, input, select, textarea, a[href]');
+      const autofocus = modal.querySelector('[data-autofocus]');
+      const fallback = modal.querySelector('.modal-close, button, input, select, textarea, a[href]');
+      const preferred = isElementVisible(autofocus) ? autofocus : fallback;
       const first = isElementVisible(preferred) ? preferred : modalFocusables(modal)[0];
       first?.focus({ preventScroll: true });
     });

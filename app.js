@@ -3493,21 +3493,28 @@
     return `<div class="keyboard-guide-piano"><div class="keyboard-guide-keybed"><div class="keyboard-guide-blacks">${black}</div><div class="keyboard-guide-whites">${white}</div></div></div>`;
   }
   function keyboardGuideComputerMapMarkup() {
-    const blackByCode = new Map(RHYTHM_BLACK_KEYS.map((key) => [key.code, key]));
-    const topKeys = [
-      ['KeyA', 'A'], ['KeyS', 'S'], ['KeyD', 'D'], ['KeyF', 'F'], ['KeyG', 'G'], ['KeyH', 'H'],
-      ['KeyJ', 'J'], ['KeyK', 'K'], ['KeyL', 'L'], ['Semicolon', ';'], ['Quote', "'"], ['Enter', '↵']
+    const blackByNote = new Map(RHYTHM_BLACK_KEYS.map((key) => [key.note, key]));
+    const whiteWidth = 100 / Math.max(1, RHYTHM_WHITE_KEYS.length);
+    const blackWidth = whiteWidth * .82;
+    const topItems = [
+      ['KeyA', 49], ['KeyS', 51], ['KeyD', null, 3],
+      ['KeyF', 54], ['KeyG', 56], ['KeyH', 58], ['KeyJ', null, 7],
+      ['KeyK', 61], ['KeyL', 63], ['Semicolon', 66], ['Quote', 68], ['Enter', 70]
     ];
-    const top = topKeys.map(([code, cap]) => {
-      const key = blackByCode.get(code);
-      if (!key) return `<button type="button" class="keyboard-guide-computer-key gap" data-computer-code="${code}" aria-label="${cap} 键，钢琴此处留空"><b>${cap}</b><small>留空</small></button>`;
-      return `<button type="button" class="keyboard-guide-computer-key" data-computer-code="${code}" aria-label="${cap} 键，弹 ${key.name}"><b>${cap}</b><small>${key.name}</small></button>`;
+    const top = topItems.map(([code, note, gapBoundary]) => {
+      const cap = code === 'Semicolon' ? ';' : code === 'Quote' ? "'" : code === 'Enter' ? '↵' : code.replace('Key', '');
+      const key = note ? blackByNote.get(note) : null;
+      const boundary = note ? RHYTHM_WHITE_KEYS.filter((white) => white.note < note).length : gapBoundary;
+      const left = boundary * whiteWidth - blackWidth / 2;
+      const classes = `keyboard-guide-computer-key${key ? '' : ' gap'}`;
+      const label = key ? `${cap} 键，弹 ${key.name}` : `${cap} 键，钢琴此处留空`;
+      return `<button type="button" class="${classes}" data-computer-code="${code}"${key ? '' : ` data-gap-boundary="${gapBoundary}"`} style="left:${left}%;width:${blackWidth}%" aria-label="${label}"><b>${cap}</b><small>${key ? key.name : '留空'}</small></button>`;
     }).join('');
     const white = RHYTHM_WHITE_KEYS.map((key, index) => {
       const groupStart = index === 7 ? ' second-octave' : index === 10 ? ' numpad-start' : '';
       return `<button type="button" class="keyboard-guide-computer-key${groupStart}" data-computer-code="${key.code}" aria-label="${computerKeyLabel(key.key, key.code)} 键，弹 ${key.name}"><b>${computerKeyLabel(key.key, key.code)}</b><small>${key.name}</small></button>`;
     }).join('');
-    return `<div class="keyboard-guide-computer-rows"><div class="keyboard-guide-computer-row blacks" aria-label="黑键电脑按键：A S，F G H，K L，分号、单引号、回车">${top}</div><div class="keyboard-guide-computer-row whites" aria-label="白键电脑按键：Z 到斜杠，再接小键盘 1 到 6">${white}</div></div>`;
+    return `<div class="keyboard-guide-computer-rows"><div class="keyboard-guide-computer-row top" aria-label="黑键电脑按键：A S，F G H，K L，分号、单引号、回车；D 和 J 是钢琴空位">${top}</div><div class="keyboard-guide-computer-row bottom" aria-label="白键电脑按键：Z 到斜杠，再接小键盘 1 到 6">${white}</div></div>`;
   }
 
   function guideKeyForEvent(event) {
@@ -3565,7 +3572,9 @@
     const modal = document.querySelector('#keyboardGuideModal');
     if (!modal || modal.classList.contains('hidden')) return;
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
-    if (event.key === 'Enter' && event.target.closest('button, a, input, textarea, select')) return;
+    const focusedControl = event.target.closest?.('button, a, input, textarea, select');
+    const focusedPianoKey = event.target.closest?.('.keyboard-guide-key, .keyboard-guide-computer-key');
+    if (event.key === 'Enter' && focusedControl && !focusedPianoKey) return;
     const key = guideKeyForEvent(event);
     if (!key) return;
     event.preventDefault();

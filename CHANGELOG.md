@@ -1,13 +1,21 @@
 # Changelog
 
+## 1.41.10 — 2026-11-10
+
+- Rebuilt the computer-key diagram as a true two-layer keyboard instead of twelve equally spaced letters.
+- Every black-key control is now positioned over its corresponding white-key boundary, including both octaves.
+- `D` and `J` are shown at the real E–F and B–C boundaries as empty controls.
+- Fixed `Enter` so it plays A-sharp 4 even when a tutorial key button has focus.
+- Added exact geometry, focus and dark-mode regression coverage.
+
 ## 1.41.9 — 2026-11-10
 
-- Added an interactive computer-keyboard diagram inside the piano tutorial.
-- The diagram preserves the real `2 / 3 / 2 / 3` black-key grouping and visibly marks `D` and `J` as gaps.
+- Added an interactive, two-layer computer-keyboard diagram inside the piano tutorial.
+- Black-key controls are positioned over the exact white-key boundaries; the diagram preserves the real `2 / 3 / 2 / 3` grouping and visibly marks `D` and `J` as gaps.
 - Kept white keys on one continuous `Z–/ · N1–N6` row; numpad 7–9 remain unused.
 - Diagram keys preview their note, follow the guided target and mirror physical-key presses.
 - The tutorial and computer-key map now use complete dark surfaces and readable secondary text.
-- Added desktop/mobile coverage for the map layout, physical codes, gaps, touch sizes, dark surfaces and tutorial highlighting.
+- Added desktop/mobile coverage for exact black-key gaps, physical codes, touch sizes, dark surfaces and tutorial highlighting.
 
 ## 1.41.8 — 2026-11-10
 

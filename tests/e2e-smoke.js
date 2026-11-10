@@ -389,9 +389,9 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       const keys = [...map.querySelectorAll('.keyboard-guide-computer-key')];
       return {
         count: keys.length,
-        black: keys.filter((key) => key.closest('.keyboard-guide-computer-row.blacks') && !key.classList.contains('gap')).map((key) => key.dataset.computerCode),
+        black: keys.filter((key) => key.closest('.keyboard-guide-computer-row.top') && !key.classList.contains('gap')).map((key) => key.dataset.computerCode),
         gaps: keys.filter((key) => key.classList.contains('gap')).map((key) => key.dataset.computerCode),
-        white: [...map.querySelectorAll('.keyboard-guide-computer-row.whites .keyboard-guide-computer-key')].map((key) => key.dataset.computerCode),
+        white: [...map.querySelectorAll('.keyboard-guide-computer-row.bottom .keyboard-guide-computer-key')].map((key) => key.dataset.computerCode),
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
       };
     });
@@ -408,6 +408,29 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
       })
       .map((key) => key.dataset.computerCode));
     assert.deepEqual(tinyComputerKeys, [], `${name}: computer-key map contains a clipped or tiny key`);
+    const computerGeometry = await page.evaluate(() => {
+      const map = document.querySelector('#keyboardGuideComputerMap');
+      const white = [...map.querySelectorAll('.bottom .keyboard-guide-computer-key')].map((key) => {
+        const bounds = key.getBoundingClientRect();
+        return { code: key.dataset.computerCode, center: bounds.left + bounds.width / 2 };
+      });
+      const expectedPairs = {
+        KeyA: [0, 1], KeyS: [1, 2], KeyD: [2, 3], KeyF: [3, 4], KeyG: [4, 5], KeyH: [5, 6],
+        KeyJ: [6, 7], KeyK: [7, 8], KeyL: [8, 9], Semicolon: [10, 11], Quote: [11, 12], Enter: [12, 13]
+      };
+      return [...map.querySelectorAll('.top .keyboard-guide-computer-key')].map((key) => {
+        const bounds = key.getBoundingClientRect();
+        const pair = expectedPairs[key.dataset.computerCode];
+        const expected = (white[pair[0]].center + white[pair[1]].center) / 2;
+        return { code: key.dataset.computerCode, offset: Math.abs(bounds.left + bounds.width / 2 - expected), gap: key.classList.contains('gap') };
+      });
+    });
+    assert.equal(computerGeometry.length, 12, `${name}: computer-key black layer is incomplete`);
+    for (const key of computerGeometry) {
+      assert.ok(key.offset <= 2, `${name}: ${key.code} is not aligned to its real white-key gap`);
+    }
+    assert.equal(computerGeometry.find((key) => key.code === 'KeyD').gap, true, `${name}: D should be shown as a real-piano gap`);
+    assert.equal(computerGeometry.find((key) => key.code === 'KeyJ').gap, true, `${name}: J should be shown as a real-piano gap`);
     const pianoLabels = await page.evaluate(() => [...document.querySelectorAll('#freePlayKeyboard .rhythm-key small')].map((label) => {
       const style = getComputedStyle(label);
       return { text: label.textContent, opacity: style.opacity, fontSize: parseFloat(style.fontSize), clipped: label.scrollWidth > label.clientWidth + 1 };
@@ -437,6 +460,10 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     assert.equal(await page.locator('#keyboardGuideStatus').innerText(), '三键都找到了，开始弹吧。', `${name}: tutorial third-key preview failed`);
     assert.equal(await page.locator('#keyboardGuideCount').innerText(), '3 / 3 ✓', `${name}: tutorial completion count wrong`);
     assert.equal(await page.locator('.keyboard-guide-progress').getAttribute('class'), 'keyboard-guide-progress complete', `${name}: tutorial completion state missing`);
+    await page.locator('#keyboardGuideComputerMap [data-computer-code="Enter"]').focus();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(60);
+    assert.equal(await page.locator('#keyboardGuideComputerMap [data-computer-code="Enter"]').evaluate((key) => key.classList.contains('pressed')), true, `${name}: Enter on the computer-key map did not play A sharp 4`);
     assert.equal((await page.evaluate(() => window.PIANO_APP.getFreePianoSnapshot())).keyCount, 0, `${name}: tutorial previews polluted free-play stats`);
     await page.locator('#keyboardGuideStart').focus();
     await page.keyboard.press('Enter');

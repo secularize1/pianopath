@@ -1453,25 +1453,24 @@ button, input, select, textarea { font-family: inherit; }
 .keyboard-guide-key.pressed { background:#e4f4d8; box-shadow:inset 0 0 0 2px #78b47c; }
 .keyboard-guide-key.black.pressed { background:#527559; }
 .keyboard-guide-computer-map { margin-top:12px; padding:10px; overflow-x:auto; border:1px solid #dde8dc; border-radius:14px; background:#eef5e9; }
-.keyboard-guide-computer-rows { display:grid; gap:7px; min-width:570px; }
-.keyboard-guide-computer-row { display:grid; gap:4px; }
-.keyboard-guide-computer-row.blacks { grid-template-columns:repeat(12,minmax(34px,1fr)); }
-.keyboard-guide-computer-row.whites { grid-template-columns:repeat(10,minmax(34px,1fr)) minmax(13px,.35fr) repeat(6,minmax(34px,1fr)); }
-.keyboard-guide-computer-key { display:grid; align-content:center; justify-items:center; gap:2px; min-width:0; min-height:48px; padding:4px 2px; border:1px solid #cfdacf; border-radius:7px; background:#fffef9; box-shadow:0 2px 0 #bac8bb; color:#34503b; transition:background .12s ease,box-shadow .12s ease,transform .12s ease; }
+.keyboard-guide-computer-rows { position:relative; min-width:624px; padding-top:52px; }
+.keyboard-guide-computer-row.top { position:absolute; z-index:2; top:4px; left:0; right:0; height:52px; }
+.keyboard-guide-computer-row.bottom { display:grid; grid-template-columns:repeat(16,minmax(0,1fr)); gap:2px; }
+.keyboard-guide-computer-key { position:relative; display:grid; align-content:center; justify-items:center; gap:2px; min-width:0; min-height:48px; padding:4px 2px; border:1px solid #cfdacf; border-radius:6px; background:#fffef9; box-shadow:0 2px 0 #bac8bb; color:#34503b; transition:background .12s ease,box-shadow .12s ease,transform .12s ease; }
 .keyboard-guide-computer-key b { min-width:20px; padding:1px 4px; border-radius:4px; background:#e4eee2; color:#284831; font-size:11px; line-height:1.25; }
 .keyboard-guide-computer-key small { overflow:hidden; max-width:100%; color:#718176; font-size:8px; font-weight:750; white-space:nowrap; }
-.keyboard-guide-computer-row.blacks .keyboard-guide-computer-key:not(.gap) { border-color:#7e8b80; background:#3e4c42; box-shadow:0 2px 0 #263128; color:#f2f8ef; }
-.keyboard-guide-computer-row.blacks .keyboard-guide-computer-key:not(.gap) b { background:#28362d; color:#f4faef; }
-.keyboard-guide-computer-row.blacks .keyboard-guide-computer-key:not(.gap) small { color:#c7d7c8; }
+.keyboard-guide-computer-row.top .keyboard-guide-computer-key { position:absolute; top:0; min-height:48px; border-color:#7e8b80; background:#3e4c42; box-shadow:0 2px 0 #263128; color:#f2f8ef; }
+.keyboard-guide-computer-row.top .keyboard-guide-computer-key b { background:#28362d; color:#f4faef; }
+.keyboard-guide-computer-row.top .keyboard-guide-computer-key small { color:#c7d7c8; }
 .keyboard-guide-computer-key.gap { border-style:dashed; background:#f5f8f2; box-shadow:none; opacity:.72; }
 .keyboard-guide-computer-key.gap b { background:transparent; color:#8c9a8f; }
 .keyboard-guide-computer-key.second-octave { background:#f7f8ef; box-shadow:inset 0 2px 0 #dbe6d8,0 2px 0 #bac8bb; }
-.keyboard-guide-computer-key.numpad-start { grid-column:12; }
-.keyboard-guide-computer-row.whites [data-computer-key^="Numpad"] { background:#f4f7fb; border-color:#bdcada; color:#38506a; }
-.keyboard-guide-computer-row.whites [data-computer-key^="Numpad"] b { background:#dfe8f3; color:#2e465f; }
+.keyboard-guide-computer-key.numpad-start { margin-left:3px; }
+.keyboard-guide-computer-row.bottom [data-computer-key^="Numpad"] { background:#f4f7fb; border-color:#bdcada; color:#38506a; }
+.keyboard-guide-computer-row.bottom [data-computer-key^="Numpad"] b { background:#dfe8f3; color:#2e465f; }
 .keyboard-guide-computer-key.target { box-shadow:0 0 0 2px #eabf3f,0 3px 8px rgba(94,79,27,.18); transform:translateY(-1px); }
 .keyboard-guide-computer-key.pressed { background:#bde49d; box-shadow:inset 0 0 0 2px #5f9e68; transform:translateY(2px); }
-.keyboard-guide-computer-row.blacks .keyboard-guide-computer-key.pressed:not(.gap) { background:#74a879; box-shadow:inset 0 0 0 2px #d8efbc; }
+.keyboard-guide-computer-row.top .keyboard-guide-computer-key.pressed:not(.gap) { background:#74a879; box-shadow:inset 0 0 0 2px #d8efbc; }
 .keyboard-guide-progress { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:10px; margin-top:13px; padding:9px 12px; border-radius:10px; background:#edf6e9; color:#66806b; }
 .keyboard-guide-progress > span:first-child { color:#4f8059; font-size:9px; font-weight:850; letter-spacing:.08em; }
 .keyboard-guide-progress strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; }
@@ -1498,7 +1497,7 @@ button, input, select, textarea { font-family: inherit; }
   .keyboard-guide-card > p { padding-right:26px; }
   .keyboard-guide-piano { padding:7px; }
   .keyboard-guide-computer-map { margin-top:9px; padding:7px; }
-  .keyboard-guide-computer-rows { min-width:520px; }
+  .keyboard-guide-computer-rows { min-width:624px; }
   .keyboard-guide-computer-key { min-height:44px; }
   .keyboard-guide-input { padding-right:0 !important; }
 }
@@ -1836,12 +1835,12 @@ button, input, select, textarea { font-family: inherit; }
 :root[data-theme="dark"] .keyboard-guide-computer-key { border-color:#4b6651; background:#283c2e; box-shadow:0 2px 0 #17261b; color:#edf5ea; }
 :root[data-theme="dark"] .keyboard-guide-computer-key b { background:#37513d; color:#f3faef; }
 :root[data-theme="dark"] .keyboard-guide-computer-key small { color:#b9d0bb; }
-:root[data-theme="dark"] .keyboard-guide-computer-row.blacks .keyboard-guide-computer-key:not(.gap) { border-color:#8ea78d; background:#15241a; }
+:root[data-theme="dark"] .keyboard-guide-computer-row.top .keyboard-guide-computer-key:not(.gap) { border-color:#8ea78d; background:#15241a; }
 :root[data-theme="dark"] .keyboard-guide-computer-key.gap { border-color:#516a54; background:#203126; opacity:.86; }
 :root[data-theme="dark"] .keyboard-guide-computer-key.gap b,
 :root[data-theme="dark"] .keyboard-guide-computer-key.gap small { color:#a5b8a5; }
-:root[data-theme="dark"] .keyboard-guide-computer-row.whites [data-computer-key^="Numpad"] { background:#223543; border-color:#4d6d80; color:#e4f2f8; }
-:root[data-theme="dark"] .keyboard-guide-computer-row.whites [data-computer-key^="Numpad"] b { background:#304d5f; color:#f0f8fa; }
+:root[data-theme="dark"] .keyboard-guide-computer-row.bottom [data-computer-key^="Numpad"] { background:#223543; border-color:#4d6d80; color:#e4f2f8; }
+:root[data-theme="dark"] .keyboard-guide-computer-row.bottom [data-computer-key^="Numpad"] b { background:#304d5f; color:#f0f8fa; }
 :root[data-theme="dark"] .keyboard-guide-progress { background:#263c2c; }
 :root[data-theme="dark"] .keyboard-guide-progress > span:last-child { background:#35533c; color:#e0f0d7; }
 :root[data-theme="dark"] .keyboard-guide-example { border-color:#5a5d3f; background:#30331f; }

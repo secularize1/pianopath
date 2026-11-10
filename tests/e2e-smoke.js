@@ -771,6 +771,14 @@ const PLAY_ALONG_KEYS = { '0': 'z', '1': 's', '2': 'x', '3': 'd', '4': 'c', '5':
     await page.waitForTimeout(300);
     assert.equal(await page.locator('.repertoire-card').count(), 10, `${name}: repertoire cards missing`);
     assert.ok(await page.locator('#repertoireFilters .filter-chip').count() >= 6, `${name}: repertoire filters missing`);
+    if (name === 'mobile') {
+      const secondaryControls = await page.evaluate(() => [...document.querySelectorAll('#repertoireFilters .filter-chip, .repertoire-actions .btn, .repertoire-actions .text-button')].map((element) => {
+        const box = element.getBoundingClientRect();
+        return { text: (element.textContent || '').trim(), height: box.height };
+      }));
+      assert.ok(secondaryControls.length > 0, `${name}: repertoire secondary controls missing`);
+      assert.equal(secondaryControls.every((item) => item.height >= 44), true, `${name}: repertoire touch targets are too small`);
+    }
     await page.locator('[data-repertoire-open="ode-to-joy"]').click();
     await page.waitForTimeout(250);
     assert.equal(await page.locator('#repertoireModal').isVisible(), true, `${name}: repertoire modal missing`);

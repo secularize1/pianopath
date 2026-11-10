@@ -1659,3 +1659,17 @@ button, input, select, textarea { font-family: inherit; }
   .home-secondary { gap: 2px; }
   .home-warm-link { justify-content: flex-start; text-align: left; }
 }
+
+
+/* === 1.42 secondary action touch sizing === */
+@media (pointer: coarse) {
+  .phase-tab,
+  .filter-chip { min-height: 44px; padding: 10px 12px; }
+  .search-field { min-height: 44px; }
+  .search-field input { min-height: 30px; }
+  .repertoire-actions .btn,
+  .repertoire-actions .text-button,
+  .resource-footer a,
+  .source-rules .text-button { min-height: 44px; display: inline-flex; align-items: center; }
+  .repertoire-actions { flex-wrap: wrap; }
+}

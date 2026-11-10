@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.2 — 2026-11-10
+
+- Raised secondary touch targets across the learning path, teaching library and repertoire screens to 44px.
+- Kept filter chips, search fields and repertoire actions aligned without horizontal overflow at 320px.
+- Added an explicit mobile regression for repertoire filters and actions.
+- Preserved the onboarding title-first focus behavior from 1.41.1.
+
 ## 1.41.1 — 2026-11-10
 
 - Fixed explicit `data-autofocus` precedence inside modal dialogs.
